@@ -2,6 +2,14 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.2 — 2026-09-14 — Terrain, ocean and planetary depth
+- Lab-only Run B on `people-choice/v0.10`; preserves the exact v0.10.1 source tag and saved rollback package.
+- Adds view-dependent ETOPO relief, grazing slope light, restrained point sizing and quieter lowlands/body competition. City and street retain their existing geometry.
+- Reuses 20,692 ocean samples as a faint, coherent moving surface; the remaining floor is stationary and recedes more clearly in depth views. The existing T+12–18s awakening owns ocean motion.
+- Strengthens shelf/basin separation and anchors Challenger Deep's existing beacon to sampled bathymetry. Aircraft clear sculpted terrain; all motion-layer counts and routes remain unchanged.
+- Separates desktop depth/Astra hit areas and clears the short-phone orbit rail. Adds no dataset, helper mesh, particle population or framework.
+- Tuning, visual comparison, verification and limits: `docs/PEOPLES-CHOICE-RUN-B.md`. Physical-phone and authenticated voice testing remain separate.
+
 ## v0.10.1 — 2026-09-13 — Post-Genesis awakening
 - Lab-only choreography release on `people-choice/v0.10`, following preserved Run A v0.10.0.
 - Adds one renderer-owned 18-second awakening clock starting at exact geographic settlement: a 2.5-second breath, seeded satellites, corridor-prioritized aircraft and ships, feathered cable drawing and gradual ocean motion.

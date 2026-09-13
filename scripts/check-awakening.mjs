@@ -70,7 +70,7 @@ const shells=()=>clouds().filter(o=>o.userData.shell);
 const opts={glow:1.15,shimmer:1.1,depth:true,threads:.55,density:.85,borders:false,motion:true};
 const stats=()=>['satellites','aircraft','ships','cables'].map(layer=>Number(host.dataset[layer+'Awake']));
 tick(10800);assert.equal(engine.worldState().genesis.progress,1);assert.equal(engine.worldState().busy,false,'Awakening is never an input lock');assert.equal(host.dataset.awakeningSeconds,'0.000');assert.deepEqual(stats(),[0,0,0,0]);assert.ok(shells().every(o=>o.geometry.drawRange.count===0));
-const sea=clouds().find(o=>o.userData.spatial&&o.material.uniforms.seaMotion.value===0&&o.material.uniforms.tint.value.getHexString()==='536c77');assert.ok(sea);assert.equal(sea.material.uniforms.opacity.value,1.15,'Ocean geography remains present');
+const sea=clouds().find(o=>o.userData.spatial&&o.material.uniforms.seaMotion.value===0&&o.userData.terrainKind===2);assert.ok(sea);assert.equal(sea.material.uniforms.opacity.value,1.60,'Ocean geography remains present');
 tick(2000);assert.deepEqual(stats(),[0,0,0,0]);tick(500);assert.deepEqual(stats(),[0,0,0,0]);assert.equal(discoveries.at(-1),true);
 tick(1000);assert.ok(stats()[0]>0&&stats()[0]<72);assert.deepEqual(stats().slice(1),[0,0,0]);const first=stats()[0];
 const partial=shells().find(o=>o.userData.shell==='satellites');assert.ok(Array.from(partial.geometry.getAttribute('brightness').array).some(b=>b>0&&b<.1),'Individual light/trail fade');

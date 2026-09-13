@@ -254,3 +254,7 @@ html{color-scheme:dark}.story-sheet,.about-dialog,.tuning-dialog{scrollbar-width
  .experience:has(.depth-toggle[aria-expanded=true]) [data-astra-panel]:not([data-live=true]){visibility:hidden}
  .experience:has(.depth-toggle[aria-expanded=true]) .opening{opacity:0}
 }
+
+/* Depth study and Astra retain separate desktop hit areas. */
+@media(min-width:701px){.experience:has(.depth-toggle[aria-expanded=true]){--astra-dock-bottom:360px}.experience:has(.depth-toggle[aria-expanded=true]) .depth-study{bottom:150px}.experience:has(.depth-toggle[aria-expanded=true]) .terra-invitation{top:100px;bottom:auto}}
+@media(max-width:700px) and (max-height:720px){.stage-orbit .view-tools{top:29%}}

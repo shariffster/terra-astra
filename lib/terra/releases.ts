@@ -1,13 +1,27 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.1';
+export const currentVersion = '0.10.2';
 
 export const releases = [
+  {
+    version: '0.10.2',
+    date: '2026-09-14',
+    dateLabel: '14 September 2026',
+    title: 'Earth has form — Terrain, ocean and planetary depth',
+    milestone: 'This Lab build',
+    changes: [
+      'Mountains rise more clearly at low angles. Quiet lowlands, pale ridges and warm settlements retain the celestial Earth.',
+      'A faint ocean surface awakens after ships and hidden connections. Shelves and seafloor sit beneath it; the existing ocean samples carry both layers.',
+      'Horizon reveals surface form, Cutaway exposes the interior, and Surface reference holds the camera while the relief flattens. Challenger Deep’s light now descends to sampled bathymetry.',
+      'Aircraft clear the sculpted land. Ships, cables, destinations, Genesis and the awakening order retain their existing roles.',
+    ],
+    review: 'Compared with preserved v0.10.1 in native Mac WebGL at desktop, 390×844 and 375×667. Globe, depth views, five destinations, supported scales, replay, early Astra input and graphics recovery were exercised. Relief remains artistically exaggerated; ocean flow and interior light are interpretive. Physical-phone and authenticated voice testing remain separate. People’s Choice Lab only.',
+  },
   {
     version: '0.10.1',
     date: '2026-09-13',
     dateLabel: '13 September 2026',
     title: 'Earth takes a breath — Post-Genesis awakening',
-    milestone: 'This Lab build',
+    milestone: 'Preserved awakening checkpoint',
     changes: [
       'Earth settles into a quiet 2.5-second breath. Orbit, aircraft, ships and hidden sea connections then awaken progressively, reaching the full living world within 18 seconds.',
       'The same lights and routes appear in a repeatable order, with tails growing behind their own objects. The idle Earth turns gently faster.',

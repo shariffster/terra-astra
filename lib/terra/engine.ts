@@ -15,6 +15,7 @@ import { scintillationGLSL } from './scintillation';
 import type { PersonalPlaces, TransformationState } from './personal-contract';
 import { openingFrame, transformationEase, transformationGLSL } from './transformation';
 import { personalAstra, personalArc, personalCamera, personalGeography } from './personal-rendering';
+import { TERRAIN, terrainTuning, terrainVertexGLSL } from './terrain-material';
 import { reliefRadius, sampleElevation, spatialBlend, spatialVertexGLSL, studyRegions, type EarthView, type StudyRegion } from './spatial';
 export type Stage = 'orbit'|'descending'|'city'|'ascending';
 export type ViewOptions = { glow:number; shimmer:number; depth:boolean; threads:number; density:number; borders:boolean; motion:boolean };
@@ -30,10 +31,11 @@ uniform float time;uniform float motion;uniform float pixelRatio;uniform float z
 varying float vB;varying float vG;varying float vP;
 ${scintillationGLSL}
 ${transformationGLSL}
+${terrainVertexGLSL}
 ${spatialVertexGLSL}
 ${genesisGLSL}
 float shellVisibility(vec3 world){if(shell<.5)return 1.0;vec3 ray=normalize(world-cameraPosition);float b=dot(cameraPosition,ray),d=b*b-dot(cameraPosition,cameraPosition)+1.0;if(d<=0.0)return 1.0;float hit=-b-sqrt(d);return hit>0.0&&hit<distance(world,cameraPosition)-.001?0.0:1.0;}
-void main(){vec3 world=genesisPosition(openedPosition(spatialPosition(position)));vec4 p=modelViewMatrix*vec4(world,1.0);gl_Position=projectionMatrix*p;vec3 light=scintillate(time,phase,motion,sparkle,signature);vB=brightness*light.x*shellVisibility(world)*smoothstep(revealAt,revealAt+.18,reveal)*mix(spatialVisibility(world),1.0,genesisEnabled*(1.0-genRamp(.78,1.0,genesis)))*mix(1.0,genesisExposure,genesisEnabled);vG=light.y;vP=phase;gl_PointSize=clamp(starSize*pixelRatio*4.1*zoomFactor*sizeScale*light.z*mix(1.0,genesisSize,genesisEnabled)*mix(1.0,clamp(cameraDistance/max(.01,-p.z),.55,2.6),max(spatial*depthMix,opening)),.75*pixelRatio,40.0*pixelRatio);}`;
+void main(){vec3 world=genesisPosition(openedPosition(spatialPosition(position)));vec2 terrain=terrainLight(position);vec4 p=modelViewMatrix*vec4(world,1.0);gl_Position=projectionMatrix*p;vec3 light=scintillate(time,phase,motion,sparkle,signature);vB=mix(brightness,max(brightness,.24),vMarine)*light.x*terrain.x*shellVisibility(world)*smoothstep(revealAt,revealAt+.18,reveal)*mix(spatialVisibility(world),1.0,genesisEnabled*(1.0-genRamp(.78,1.0,genesis)))*mix(1.0,genesisExposure,genesisEnabled);vG=light.y;vP=phase;gl_PointSize=clamp(starSize*pixelRatio*4.1*zoomFactor*sizeScale*light.z*terrain.y*mix(1.0,genesisSize,genesisEnabled)*mix(1.0,clamp(cameraDistance/max(.01,-p.z),.55,2.6),max(spatial*depthMix,opening)),.75*pixelRatio,40.0*pixelRatio);}`;
 const fragment=`uniform vec3 tint;uniform float opacity;uniform float glow;uniform float soft;varying float vB;varying float vG;varying float vP;
 void main(){vec2 p=gl_PointCoord-.5;float r=length(p);if(r>.5)discard;float core=exp(-r*r*205.0);float halo=exp(-r*r*24.0)*.27*glow;float ray=exp(-abs(p.x)*120.0)*exp(-abs(p.y)*12.0)+exp(-abs(p.y)*120.0)*exp(-abs(p.x)*12.0);float flare=ray*(.035*step(.96,fract(vP*13.37))+.42*vG);float a=mix(core+halo+flare,exp(-r*r*14.0)*.18*glow,soft)*vB*opacity;vec3 color=mix(tint,vec3(1.0),core*.38+min(vG,.8)*.2);gl_FragColor=vec4(color,a);}`;
 export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,callbacks:Callbacks,signal:AbortSignal):Promise<Engine>{
@@ -48,6 +50,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const homeAltitude=()=>{const w=host.clientWidth,h=host.clientHeight,r=Math.min(w*(w<700?.44:.30),h*.38);return Math.max(2.15,Math.sqrt(1+Math.pow(h/(2*Math.tan(21*R)*r),2))-1);};
  let disposed=false,raf=0,stage:Stage='orbit',lat=19,lon=95,alt=homeAltitude(),targetLat=lat,targetLon=lon,targetAlt=alt,selected:Story|null=null,remembered:Story|null=null;
  let remembering=false,settledAt:number|null=null,arrivalSent=false,stillFrames=0,graphicsLost=false;
+ let terrain=terrainTuning(3,0,0);
  let viewMode:EarthView='globe',region:StudyRegion='indonesia',tilt=0,targetTilt=0,cut=0,depth=1;
  let genesisProgress=matchMedia('(prefers-reduced-motion: reduce)').matches?1:0,genesisStarted=0,lastGenesis=-Infinity,particleOffset=0;
  const awakening=new AwakeningTimeline();let discoveryReady=false;
@@ -69,10 +72,29 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  function geometry(positions:number[]|Float32Array){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometries.push(g);return g;}
  function cloud(data:Float32Array,tint:string,feather:boolean|((lon:number,lat:number)=>number)=false){const count=data.length/6;const p=new Float32Array(count*3),b=new Float32Array(count),s=new Float32Array(count),ph=new Float32Array(count);for(let i=0;i<count;i++){p.set(data.subarray(i*6,i*6+3),i*3);b[i]=data[i*6+3]*(feather?(typeof feather==='function'?feather:cityFeather)(Math.atan2(p[i*3],p[i*3+2])/R,Math.atan2(p[i*3+1],Math.hypot(p[i*3],p[i*3+2]))/R):1);s[i]=data[i*6+4];ph[i]=data[i*6+5];}
  const g=geometry(p);const ids=new Float32Array(count),seeds=new Float32Array(count*3);for(let i=0;i<count;i++){ids[i]=particleOffset+i+1;seeds.set([genesisSeed(ids[i],1),genesisSeed(ids[i],2),genesisSeed(ids[i],3)],i*3);}particleOffset+=count;g.setAttribute('particleId',new THREE.BufferAttribute(ids,1));g.setAttribute('genesisSeed',new THREE.BufferAttribute(seeds,3));g.setAttribute('brightness',new THREE.BufferAttribute(b,1));g.setAttribute('starSize',new THREE.BufferAttribute(s,1));g.setAttribute('phase',new THREE.BufferAttribute(ph,1));g.setAttribute('revealAt',new THREE.BufferAttribute(new Float32Array(count),1));
- const m=new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:fragment,uniforms:{genesis:{value:1},genesisEnabled:{value:0},genesisExposure:{value:1},genesisSize:{value:1},tint:{value:new THREE.Color(tint)},opacity:{value:1},glow:{value:1},time:{value:0},motion:{value:1},pixelRatio:{value:renderer.getPixelRatio()},zoomFactor:{value:1},sizeScale:{value:1},reveal:{value:1},sparkle:{value:1},signature:{value:-1},shell:{value:0},opening:{value:0},openingFrame:{value:openFrame},personalStar:{value:0},seaMotion:{value:0},spatial:{value:0},depthMix:{value:0},cutaway:{value:0},cutNormal:{value:cutNormal},cutFacing:{value:cutFacing},cameraDistance:{value:3},soft:{value:0}},transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending});materials.push(m);const points=new THREE.Points(g,m);points.frustumCulled=false;earth.add(points);const c={points,material:m,count};clouds.push(c);return c;}
+ const m=new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:fragment,uniforms:{genesis:{value:1},genesisEnabled:{value:0},genesisExposure:{value:1},genesisSize:{value:1},tint:{value:new THREE.Color(tint)},opacity:{value:1},glow:{value:1},time:{value:0},motion:{value:1},pixelRatio:{value:renderer.getPixelRatio()},zoomFactor:{value:1},sizeScale:{value:1},reveal:{value:1},sparkle:{value:1},signature:{value:-1},shell:{value:0},opening:{value:0},openingFrame:{value:openFrame},personalStar:{value:0},terrainKind:{value:0},terrainLand:{value:1},terrainFloor:{value:1},terrainStudy:{value:0},terrainReady:{value:0},seaMotion:{value:0},spatial:{value:0},depthMix:{value:0},cutaway:{value:0},cutNormal:{value:cutNormal},cutFacing:{value:cutFacing},cameraDistance:{value:3},soft:{value:0}},transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending});Object.assign(m.defaultAttributeValues,{terrainData:[0,0,0,0]});materials.push(m);const points=new THREE.Points(g,m);points.frustumCulled=false;earth.add(points);const c={points,material:m,count};clouds.push(c);return c;}
  function lines(data:Float32Array|number[],color:string,feather:boolean|((lon:number,lat:number)=>number)=false){const m=new THREE.LineBasicMaterial({color,transparent:true,opacity:.2,depthWrite:false,blending:THREE.AdditiveBlending});materials.push(m);const o=new THREE.LineSegments(geometry(data),m);o.frustumCulled=false;earth.add(o);if(feather){const a=o.geometry.getAttribute('position'),colors=new Float32Array(a.count*3);for(let i=0;i<a.count;i++){const w=(typeof feather==='function'?feather:cityFeather)(Math.atan2(a.getX(i),a.getZ(i))/R,Math.atan2(a.getY(i),Math.hypot(a.getX(i),a.getZ(i)))/R);colors.set([w,w,w],i*3);}o.geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));m.vertexColors=true;}return o;}
  async function load(name:string){const res=await fetch('/data/'+name+'.bin',{signal});if(!res.ok)throw new Error('Could not load '+name);const b=await res.arrayBuffer();if(b.byteLength%4)throw new Error('Invalid geographic data');return new Float32Array(b);}
  function spatialCloud(data:Float32Array,tint:string){const c=cloud(data,tint);c.material.uniforms.spatial.value=1;c.points.userData.spatial=true;c.points.userData.sampleBudget=22000;c.points.userData.spatialExposure=1.8;return c;}
+ // One-time slope attributes from the existing coarse grid. No per-frame terrain buffer uploads.
+ function terrainCloud(c:Cloud,kind:number,gradients=false){
+  c.material.uniforms.terrainKind.value=kind;c.points.userData.terrainKind=kind;
+  if(!gradients)return;
+  const p=c.points.geometry.getAttribute('position'),field=new Float32Array(p.count*4);
+  for(let i=0;i<p.count;i++){
+   const x=p.getX(i),y=p.getY(i),z=p.getZ(i),r=Math.hypot(x,y,z),lon=Math.atan2(x,z)/R,lat=Math.atan2(y,Math.hypot(x,z))/R;
+   const h=sampleElevation(elevation,1440,720,lon,lat);
+   const east=(reliefRadius(sampleElevation(elevation,1440,720,lon+.25,lat))-reliefRadius(sampleElevation(elevation,1440,720,lon-.25,lat)))/(.5*R*Math.max(.15,Math.cos(lat*R)));
+   const north=(reliefRadius(sampleElevation(elevation,1440,720,lon,Math.min(89.9,lat+.25)))-reliefRadius(sampleElevation(elevation,1440,720,lon,Math.max(-89.9,lat-.25))))/(.5*R);
+   const ex=Math.cos(lon*R),ez=-Math.sin(lon*R),nx=-Math.sin(lat*R)*Math.sin(lon*R),ny=Math.cos(lat*R),nz=-Math.sin(lat*R)*Math.cos(lon*R);
+   // Cap exaggerated normals at steep faces to avoid sparkling sawtooth ridges.
+   const e=clamp(east,-1.2,1.2),n=clamp(north,-1.2,1.2);
+   const ax=x/r-e*ex-n*nx,ay=y/r-n*ny,az=z/r-e*ez-n*nz,len=Math.hypot(ax,ay,az);
+   const metres=kind===2?-11000*Math.pow(Math.max(0,(1-r)/.070),1/.65):h;
+   field.set([ax/len,ay/len,az/len,metres/11000],i*4);
+  }
+  c.points.geometry.setAttribute('terrainData',new THREE.BufferAttribute(field,4));
+ }
  function lift(data:Float32Array){const out=data.slice();for(let i=0;i<out.length;i+=6){const v=new THREE.Vector3(out[i],out[i+1],out[i+2]);const h=sampleElevation(elevation,1440,720,Math.atan2(v.x,v.z)/R,Math.atan2(v.y,Math.hypot(v.x,v.z))/R);v.normalize().multiplyScalar(reliefRadius(Math.max(0,h))+.00004);out.set(v.toArray(),i);}return out;}
  const sphereG=new THREE.SphereGeometry(1,96,64);geometries.push(sphereG);const sphereM=new THREE.MeshBasicMaterial({color:0x020609});materials.push(sphereM);const sphere=new THREE.Mesh(sphereG,sphereM);earth.add(sphere);
  // A very restrained atmospheric edge; its surface fades away during descent.
@@ -101,7 +123,8 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  if(signal.aborted){destroy();throw new DOMException('Aborted','AbortError');}elevation=grid;
  land=spatialCloud(lift(data[0]),'#b9b0a0');coast=spatialCloud(lift(data[1]),'#e6dabe');lights=spatialCloud(lift(data[2]),'#eed7a8');coastLines=lines(data[3],'#789dab');borders=lines(data[4],'#89a8b5');
  for(const c of [land,coast,lights]){c.points.userData.sampleBudget=5000;c.points.userData.spatialExposure=1;}
- reliefLand=spatialCloud(data[5],'#8f9598');reliefOcean=spatialCloud(data[6],'#536c77');body=spatialCloud(data[7],'#a79a83');interior=spatialCloud(data[8],'#b4a17f');haze=spatialCloud(data[9],'#887f75');halo=spatialCloud(data[10],'#c7d0d6');haze.material.uniforms.soft.value=1;reliefOcean.material.uniforms.seaMotion.value=1;
+ reliefLand=spatialCloud(data[5],'#8f9598');reliefOcean=spatialCloud(data[6],'#718084');body=spatialCloud(data[7],'#a79a83');interior=spatialCloud(data[8],'#b4a17f');haze=spatialCloud(data[9],'#887f75');halo=spatialCloud(data[10],'#c7d0d6');haze.material.uniforms.soft.value=1;reliefOcean.material.uniforms.seaMotion.value=1;
+ terrainCloud(land,1);terrainCloud(coast,3);terrainCloud(lights,4);terrainCloud(reliefLand,1,true);terrainCloud(reliefOcean,2,true);
  scene.userData.spatial={depth:1,cut:0,cutNormal,cutFacing};
  }catch(e){destroy();throw e;}
  function setView(mode:EarthView){if(stage!=='orbit'||flight||morph||genesisProgress<1||openProgress>0)return;viewMode=mode;targetTilt=mode==='oblique'?68:0;targetAlt=mode==='oblique'?.62:targetId&&scaleTier==='region'?.20:homeAltitude();if(mode!=='globe'){const r=WORLD_TARGETS.find(t=>t.id===targetId)??studyRegions[region];targetLat=r.lat;targetLon=lon+wrap(r.lon-lon);}if(mode==='cutaway'){cutFacing.copy(geo(targetLon,targetLat));cutNormal.copy(geo(targetLon+90,0));}lastInteraction=performance.now();stillFrames=0;callbacks.interact();callbacks.view?.(mode);}
@@ -150,7 +173,12 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
     const fraction=k/(v.trailCount-1),tail=1-k/v.trailCount;
     v.brightness.setX(i*v.trailCount+k,(k===0?1.65:.55*Math.pow(tail,1.4))*signalReveal(v.layer,age,fraction,options.motion));
     // A tail extends behind its own head as it appears, never a complete old arc.
-    if(visibility>=.002){sampleSignal(v.records[i],nowSeconds,signalOutput,v.records[i].trailSeconds*fraction*Math.min(1,Math.max(0,age)/AWAKENING[v.layer].tail));v.positions.set(signalOutput,(i*v.trailCount+k)*3);}
+    if(visibility>=.002){sampleSignal(v.records[i],nowSeconds,signalOutput,v.records[i].trailSeconds*fraction*Math.min(1,Math.max(0,age)/AWAKENING[v.layer].tail));if(v.layer==='aircraft'&&depth>0){
+     const [x,y,z]=signalOutput,r=Math.hypot(x,y,z),h=sampleElevation(elevation,1440,720,Math.atan2(x,z)/R,Math.atan2(y,Math.hypot(x,z))/R);
+     const landRadius=reliefRadius(Math.max(0,h));
+     const gain=terrain.land*(1+TERRAIN.grazingLand*terrain.study);
+     const clearance=((landRadius-1)*gain+(h>0?.008:0))*depth;for(let axis=0;axis<3;axis++)signalOutput[axis]*=(r+clearance)/r;
+    }v.positions.set(signalOutput,(i*v.trailCount+k)*3);}
    }
   }
   v.cloud.points.geometry.setDrawRange(0,active*v.trailCount);v.brightness.needsUpdate=true;
@@ -177,7 +205,19 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  }
  function resetAwakening(){awakening.reset();time=0;for(const v of signalViews){v.cloud.points.geometry.setDrawRange(0,0);v.cloud.material.uniforms.opacity.value=0;v.brightness.array.fill(0);v.brightness.needsUpdate=true;}updateSea(0,0);notifyAwakening();}
  let navigationHighlight:Cloud|null=null,highlightedTargetId:string|null=null;
- function highlight(id:string|null){highlightedTargetId=id;const target=WORLD_TARGETS.find(t=>t.id===id);if(!target){if(navigationHighlight)navigationHighlight.material.uniforms.opacity.value=0;return;}if(!navigationHighlight){navigationHighlight=cloud(new Float32Array([...geo(target.lon,target.lat,1.013).toArray(),1.5,3.8,1.27]),'#e5dfff');navigationHighlight.points.userData.highlight=true;}else{(navigationHighlight.points.geometry.getAttribute('position') as THREE.BufferAttribute).setXYZ(0,...geo(target.lon,target.lat,1.013).toArray() as [number,number,number]);navigationHighlight.points.geometry.getAttribute('position').needsUpdate=true;}navigationHighlight.material.uniforms.opacity.value=1;}
+ function highlight(id:string|null){
+  highlightedTargetId=id;const target=WORLD_TARGETS.find(t=>t.id===id);
+  if(!target){if(navigationHighlight)navigationHighlight.material.uniforms.opacity.value=0;return;}
+  const undersea=id==='challenger-deep';
+  const radius=undersea?reliefRadius(Math.min(0,sampleElevation(elevation,1440,720,target.lon,target.lat)))+.0012:1.013;
+  const position=geo(target.lon,target.lat,radius);
+  if(!navigationHighlight){navigationHighlight=cloud(new Float32Array([...position.toArray(),1.5,3.8,1.27]),'#e5dfff');navigationHighlight.points.userData.highlight=true;}
+  else{(navigationHighlight.points.geometry.getAttribute('position') as THREE.BufferAttribute).setXYZ(0,position.x,position.y,position.z);navigationHighlight.points.geometry.getAttribute('position').needsUpdate=true;}
+  // The existing beacon descends with sampled bathymetry instead of floating in air.
+  navigationHighlight.points.userData.spatial=undersea;navigationHighlight.points.userData.terrainKind=undersea?5:0;
+  navigationHighlight.material.uniforms.spatial.value=undersea?1:0;navigationHighlight.material.uniforms.terrainKind.value=undersea?5:0;
+  navigationHighlight.material.uniforms.opacity.value=1;
+ }
  function release(g:THREE.BufferGeometry,m:THREE.Material){g.dispose();m.dispose();const gi=geometries.indexOf(g),mi=materials.indexOf(m);if(gi>=0)geometries.splice(gi,1);if(mi>=0)materials.splice(mi,1);}
  function setStoryInset(pixels:number){stillFrames=0;storyInset=pixels;if(selected&&host.clientWidth<700){const available=Math.max(120,host.clientHeight-pixels-115);const span=Math.max(...selected.places.map(p=>p.lat))-Math.min(...selected.places.map(p=>p.lat));targetAlt=Math.max(.0019,span*R*host.clientHeight/(2*Math.tan(21*R)*available)*1.18);}}
  function clearStory(){stillFrames=0;if(storyCloud){storyCloud.points.visible=false;}if(storyLines)storyLines.visible=false;selected=null;}
@@ -294,7 +334,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  if(genesisProgress<1){genesisProgress=options.motion?clamp((now-genesisStarted)/GENESIS_DURATION,0,1):1;if(genesisProgress===1)awakening.settle(options.motion);notifyGenesis(genesisProgress===1);}
  notifyAwakening();reliefOcean.material.uniforms.seaMotion.value=awakening.ocean;
  const born=genesisLight(genesisProgress),opened=transformationEase(openProgress);
- const levels=lightLevels(alt),global=levels.global;const ease=options.motion?1-Math.exp(-dt*3):1;tilt=THREE.MathUtils.lerp(tilt,targetTilt,ease);cut=THREE.MathUtils.lerp(cut,viewMode==='cutaway'&&options.depth?1:0,ease);depth=THREE.MathUtils.lerp(depth,spatialBlend(alt,options.depth),ease);scene.userData.spatial={depth,cut,cutNormal,cutFacing};sphere.visible=genesisProgress>=.94&&cut<.02&&opened<.995;sphere.scale.setScalar((1-depth*.30)*(1-opened));scene.userData.coreRadius=sphere.visible?(1-depth*.30)*(1-opened):0;scene.userData.opening=openProgress;scene.userData.genesis=genesisProgress;focus=THREE.MathUtils.lerp(focus,selected?1:0,options.motion?1-Math.exp(-dt*3.2):1);const cityDim=1-focus*.64;const reveal=revealProgress((now-storyStarted)/1000,options.motion);
+ const levels=lightLevels(alt),global=levels.global;const ease=options.motion?1-Math.exp(-dt*3):1;tilt=THREE.MathUtils.lerp(tilt,targetTilt,ease);cut=THREE.MathUtils.lerp(cut,viewMode==='cutaway'&&options.depth?1:0,ease);depth=THREE.MathUtils.lerp(depth,spatialBlend(alt,options.depth),ease);terrain=terrainTuning(alt,tilt,cut);scene.userData.spatial={depth,cut,cutNormal,cutFacing};sphere.visible=genesisProgress>=.94&&cut<.02&&opened<.995;sphere.scale.setScalar((1-depth*.30)*(1-opened));scene.userData.coreRadius=sphere.visible?(1-depth*.30)*(1-opened):0;scene.userData.opening=openProgress;scene.userData.genesis=genesisProgress;focus=THREE.MathUtils.lerp(focus,selected?1:0,options.motion?1-Math.exp(-dt*3.2):1);const cityDim=1-focus*.64;const reveal=revealProgress((now-storyStarted)/1000,options.motion);
  north.copy(geo(lon,lat+90));camera.position.copy(geo(lon,lat)).addScaledVector(geo(lon,lat),alt*Math.cos(tilt*R)).addScaledVector(north,-alt*Math.sin(tilt*R));camera.up.copy(north);camera.lookAt(geo(lon,lat).multiplyScalar(born.settled));const w=host.clientWidth,h=host.clientHeight,mobile=w<700;const offsetY=mobile?(selected?(storyInset?Math.max(0,(storyInset-70)/2):h*.225):openProgress>0?h*.25:personalPlaces&&stage==='orbit'?-h*.09:viewMode==='cutaway'?h*.11:stage==='orbit'&&scaleTier==='planet'?h*.015:-h*.035):0;smoothCameraOffset.lerp(new THREE.Vector2(mobile?0:-w*(stage==='city'?(SPECIAL_CITIES[targetId??'']?.desktopOffset??.17):.17)*born.settled,offsetY*born.settled),frameCount===1||!options.motion?1:1-Math.exp(-dt*4));camera.setViewOffset(w,h,smoothCameraOffset.x,smoothCameraOffset.y,w,h);camera.near=Math.max(.0000004,alt*.002);camera.far=65;camera.updateProjectionMatrix();camera.updateMatrixWorld();
  // Project the actual places: the merge follows their visible separation at every viewport.
  let spread=0;if(remembering&&remembered){const places=remembered.places.map(p=>geo(p.lon,p.lat,1.00003).project(camera));for(let i=0;i<places.length;i++)for(let j=i+1;j<places.length;j++)spread=Math.max(spread,Math.hypot((places[i].x-places[j].x)*w/2,(places[i].y-places[j].y)*h/2));}
@@ -316,7 +356,8 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  for(const c of [reliefLand,reliefOcean,body,interior])c.points.geometry.setDrawRange(0,Math.floor(c.count*quality*(c===reliefLand?options.density:1)));
  const nearDetail=clamp((1.5-alt)/.9,0,1);
  reliefLand.points.userData.sampleBudget=36000+nearDetail*50000;reliefOcean.points.userData.sampleBudget=60000+nearDetail*100000;
- reliefLand.material.uniforms.opacity.value=depth*(1.65-opened*.28);reliefOcean.material.uniforms.opacity.value=depth*(1.15-opened*.46)*(1+(targetId==='challenger-deep'&&scaleTier==='region'?2*(1-transformationEase((alt-.75)/.60)):0));body.material.uniforms.opacity.value=depth*(1.30-opened*.55);interior.material.uniforms.opacity.value=depth*(.82+cut*1.65+opened*.15);haze.material.uniforms.opacity.value=depth*(.32+cut*.35+opened*.05);halo.material.uniforms.opacity.value=depth*(.82-opened*.22);
+ reliefLand.material.uniforms.sizeScale.value=mobile?1.10:1;reliefOcean.material.uniforms.sizeScale.value=mobile?1.18:1;
+ reliefLand.material.uniforms.opacity.value=depth*(1.85+terrain.study*.65-opened*.48);reliefOcean.material.uniforms.opacity.value=depth*(1.60+terrain.study*1.35-opened*.70)*(mobile?1.35:1)*(1+(targetId==='challenger-deep'&&scaleTier==='region'?.35:0));body.material.uniforms.opacity.value=depth*(1.30-opened*.55)*(1-terrain.study*.38);interior.material.uniforms.opacity.value=depth*(.82+cut*1.65+opened*.15);haze.material.uniforms.opacity.value=depth*(.32+cut*.35+opened*.05);halo.material.uniforms.opacity.value=depth*(.82-opened*.22);
  if(cityStars){cityStars.material.uniforms.opacity.value=singaporeVisibility*levels.city*.70*cityDim;cityStars.material.uniforms.sizeScale.value=levels.citySize;cityStars.points.geometry.setDrawRange(0,Math.floor(cityStars.count*levels.cityFraction*cityScreenBudget(w,h)));}
  if(cityCoast){cityCoast.material.uniforms.opacity.value=singaporeVisibility*levels.coast*cityDim;cityCoast.material.uniforms.sizeScale.value=.60;}
  if(streetLines)(streetLines.material as THREE.LineBasicMaterial).opacity=singaporeVisibility*levels.city*options.threads*.16*cityDim;
@@ -330,14 +371,14 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
    for(let i=0;i<3;i++)personalProjected[i].copy(personalEarth[i]).lerp(personalStars[i],opened);
    if(personalLines){personalLines.visible=stage==='orbit'&&genesisProgress>.96;const a=personalLines.geometry.getAttribute('position') as THREE.BufferAttribute;const values=a.array as Float32Array;for(let i=0;i<values.length;i++)values[i]=personalLineEarth[i]+(personalLineAstra[i]-personalLineEarth[i])*opened;a.needsUpdate=true;(personalLines.material as THREE.LineBasicMaterial).opacity=.25+opened*.30;}
  }
- for(const c of clouds){const u=c.material.uniforms;u.genesis.value=genesisProgress;u.genesisEnabled.value=c.points.userData.spatial?1:0;u.genesisExposure.value=born.exposure;u.genesisSize.value=born.size;u.opening.value=c.points.userData.spatial||c===personalCloud?openProgress:0;c.points.visible=u.opacity.value>.001&&(c!==storyCloud||!!selected||remembering);u.depthMix.value=depth;u.cutaway.value=cut;u.cameraDistance.value=camera.position.length();u.time.value=time;u.motion.value=options.motion?1:0;u.glow.value=options.glow;u.sparkle.value=options.shimmer*(backgroundLayers.includes(c)?.25:c===land?.8:1);u.zoomFactor.value=backgroundLayers.includes(c)?1:Math.min(1.45,Math.pow(2.1/Math.max(alt,.3),.14))*(mobile?1-global*.4:1);if(c===land)c.points.geometry.setDrawRange(0,Math.floor(c.count*options.density));}
+ for(const c of clouds){const u=c.material.uniforms;u.genesis.value=genesisProgress;u.genesisEnabled.value=c.points.userData.spatial?1:0;u.genesisExposure.value=born.exposure;u.genesisSize.value=born.size;u.opening.value=c.points.userData.spatial||c===personalCloud?openProgress:0;c.points.visible=u.opacity.value>.001&&(c!==storyCloud||!!selected||remembering);u.terrainLand.value=terrain.land;u.terrainFloor.value=terrain.floor;u.terrainStudy.value=terrain.study;u.terrainReady.value=born.settled*(1-opened);u.depthMix.value=depth;u.cutaway.value=cut;u.cameraDistance.value=camera.position.length();u.time.value=time;u.motion.value=options.motion?1:0;u.glow.value=options.glow;u.sparkle.value=options.shimmer*(backgroundLayers.includes(c)?.25:c===land?.8:1);u.zoomFactor.value=backgroundLayers.includes(c)?1:Math.min(1.45,Math.pow(2.1/Math.max(alt,.3),.14))*(mobile?1-global*.4:1);if(c===land)c.points.geometry.setDrawRange(0,Math.floor(c.count*options.density));}
  if(personalSettledAt!==null&&!personalArrivalSent&&!morph&&stage==='orbit'&&(!options.motion||now-personalSettledAt>=1100)&&Math.abs(alt-targetAlt)<.035){personalArrivalSent=true;personalSettledAt=null;callbacks.personalSettled?.();}
  if(settledAt!==null&&!arrivalSent&&(!options.motion||now-settledAt>=1400)){arrivalSent=true;callbacks.arrival(remembered?.id||null);}
  if(!options.motion||frameCount%2===0){placeLabel('singapore',1.30,103.85,stage==='orbit'&&viewMode==='globe'&&!morph&&genesisProgress>=1&&openProgress===0&&!personalPlaces);for(const s of stories)placeLabel(s.id,s.lat,s.lon,stage==='city'&&(targetId===null||targetId==='singapore')&&!selected);for(let i=0;i<3;i++){const p=selected?.places[i];placeLabel('place-'+i,p?.lat||0,p?.lon||0,stage==='city'&&!!p&&reveal.stars>i*.25+.15);}}
  for(let i=0;i<3;i++)placePersonalLabel(i,!!personalPlaces&&stage==='orbit'&&openProgress>.72&&!morph);
  if(!isBusy())for(const resolve of idleWaiters.splice(0))resolve(true);
  if(genesisProgress>=1&&!isBusy()&&!warmupScheduled){warmupScheduled=true;warmupTimer=setTimeout(()=>{warmupTimer=null;if(disposed||graphicsLost)return;if(isBusy()){warmupScheduled=false;return;}void ensureCity().then(()=>ensureNewYork()).catch(()=>{host.dataset.detailWarmupStatus='retry-on-demand';});},600);}
- renderer.render(scene,camera);diagnosticFrames++;if(now-diagnosticStart>=1000){host.dataset.renderFps=(diagnosticFrames*1000/(now-diagnosticStart)).toFixed(1);host.dataset.renderFrames=String(frameCount);host.dataset.renderFrameMs=((now-diagnosticStart)/diagnosticFrames).toFixed(1);diagnosticStart=now;diagnosticFrames=0;}if(!options.motion||now-lastCoordinate>500){callbacks.coordinates(lat,wrap(lon));lastCoordinate=now;}
+ renderer.render(scene,camera);diagnosticFrames++;if(now-diagnosticStart>=1000){host.dataset.terrainLand=terrain.land.toFixed(3);host.dataset.terrainFloor=terrain.floor.toFixed(3);host.dataset.oceanAwake=awakening.ocean.toFixed(3);host.dataset.renderFps=(diagnosticFrames*1000/(now-diagnosticStart)).toFixed(1);host.dataset.renderFrames=String(frameCount);host.dataset.renderFrameMs=((now-diagnosticStart)/diagnosticFrames).toFixed(1);diagnosticStart=now;diagnosticFrames=0;}if(!options.motion||now-lastCoordinate>500){callbacks.coordinates(lat,wrap(lon));lastCoordinate=now;}
  if(!flight&&frameCount>60&&sampleFrames<150){totalFrame+=dt;sampleFrames++;if(sampleFrames===150&&totalFrame/sampleFrames>.034&&renderer.getPixelRatio()>1){renderer.setPixelRatio(1);for(const c of clouds)c.material.uniforms.pixelRatio.value=1;resize();}}
  raf=requestAnimationFrame(frame);
  }
