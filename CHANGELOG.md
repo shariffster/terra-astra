@@ -2,6 +2,15 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.1 — 2026-09-13 — Post-Genesis awakening
+- Lab-only choreography release on `people-choice/v0.10`, following preserved Run A v0.10.0.
+- Adds one renderer-owned 18-second awakening clock starting at exact geographic settlement: a 2.5-second breath, seeded satellites, corridor-prioritized aircraft and ships, feathered cable drawing and gradual ocean motion.
+- Preserves all existing datasets, populations, final light exposure and Genesis deformation. Tails grow with individual objects instead of appearing fully formed.
+- Raises passive turn from .65 to .84 degrees/second (+29.23%) with a four-second ease-in. Drag and WorldCommand camera ownership remain intact.
+- Moves first-time suggestion staging to the central clock; Ask Astra remains immediately usable. Navigation compresses remaining awakening into the existing flight without delaying input.
+- Replay clears populations, trails and clock, and invalidates stale queued commands. Hidden tabs pause awakening; disposal/context loss stop it. Reduced motion resolves immediately to a full still state, suppressing tails and cable pulses.
+- Validation and limits: `docs/POST-GENESIS-AWAKENING.md`. Previous release tags and saved milestones remain preserved; canonical and v0.9 archive are untouched.
+
 ## v0.10.0 — 2026-09-13 — People's Choice Run A
 - Lab-only release on `people-choice/v0.10`. Preserves canonical v0.9, the immutable archive, previous source tags and rollback paths.
 - Settled-Earth Ask Astra invitation offers immediate New York navigation; four suggested prompts share the same bounded Live-compatible WorldCommand route. Suggestions yield the screen to the world after selection and remain usable anonymously. Voice sign-in explains the distinction.

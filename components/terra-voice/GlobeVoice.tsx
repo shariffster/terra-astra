@@ -11,6 +11,7 @@ import styles from './globe-voice.module.css';
 
 type Props = {
   ready: boolean;
+  discoveryReady?: boolean;
   exploring?: boolean;
   worldState?: WorldState | null;
   onAskReady?: (ask: ((question: string) => void) | null) => void;
@@ -26,9 +27,11 @@ const SUGGESTIONS = [
 const INVITATION_KEY = 'terra-astra-discovery-v010';
 
 /** The invitation, typed questions and Live delegation share one bounded navigation path. */
-export default function GlobeVoice({ ready, exploring = false, worldState, onAskReady }: Props) {
+export default function GlobeVoice({ ready, exploring = false, discoveryReady = true, worldState, onAskReady }: Props) {
   const [open, setOpen] = useState(false);
-  const [inviting, setInviting] = useState(false);
+  const [invitationDismissed, setInvitationDismissed] = useState(() => {
+    try { return sessionStorage.getItem(INVITATION_KEY) === 'seen'; } catch { return false; }
+  });
   const [status, setStatus] = useState('off');
   const [rows, setRows] = useState<TranscriptRow[]>([]);
   const [answer, setAnswer] = useState('');
@@ -43,26 +46,19 @@ export default function GlobeVoice({ ready, exploring = false, worldState, onAsk
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dismissInvitation = useCallback(() => {
-    setInviting(false);
+    setInvitationDismissed(true);
     try { sessionStorage.setItem(INVITATION_KEY, 'seen'); } catch { /* Exploration works without storage. */ }
   }, []);
 
   const startedExploring = exploring || !!worldState?.targetId || (!!worldState && worldState.tier !== 'planet');
 
-  if (startedExploring && inviting) setInviting(false);
+  const inviting = discoveryReady && !startedExploring && !invitationDismissed;
 
   useEffect(() => {
     if (startedExploring) {
       try { sessionStorage.setItem(INVITATION_KEY, 'seen'); } catch { /* Optional session memory. */ }
-      return;
     }
-    let seen = false;
-    try { seen = sessionStorage.getItem(INVITATION_KEY) === 'seen'; } catch { /* A fresh invitation is safe. */ }
-    if (seen || startedExploring) return;
-    // Let the settled Earth have its own beat before offering the first action.
-    const timer = setTimeout(() => setInviting(true), 900);
-    return () => clearTimeout(timer);
-  }, [startedExploring]); // This dock mounts only after Genesis has completed.
+  }, [startedExploring]); // Visual staging comes from the renderer-owned clock.
 
 
   const ask = useCallback(async (question: string, delegationId?: string, reveal = true) => {

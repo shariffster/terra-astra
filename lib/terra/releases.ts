@@ -1,13 +1,27 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.0';
+export const currentVersion = '0.10.1';
 
 export const releases = [
+  {
+    version: '0.10.1',
+    date: '2026-09-13',
+    dateLabel: '13 September 2026',
+    title: 'Earth takes a breath — Post-Genesis awakening',
+    milestone: 'This Lab build',
+    changes: [
+      'Earth settles into a quiet 2.5-second breath. Orbit, aircraft, ships and hidden sea connections then awaken progressively, reaching the full living world within 18 seconds.',
+      'The same lights and routes appear in a repeatable order, with tails growing behind their own objects. The idle Earth turns gently faster.',
+      'Ask Astra stays available immediately; its first suggested journey arrives with the beginning of orbital life. Choosing a destination moves straight away.',
+      'Replay clears the living shells and repeats the breath. Reduced motion reaches a full still Earth immediately, with no extended wait or animated trails.',
+    ],
+    review: 'Compared visually with Run A in native Mac WebGL at desktop and phone widths. The five destinations, supported scale transitions, early input, replay and reduced motion were exercised alongside renderer lifecycle tests. Physical-phone and microphone/audio verification remain separate. Published only to the People’s Choice Lab; canonical v0.9 and its archive remain preserved.',
+  },
   {
     version: '0.10.0',
     date: '2026-09-13',
     dateLabel: '13 September 2026',
     title: 'Follow a light — People’s Choice Run A',
-    milestone: 'This Lab build',
+    milestone: 'Preserved Run A',
     changes: [
       'A quiet invitation arrives after Earth settles. Try New York in one tap, or open Ask Astra for Makkah, Palm Jumeirah and Challenger Deep. Exploration works without sign-in; voice has a clear sign-in path.',
       'Five editorial destination choices reveal why each place is worth exploring. Phone controls give the headline and Earth their own space.',
