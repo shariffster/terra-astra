@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import { specialFeather } from './special-destinations';
 import { sampleCircumambulation } from './circumambulation';
+import { createCityContinuation, continuationBandWeight, continuationScale, type ContinuationCity } from './city-continuation';
 import makkahAnchor from './makkah-anchor';
 
 type Cloud = { points: THREE.Points; material: THREE.ShaderMaterial; count: number };
+type Context = { near: Cloud; far: Cloud; nearLines: THREE.LineSegments; farLines: THREE.LineSegments };
 type Ports = {
   load: (name: string) => Promise<Float32Array>;
   cloud: (data: Float32Array, tint: string, feather?: (lon: number, lat: number) => number) => Cloud;
@@ -16,7 +18,7 @@ type Ports = {
  * This module owns only the spike's assets and activity, not a renderer or camera.
  */
 export function specialDestinationViews(ports: Ports) {
-  const views = new Map<string, { stars: Cloud; coast: Cloud; streets: THREE.LineSegments; outline: THREE.LineSegments; routes: THREE.LineSegments | null; sea: Cloud | null; flow: Cloud | null; anchor: THREE.LineSegments | null }>();
+  const views = new Map<string, { stars: Cloud; coast: Cloud; streets: THREE.LineSegments; outline: THREE.LineSegments; routes: THREE.LineSegments | null; sea: Cloud | null; flow: Cloud | null; anchor: THREE.LineSegments | null; context: Context }>();
   const pending = new Map<string, Promise<void>>();
   async function ensure(id: string) {
     if (views.has(id)) return;
@@ -29,6 +31,15 @@ export function specialDestinationViews(ports: Ports) {
       ]);
       if (!ports.alive()) return;
       const feather = (lon: number, lat: number) => specialFeather(id, lon, lat);
+      const continuationId=id as ContinuationCity;
+      const continuation=createCityContinuation(continuationId,streets,{pointBudget:6000});
+      const context:Context={
+        near:ports.cloud(continuation.intermediate.stars,'#bba586'),
+        far:ports.cloud(continuation.stars,'#a89577'),
+        nearLines:ports.lines(continuation.intermediate.lines,'#ab9473',(lon,lat)=>continuationBandWeight(continuationId,'intermediate',lon,lat)),
+        farLines:ports.lines(continuation.lines,'#8c7961',(lon,lat)=>continuationBandWeight(continuationId,'far',lon,lat)),
+      };
+      for(const cloud of [context.near,context.far])cloud.points.userData.fallbackExposure=1.6;
       // Keep the mapped points; only lift mainland context and shoreline rhythm.
       if (id === 'palm-jumeirah') {
         for (let i=0; i<stars.length; i+=6) {
@@ -50,7 +61,7 @@ export function specialDestinationViews(ports: Ports) {
       let flow: Cloud | null = null, anchor: THREE.LineSegments | null = null;
       if (id === 'makkah') {
         const data = new Float32Array(1440*6);
-        for(let i=0;i<1440;i++) data.set([0,0,0,.42+(i%17)/48,.64+(i%7)/28,(i*.713)%6.28],i*6);
+        for(let i=0;i<1440;i++) data.set([0,0,0,(i%9===0?.25:.40)+(i%17)/65,.59+(i%7)/32,(i*.713)%6.28],i*6);
         flow = ports.cloud(data, '#d5aa82');
         flow.material.uniforms.soft.value = .72;
         flow.points.userData.specialFlow = true;
@@ -65,8 +76,8 @@ export function specialDestinationViews(ports: Ports) {
         }
         anchor = ports.lines(new Float32Array(edges), '#d6bd86');
       }
-      for(const object of [starView.points,coastView.points,streetView,outlineView,routes,sea?.points,flow?.points,anchor]) if(object) object.userData.specialDestination=id;
-      views.set(id, { stars: starView, coast: coastView, streets: streetView, outline: outlineView, routes, sea, flow, anchor });
+      for(const object of [starView.points,coastView.points,streetView,outlineView,routes,sea?.points,flow?.points,anchor,context.near.points,context.far.points,context.nearLines,context.farLines]) if(object) object.userData.specialDestination=id;
+      views.set(id, { stars: starView, coast: coastView, streets: streetView, outline: outlineView, routes, sea, flow, anchor, context });
     })();
     pending.set(id, task);
     try { await task; } finally { pending.delete(id); }
@@ -74,6 +85,15 @@ export function specialDestinationViews(ports: Ports) {
   function update(id: string | null, time: number, city: number, regional: number, fraction: number, size: number, budget: number, threads: number, activity: boolean, altitude: number) {
     for (const [key, view] of views) {
       const visibility = id === key ? 1 : 0;
+      const bands=continuationScale(altitude),contextExposure=visibility*(city*3.9+regional*.46*Math.max(0,1-altitude/.025));
+      view.context.near.material.uniforms.opacity.value=contextExposure*bands.intermediate;
+      view.context.near.material.uniforms.sizeScale.value=Math.max(.74,size*1.25);
+      view.context.far.material.uniforms.opacity.value=contextExposure*bands.far;
+      view.context.far.material.uniforms.sizeScale.value=Math.max(.82,size*1.15);
+      (view.context.nearLines.material as THREE.LineBasicMaterial).opacity=Math.min(.18,contextExposure*threads*.075)*bands.intermediate;
+      (view.context.farLines.material as THREE.LineBasicMaterial).opacity=Math.min(.075,contextExposure*threads*.03)*bands.far;
+      view.context.nearLines.visible=(view.context.nearLines.material as THREE.LineBasicMaterial).opacity>.001;
+      view.context.farLines.visible=(view.context.farLines.material as THREE.LineBasicMaterial).opacity>.001;
       view.stars.material.uniforms.opacity.value = visibility * city * 1.25;
       view.stars.material.uniforms.sizeScale.value = size*1.65;
       view.stars.points.geometry.setDrawRange(0, Math.floor(view.stars.count*Math.min(1,fraction*(key==='palm-jumeirah'?1.35:1))*budget));

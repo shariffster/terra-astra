@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { SPECIAL_CITIES } from '../world/special-destinations';
 import { specialDestinationViews } from '../world/special-destination-view';
 import { aircraftSignals, satelliteSignals, shipSignals, sampleSignal, signalColors, type WorldSignal } from '../world/signals';
-import { createCityContinuation } from '../world/city-continuation';
+import { createCityContinuation, continuationBandWeight, continuationScale } from '../world/city-continuation';
 import { cablePaths, cableColor, CABLE_SEGMENTS_PER_PATH, sampleCable, sampleCablePulse } from '../world/cables';
 import { createUrbanActivity, type UrbanActivity } from '../world/urban-activity';
 import { GENESIS_DURATION, genesisGLSL, genesisSeed, genesisLight, genesisState } from './genesis';
@@ -84,7 +84,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  let storyCloud:Cloud|null=null;let memoryCloud:Cloud|null=null;let storyLines:THREE.LineSegments|null=null;
  let newYorkStars:Cloud|null=null,newYorkStreets:THREE.LineSegments|null=null;
  type UrbanView={model:UrbanActivity;traffic:Cloud;activity:Cloud;trafficXYZ:Float32Array;activityXYZ:Float32Array;feather:(lon:number,lat:number)=>number};
- const urbanViews=new Map<string,UrbanView>();const contextViews=new Map<string,{stars:Cloud;lines:THREE.LineSegments}>();
+ const urbanViews=new Map<string,UrbanView>();const contextViews=new Map<string,{stars:Cloud;lines:THREE.LineSegments;intermediate:{stars:Cloud;lines:THREE.LineSegments}}>();
  let peopleCloud:Cloud|null=null;let storyStarted=0,focus=0,storyInset=0;
  const smoothCameraOffset=new THREE.Vector2();
  let previousHomeAltitude=homeAltitude();
@@ -119,7 +119,13 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   const trafficXYZ=traffic.points.geometry.getAttribute('position').array as Float32Array,activityXYZ=activity.points.geometry.getAttribute('position').array as Float32Array;
   urbanViews.set(id,{model,traffic,activity,trafficXYZ,activityXYZ,feather});
   if(id!=='singapore'&&id!=='new-york')return;
-  const context=createCityContinuation(id as 'singapore'|'new-york',roads,{elevation,pointBudget:host.clientWidth<700?12000:16000});const stars=cloud(context.stars,'#a89577'),filaments=lines(context.lines,'#8c7961');stars.points.userData.cityContinuation=id;filaments.userData.cityContinuation=id;stars.points.userData.fallbackExposure=1.6;contextViews.set(id,{stars,lines:filaments});
+  const cityId=id as 'singapore'|'new-york';
+  const context=createCityContinuation(cityId,roads,{elevation,pointBudget:host.clientWidth<700?12000:16000});
+  const stars=cloud(context.stars,'#a89577'),filaments=lines(context.lines,'#8c7961',(lon,lat)=>continuationBandWeight(cityId,'far',lon,lat));
+  const middleStars=cloud(context.intermediate.stars,'#bba586'),middleLines=lines(context.intermediate.lines,'#ab9473',(lon,lat)=>continuationBandWeight(cityId,'intermediate',lon,lat));
+  for(const [c,band] of [[stars,'far'],[middleStars,'intermediate']] as const){c.points.userData.cityContinuation=id;c.points.userData.cityContinuationBand=band;c.points.userData.fallbackExposure=1.6;}
+  filaments.userData.cityContinuation=id;middleLines.userData.cityContinuation=id;
+  contextViews.set(id,{stars,lines:filaments,intermediate:{stars:middleStars,lines:middleLines}});
  }
  async function ensureNewYork(){if(newYorkReady)return;if(newYorkLoading)return newYorkLoading;newYorkLoading=(async()=>{const requestedAt=performance.now();host.dataset.detailNewYorkStatus='fetching';const [stars,streets]=await Promise.all(['new-york-stars','new-york-streets'].map(load));const fetchedAt=performance.now();host.dataset.detailNewYorkFetchMs=(fetchedAt-requestedAt).toFixed(1);host.dataset.detailNewYorkStatus='preparing';if(disposed||signal.aborted)return;const order=Array.from({length:stars.length/6},(_,i)=>i).sort((a,b)=>(Math.imul(a+1,2654435761)>>>0)-(Math.imul(b+1,2654435761)>>>0)),sorted=new Float32Array(stars.length);order.forEach((i,j)=>sorted.set(stars.subarray(i*6,i*6+6),j*6));newYorkStars=cloud(sorted,'#d5c5a5',newYorkFeather);newYorkStreets=lines(streets,'#c1a780',newYorkFeather);newYorkStars.points.userData.fallbackExposure=2.4;newYorkStreets.userData.fallbackExposure=2;createUrbanView('new-york',streets,newYorkFeather);newYorkReady=true;host.dataset.detailNewYorkPrepareMs=(performance.now()-fetchedAt).toFixed(1);host.dataset.detailNewYorkStatus='ready';})();try{await newYorkLoading;}catch(e){newYorkLoading=null;throw e;}}
  const specialViews=specialDestinationViews({load,cloud,lines,urban:createUrbanView,alive:()=>!disposed&&!graphicsLost&&!signal.aborted});
@@ -249,7 +255,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  if(genesisProgress<1){genesisProgress=options.motion?clamp((now-genesisStarted)/GENESIS_DURATION,0,1):1;notifyGenesis(genesisProgress===1);}
  const born=genesisLight(genesisProgress),opened=transformationEase(openProgress);
  const levels=lightLevels(alt),global=levels.global;const ease=options.motion?1-Math.exp(-dt*3):1;tilt=THREE.MathUtils.lerp(tilt,targetTilt,ease);cut=THREE.MathUtils.lerp(cut,viewMode==='cutaway'&&options.depth?1:0,ease);depth=THREE.MathUtils.lerp(depth,spatialBlend(alt,options.depth),ease);scene.userData.spatial={depth,cut,cutNormal,cutFacing};sphere.visible=genesisProgress>=.94&&cut<.02&&opened<.995;sphere.scale.setScalar((1-depth*.30)*(1-opened));scene.userData.coreRadius=sphere.visible?(1-depth*.30)*(1-opened):0;scene.userData.opening=openProgress;scene.userData.genesis=genesisProgress;focus=THREE.MathUtils.lerp(focus,selected?1:0,options.motion?1-Math.exp(-dt*3.2):1);const cityDim=1-focus*.64;const reveal=revealProgress((now-storyStarted)/1000,options.motion);
- north.copy(geo(lon,lat+90));camera.position.copy(geo(lon,lat)).addScaledVector(geo(lon,lat),alt*Math.cos(tilt*R)).addScaledVector(north,-alt*Math.sin(tilt*R));camera.up.copy(north);camera.lookAt(geo(lon,lat).multiplyScalar(born.settled));const w=host.clientWidth,h=host.clientHeight,mobile=w<700;const offsetY=mobile?(selected?(storyInset?Math.max(0,(storyInset-70)/2):h*.225):openProgress>0?h*.25:personalPlaces&&stage==='orbit'?-h*.09:viewMode==='cutaway'?h*.11:-h*.035):0;smoothCameraOffset.lerp(new THREE.Vector2(mobile?0:-w*(stage==='city'?(SPECIAL_CITIES[targetId??'']?.desktopOffset??.17):.17)*born.settled,offsetY*born.settled),frameCount===1||!options.motion?1:1-Math.exp(-dt*4));camera.setViewOffset(w,h,smoothCameraOffset.x,smoothCameraOffset.y,w,h);camera.near=Math.max(.0000004,alt*.002);camera.far=65;camera.updateProjectionMatrix();camera.updateMatrixWorld();
+ north.copy(geo(lon,lat+90));camera.position.copy(geo(lon,lat)).addScaledVector(geo(lon,lat),alt*Math.cos(tilt*R)).addScaledVector(north,-alt*Math.sin(tilt*R));camera.up.copy(north);camera.lookAt(geo(lon,lat).multiplyScalar(born.settled));const w=host.clientWidth,h=host.clientHeight,mobile=w<700;const offsetY=mobile?(selected?(storyInset?Math.max(0,(storyInset-70)/2):h*.225):openProgress>0?h*.25:personalPlaces&&stage==='orbit'?-h*.09:viewMode==='cutaway'?h*.11:stage==='orbit'&&scaleTier==='planet'?h*.015:-h*.035):0;smoothCameraOffset.lerp(new THREE.Vector2(mobile?0:-w*(stage==='city'?(SPECIAL_CITIES[targetId??'']?.desktopOffset??.17):.17)*born.settled,offsetY*born.settled),frameCount===1||!options.motion?1:1-Math.exp(-dt*4));camera.setViewOffset(w,h,smoothCameraOffset.x,smoothCameraOffset.y,w,h);camera.near=Math.max(.0000004,alt*.002);camera.far=65;camera.updateProjectionMatrix();camera.updateMatrixWorld();
  // Project the actual places: the merge follows their visible separation at every viewport.
  let spread=0;if(remembering&&remembered){const places=remembered.places.map(p=>geo(p.lon,p.lat,1.00003).project(camera));for(let i=0;i<places.length;i++)for(let j=i+1;j<places.length;j++)spread=Math.max(spread,Math.hypot((places[i].x-places[j].x)*w/2,(places[i].y-places[j].y)*h/2));}
  const memory=memoryLight(spread,settledAt===null?null:(now-settledAt)/1000,options.motion);
@@ -257,7 +263,14 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const quality=mobile?.45:.8;const singaporeVisibility=targetId===null||targetId==='singapore'?1:0,newYorkVisibility=targetId==='new-york'?1:0;
  updateSignals(time,born.settled*(1-opened)*transformationEase((alt-.012)/.18));updateSea(time,born.settled*(1-opened)*transformationEase((alt-.025)/.20));updateUrban(time,levels.city*cityDim);
  specialViews.update(targetId,time,levels.city,levels.regional,levels.cityFraction,levels.citySize,cityScreenBudget(w,h),options.threads,layerFlags.urban,alt);
- for(const [id,context] of contextViews){const visibility=targetId===id&&genesisProgress>=1&&openProgress===0?(levels.city*5.5+levels.regional*.8*(1-transformationEase((alt-.012)/.025)))*cityDim:0;context.stars.material.uniforms.opacity.value=visibility;context.stars.material.uniforms.sizeScale.value=Math.max(.90,levels.citySize*1.4);(context.lines.material as THREE.LineBasicMaterial).opacity=Math.min(.20,visibility*options.threads*.08);}
+ for(const [id,context] of contextViews){
+  const visibility=targetId===id&&genesisProgress>=1&&openProgress===0?(levels.city*5.5+levels.regional*.8*(1-transformationEase((alt-.012)/.025)))*cityDim:0;
+  const bands=continuationScale(alt);
+  context.stars.material.uniforms.opacity.value=visibility*bands.far;context.stars.material.uniforms.sizeScale.value=Math.max(.90,levels.citySize*1.4);
+  (context.lines.material as THREE.LineBasicMaterial).opacity=Math.min(.09,visibility*options.threads*.035)*bands.far;
+  context.intermediate.stars.material.uniforms.opacity.value=visibility*bands.intermediate;context.intermediate.stars.material.uniforms.sizeScale.value=Math.max(.74,levels.citySize*1.25);
+  (context.intermediate.lines.material as THREE.LineBasicMaterial).opacity=Math.min(.22,visibility*options.threads*.085)*bands.intermediate;
+ }
  if(navigationHighlight)navigationHighlight.material.uniforms.opacity.value=highlightedTargetId?born.settled*(1-opened)*transformationEase((alt-.01)/.06):0;
  if(newYorkStars){newYorkStars.material.uniforms.opacity.value=newYorkVisibility*levels.city*.72;newYorkStars.material.uniforms.sizeScale.value=levels.citySize;newYorkStars.points.geometry.setDrawRange(0,Math.floor(newYorkStars.count*levels.cityFraction*cityScreenBudget(w,h)));}if(newYorkStreets)(newYorkStreets.material as THREE.LineBasicMaterial).opacity=newYorkVisibility*(levels.city*.16+levels.regional*.018)*options.threads;
  for(const c of [reliefLand,reliefOcean,body,interior])c.points.geometry.setDrawRange(0,Math.floor(c.count*quality*(c===reliefLand?options.density:1)));

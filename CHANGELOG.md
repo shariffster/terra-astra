@@ -2,6 +2,14 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.0 — 2026-09-13 — People's Choice Run A
+- Lab-only release on `people-choice/v0.10`. Preserves canonical v0.9, the immutable archive, previous source tags and rollback paths.
+- Settled-Earth Ask Astra invitation offers immediate New York navigation; four suggested prompts share the same bounded Live-compatible WorldCommand route. Suggestions yield the screen to the world after selection and remain usable anonymously. Voice sign-in explains the distinction.
+- Refines the five destinations into compact editorial choices with movement context and provenance. Fixes mobile opening/voice overlap, removes the duplicate home entry action on phones, increases scale hit targets and stages controls after Genesis.
+- Replaces copied-road surroundings with a shared three-band approach: accurate core, selected peripheral roads and interpretive continuation, then a sparse land-clipped urban constellation. NY/SG keep their existing total continuation point budgets; Palm/Makkah reuse the same bounded system.
+- Adds continuous Makkah radii and varied counter-clockwise cadence with sparse arrival/departure flow. Kaaba geometry and persistent no-live-tracking disclosure remain intact.
+- Keeps Genesis architecture, renderer/camera ownership, five destinations, providers and Live transport unchanged. Validation and observed limitations: `docs/PEOPLES-CHOICE-RUN-A.md`.
+
 ## v0.9 — 2026-09-13 — Ready for the journey
 - Stop ends microphone tracks immediately; the data channel remains briefly available for final usage. A new regression verifies no false ended-track error and successful late usage delivery.
 - Disconnected sessions return to a usable Talk button; the visible status omits raw usage JSON.

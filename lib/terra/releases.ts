@@ -1,13 +1,27 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.9';
+export const currentVersion = '0.10.0';
 
 export const releases = [
+  {
+    version: '0.10.0',
+    date: '2026-09-13',
+    dateLabel: '13 September 2026',
+    title: 'Follow a light — People’s Choice Run A',
+    milestone: 'This Lab build',
+    changes: [
+      'A quiet invitation arrives after Earth settles. Try New York in one tap, or open Ask Astra for Makkah, Palm Jumeirah and Challenger Deep. Exploration works without sign-in; voice has a clear sign-in path.',
+      'Five editorial destination choices reveal why each place is worth exploring. Phone controls give the headline and Earth their own space.',
+      'Mapped city cores blend into selected peripheral structure and a sparse wider constellation. New York and Singapore share the same bounded continuation system with Palm and Makkah.',
+      'Palm retains its warm designed geometry; Makkah’s soft collective flow gains continuous spacing and a varied cadence around the mapped Kaaba anchor.',
+    ],
+    review: 'Run A is published only to the People’s Choice Lab. Canonical v0.9 and its immutable archive remain separate. Surrounding city structure and activity are interpretive, never surveyed street extensions or live tracking. Desktop and narrow browser verification is recorded in the Run A handoff; physical-phone testing remains unverified.',
+  },
   {
     version: '0.9',
     date: '2026-09-13',
     dateLabel: '13 September 2026',
     title: 'Ready for the journey',
-    milestone: 'This build',
+    milestone: 'Preserved v0.9 control',
     changes: [
       'Stopping Live releases the microphone immediately while the session finishes closing. A disconnected session can restart from Talk.',
       'Singapore and New York surroundings receive a small luminance adjustment to soften the change from their detailed cores.',

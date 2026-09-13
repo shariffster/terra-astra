@@ -88,6 +88,19 @@ const anchor=(await import('../lib/world/makkah-anchor.ts')).default;
 const a=new Float32Array(1440*3),b=new Float32Array(a.length);
 sampleCircumambulation(0,anchor.center,a);sampleCircumambulation(10,anchor.center,b);
 const local=(p,i)=>[(Math.atan2(p[i],p[i+2])*180/Math.PI-anchor.center[0])*103516,(Math.atan2(p[i+1],Math.hypot(p[i],p[i+2]))*180/Math.PI-anchor.center[1])*111195];
-for(let i=0;i<a.length;i+=3){const x=local(a,i),y=local(b,i);assert.ok(x[0]*y[1]-x[1]*y[0]>0,'Every stream travels counter-clockwise');assert.ok(Math.hypot(...x)>16&&Math.hypot(...x)<62,'Streams stay outside the anchor and within the chosen courtyard');}
+let arrivals=0,radialChange=0;const velocities=[];
+for(let i=0;i<a.length;i+=3){
+  const x=local(a,i),y=local(b,i),r=Math.hypot(...x);
+  assert.ok(x[0]*y[1]-x[1]*y[0]>0,'Every stream travels counter-clockwise');
+  assert.ok(r>17&&r<96,'Streams stay outside the mapped anchor and within restrained interpretive bounds');
+  if(r>62)arrivals++;
+  radialChange+=Math.abs(Math.hypot(...y)-r);
+  velocities.push(Math.atan2(x[0]*y[1]-x[1]*y[0],x[0]*y[0]+x[1]*y[1]));
+}
+assert.ok(arrivals>15&&arrivals<160,'Only a sparse minority gathers and disperses beyond the main flow');
+assert.ok(radialChange/a.length>.03,'Radii vary continuously instead of following fixed rings');
+assert.ok(Math.max(...velocities)-Math.min(...velocities)>.035,'Individual forward cadence varies without reversing');
+// Compare across a full arrival/departure period: no frame jumps or anchor crossing.
+for(let time=0;time<=600;time+=3){sampleCircumambulation(time,anchor.center,a);sampleCircumambulation(time+.1,anchor.center,b);for(let i=0;i<a.length;i+=3){const x=local(a,i),y=local(b,i);assert.ok(Math.hypot(y[0]-x[0],y[1]-x[1])<1.5,'Gather/disperse phases remain continuous');assert.ok(Math.hypot(...x)>17,'No route crosses the focal anchor');}}
 const start=process.hrtime.bigint();for(let i=0;i<1000;i++)sampleCircumambulation(i/60,anchor.center,b);
-console.log(`PASS special destinations: real-engine loads, geographic pan, all scales, phone entry, pause/toggle, SG return; 1,440 CCW samples; 1,000 flow updates ${Number(process.hrtime.bigint()-start)/1e6} ms (Node only).`);
+console.log(`PASS special destinations: real-engine loads, geographic pan, all scales, phone entry, pause/toggle, SG return; 1,440 varying CCW paths, sparse arrival/departure continuity; 1,000 flow updates ${Number(process.hrtime.bigint()-start)/1e6} ms (Node only).`);

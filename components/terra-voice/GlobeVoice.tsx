@@ -1,33 +1,79 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowUpRight, ChevronDown, Mic, Square, X } from 'lucide-react';
 import QuestionBar from '../terra-input/QuestionBar';
 import { createLiveController, type TranscriptRow } from './live-controller';
 import { readAnswerStream } from './answer-stream';
 import { executeLiveNavigation, planLiveNavigation } from './world-navigator';
+import type { WorldState } from '@/lib/world/commands';
 import styles from './globe-voice.module.css';
 
-type Props = { ready: boolean; onAskReady?: (ask: ((question: string) => void) | null) => void };
+type Props = {
+  ready: boolean;
+  exploring?: boolean;
+  worldState?: WorldState | null;
+  onAskReady?: (ask: ((question: string) => void) | null) => void;
+};
 type LiveController = ReturnType<typeof createLiveController>;
 
-/** The Live transport delegates full questions to the same bounded visual/answer path as typing. */
-export default function GlobeVoice({ ready, onAskReady }: Props) {
+const SUGGESTIONS = [
+  'Show me the vibe in New York',
+  'Take me to Makkah',
+  'Show me Palm Jumeirah',
+  'Where is the deepest place on Earth?',
+] as const;
+const INVITATION_KEY = 'terra-astra-discovery-v010';
+
+/** The invitation, typed questions and Live delegation share one bounded navigation path. */
+export default function GlobeVoice({ ready, exploring = false, worldState, onAskReady }: Props) {
   const [open, setOpen] = useState(false);
+  const [inviting, setInviting] = useState(false);
   const [status, setStatus] = useState('off');
   const [rows, setRows] = useState<TranscriptRow[]>([]);
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [voiceSignIn, setVoiceSignIn] = useState(false);
   const live = useRef<LiveController | null>(null);
   const active = useRef<AbortController | null>(null);
   const askRef = useRef<(question: string, delegationId?: string) => Promise<void>>(async () => {});
+  const toggle = useRef<HTMLButtonElement>(null);
+  const requestNumber = useRef(0);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const ask = useCallback(async (question: string, delegationId?: string) => {
+  const dismissInvitation = useCallback(() => {
+    setInviting(false);
+    try { sessionStorage.setItem(INVITATION_KEY, 'seen'); } catch { /* Exploration works without storage. */ }
+  }, []);
+
+  const startedExploring = exploring || !!worldState?.targetId || (!!worldState && worldState.tier !== 'planet');
+
+  if (startedExploring && inviting) setInviting(false);
+
+  useEffect(() => {
+    if (startedExploring) {
+      try { sessionStorage.setItem(INVITATION_KEY, 'seen'); } catch { /* Optional session memory. */ }
+      return;
+    }
+    let seen = false;
+    try { seen = sessionStorage.getItem(INVITATION_KEY) === 'seen'; } catch { /* A fresh invitation is safe. */ }
+    if (seen || startedExploring) return;
+    // Let the settled Earth have its own beat before offering the first action.
+    const timer = setTimeout(() => setInviting(true), 900);
+    return () => clearTimeout(timer);
+  }, [startedExploring]); // This dock mounts only after Genesis has completed.
+
+
+  const ask = useCallback(async (question: string, delegationId?: string, reveal = true) => {
     if (!ready || !question.trim()) return;
+    const sequence = ++requestNumber.current;
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    dismissInvitation();
     active.current?.abort();
     const request = new AbortController();
     active.current = request;
-    setOpen(true); setBusy(true); setError(''); setAnswer('');
+    setOpen(reveal); setBusy(true); setError(''); setVoiceSignIn(false); setAnswer('');
     try {
       const plan = planLiveNavigation(question);
       if (plan) {
@@ -40,6 +86,10 @@ export default function GlobeVoice({ ready, onAskReady }: Props) {
         if (!result.ok) throw new Error(result.reason ?? 'The world could not move there.');
         setAnswer(plan.context);
         live.current?.say(delegationId ?? null, plan.context);
+        // Navigation gives the canvas back after the acknowledgement has been read.
+        if (reveal && !delegationId) closeTimer.current = setTimeout(() => {
+          if (requestNumber.current === sequence) setOpen(false);
+        }, 4200);
         return;
       }
       const response = await fetch('/api/terra/answer', {
@@ -58,40 +108,72 @@ export default function GlobeVoice({ ready, onAskReady }: Props) {
       setAnswer(text);
       live.current?.say(delegationId ?? null, text);
     } catch (cause) {
-      if (!request.signal.aborted) setError(cause instanceof Error ? cause.message : 'The request could not complete.');
+      if (!request.signal.aborted) {
+        setError(cause instanceof Error ? cause.message : 'The request could not complete.');
+        setOpen(true);
+      }
     } finally {
       if (active.current === request) { active.current = null; setBusy(false); }
     }
-  }, [ready]);
-  askRef.current = ask;
+  }, [ready, dismissInvitation]);
+  useEffect(() => { askRef.current = ask; }, [ask]);
 
   useEffect(() => {
     live.current = createLiveController({
-      onStatus: setStatus, onTranscript: setRows, onError: setError,
+      onStatus: setStatus, onTranscript: setRows,
+      onError: (message) => {
+        if (/sign.?in|signed in/i.test(message)) { setVoiceSignIn(true); setError(''); }
+        else setError(message);
+      },
       onAssistantText: setAnswer,
       onDelegation: ({ id, query }) => { void askRef.current(query, id); },
     });
-    return () => { active.current?.abort(); live.current?.dispose(); live.current = null; };
+    return () => {
+      active.current?.abort(); live.current?.dispose(); live.current = null;
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+    };
   }, []);
   useEffect(() => {
     onAskReady?.((question) => { void ask(question); });
     return () => onAskReady?.(null);
   }, [ask, onAskReady]);
+  useEffect(() => {
+    if (!open) return;
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setOpen(false); toggle.current?.focus(); }
+    };
+    window.addEventListener('keydown', escape);
+    return () => window.removeEventListener('keydown', escape);
+  }, [open]);
 
-  const connected = !['off', 'stopped', 'error', 'startup timed out', 'disconnected'].includes(status) && !status.startsWith('closed') && !status.startsWith('disconnected');
+  const connected = !['off', 'stopped', 'disposed', 'error', 'startup timed out', 'disconnected'].includes(status) && !status.startsWith('closed') && !status.startsWith('disconnected');
   const statusLabel = status.startsWith('closed') || ['off', 'stopped'].includes(status) ? 'Voice off' : status === 'started' ? 'Listening' : status;
-  return <aside className={styles.dock} aria-label="Astra navigation">
-    <div className={styles.heading}>
-      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)}>Ask Astra <span>{open ? '−' : '+'}</span></button>
-      <button type="button" disabled={!ready} onClick={() => { setOpen(true); setError(''); if (connected) live.current?.stop(); else void live.current?.start(); }} aria-label={connected ? 'Stop Live voice' : 'Start Live voice'}>{connected ? 'Stop voice' : 'Talk'}</button>
-    </div>
-    {open && <div className={styles.body}>
-      <p className={styles.status}>Live · {statusLabel}</p>
+  const clearCloseTimer = () => {
+    if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; }
+  };
+  return <aside className={styles.dock} data-astra-panel data-live={connected ? 'true' : undefined} data-inviting={inviting && !open ? 'true' : undefined} data-open={open ? 'true' : undefined} aria-label="Astra navigation" onFocusCapture={clearCloseTimer} onPointerDown={clearCloseTimer}>
+    {open && <div id="astra-discovery-body" className={styles.body}>
+      <div className={styles.bodyHeading}>
+        <p>Where shall we go?</p>
+        <button type="button" aria-label="Close Ask Astra" onClick={() => { setOpen(false); toggle.current?.focus(); }}><X size={16}/></button>
+      </div>
+      {!answer && !busy && <div className={styles.suggestions} aria-label="Try asking Astra">
+        {SUGGESTIONS.map(question => <button key={question} type="button" disabled={!ready} onClick={() => void ask(question, undefined, false)}>{question}<ArrowUpRight size={14} aria-hidden="true"/></button>)}
+      </div>}
       <QuestionBar onQuestion={(text) => ask(text)} disabled={!ready} busy={busy} onCancel={() => { active.current?.abort(); active.current = null; setBusy(false); }} />
       {answer && <p className={styles.answer} aria-live="polite">{answer}</p>}
-      {error && <p className={styles.error} role="alert">{error}{/sign.?in|signed in/i.test(error) && <> <a href="/signin-with-chatgpt?return_to=%2F">Sign in with ChatGPT</a></>}</p>}
+      {voiceSignIn && <p className={styles.signIn} role="status"><a href="/signin-with-chatgpt?return_to=%2F">Sign in with ChatGPT to talk</a><span>Or choose a suggestion and explore right away.</span></p>}
+      {error && <p className={styles.error} role="alert">{error}{/sign.?in|signed in/i.test(error) && <> <a href="/signin-with-chatgpt?return_to=%2F">Sign in with ChatGPT</a><span className={styles.errorHelp}>You can still explore the places above.</span></>}</p>}
       {rows.length > 0 && <details className={styles.transcript}><summary>Conversation</summary>{rows.slice(-6).map((row, index) => <p key={index}><strong>{row.who === 'user' ? 'You' : 'Astra'}:</strong> {row.text}</p>)}</details>}
-      {!answer && <p className={styles.hint}>Try “Show me the vibe in New York.”</p>}
+      <p className={styles.status}>{connected ? `Live · ${statusLabel}` : voiceSignIn ? 'Exploration is open to everyone.' : 'Tap a suggestion, type, or talk to Astra.'}</p>
+    </div>}
+    <div className={styles.heading}>
+      <button ref={toggle} type="button" aria-expanded={open} aria-controls="astra-discovery-body" onClick={() => { clearCloseTimer(); dismissInvitation(); setOpen(!open); }}><span>Ask Astra</span><ChevronDown size={15} className={open ? styles.expandedChevron : ''} aria-hidden="true"/></button>
+      <button type="button" disabled={!ready} onClick={() => { clearCloseTimer(); dismissInvitation(); setOpen(true); setError(''); setVoiceSignIn(false); if (connected) live.current?.stop(); else { setAnswer(''); void live.current?.start(); } }} aria-label={connected ? 'Stop Live voice' : 'Start Live voice'}>{connected ? <Square size={13} aria-hidden="true"/> : <Mic size={15} aria-hidden="true"/>}{connected ? 'Stop voice' : 'Talk'}</button>
+    </div>
+    {inviting && !open && <div className={styles.invitation}>
+      <button type="button" disabled={!ready} onClick={() => void ask(SUGGESTIONS[0], undefined, false)}><span>{SUGGESTIONS[0]}</span><ArrowUpRight size={15} aria-hidden="true"/></button>
+      <button type="button" onClick={dismissInvitation} aria-label="Dismiss Astra suggestion"><X size={13}/></button>
     </div>}
   </aside>;
 }
