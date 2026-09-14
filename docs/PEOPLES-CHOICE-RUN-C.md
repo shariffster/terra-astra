@@ -1,6 +1,6 @@
-# Sonic Earth — Run C listening candidate
+# Sonic Earth — Run C provisional Lab release
 
-14 September 2026. Current candidate: **v0.10.3-rc.5**, branch `people-choice/v0.10`.
+14 September 2026. Release: **v0.10.3**, branch `people-choice/v0.10`, promoting the RC5 audio implementation.
 
 ## Acceptance and preservation
 
@@ -12,7 +12,9 @@ The owner judged RC3's opening okay but its continuation too droning. RC4 preser
 
 The owner then found RC4 initially okay but repetitive after the first few loops. RC5 replaces the fixed continuation with distinct deterministic phrases: three to six notes, unequal spacing, changing note order, related voicings and register, variable tone colour and width. Each 26-second opportunity leaves at least six seconds for release. Optional notes emerge smoothly with activity and camera approach. The earlier opening remains, and its sustained tones still leave after awakening.
 
-**RC5 is unaccepted. Superiority to silent v0.10.2 is UNKNOWN.** Listening acceptance is required before a release tag or Lab deployment. Engineering checks do not establish enjoyment, long-session fatigue or physical speaker quality. Rejected RC3 is preserved at `e8a7cdec4dcc46384e21ed9054f5b60377376eff`, saved Lab version 5; RC4 at `e8373efb00e2ec615ad4424c63e1ff0f671e84a2`, saved version 6. Neither has a tag or deployment.
+**The owner accepted RC5 as workable for now and instructed the release to proceed. Clear superiority to silent v0.10.2 is not established.** This is provisional acceptance of the current direction, with sound design still needing work. Engineering checks do not establish enjoyment, long-session fatigue or physical speaker quality. Rejected RC3 is preserved at `e8a7cdec4dcc46384e21ed9054f5b60377376eff`, saved Lab version 5; RC4 at `e8373efb00e2ec615ad4424c63e1ff0f671e84a2`, saved version 6. Neither has a tag or deployment. Accepted implementation source is `b96f70339ea84cf1e3a03175fce9cbde6fc6a0a5`; final source/tag/save/deployment provenance is in the release handoff.
+
+A separate headed QA browser had an active, unmuted AudioContext while the owner's in-app preview could also play. It was suspended once identified. Overlapping playback may have affected earlier listening; its physical audibility was not measured. Further review uses one active audio surface. This limitation was disclosed before publication.
 
 Preserved and verified before implementation:
 
@@ -23,7 +25,7 @@ Preserved and verified before implementation:
 - Sole possible deployment destination: https://terra-astra-peoples-choice-v010.riffster.chatgpt.site/
 - Canonical and immutable v0.9 archive have not been mutated. Terrain, geometry, populations, datasets, navigation authority and the visual awakening clock remain unchanged.
 
-Candidate source/save/deployment provenance is recorded in the final handoff after the exact source is committed. A saved candidate is not a deployment or acceptance.
+Final source/save/deployment provenance is recorded in the release handoff. Only a successful native deployment establishes publication.
 
 ## Architecture and ownership
 

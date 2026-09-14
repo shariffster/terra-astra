@@ -2,10 +2,16 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
-## v0.10.3-rc.5 — 2026-09-14 — Sonic Earth (evolving listening candidate)
+## v0.10.3 — 2026-09-14 — Sonic Earth (provisional Lab acceptance)
+- The owner accepted RC5 as workable for now and instructed the Lab release to proceed. This is provisional creative acceptance, not a claim that the sound is clearly superior in every setting.
+- Promotes the evolving phrase implementation from source `b96f70339ea84cf1e3a03175fce9cbde6fc6a0a5` with release-label and review-record changes only. All terrain, world and navigation systems remain preserved.
+- A separate QA browser was found capable of audible overlap and was suspended; prior listening may have been affected. Further listening should use one active audio surface. Physical-speaker/mobile and authenticated Live listening limits remain explicit.
+- Preserves v0.10.2 / saved Lab version 4, candidate source commits, saved versions 5 and 6, canonical and the immutable v0.9 archive.
+
+## v0.10.3-rc.5 — 2026-09-14 — Sonic Earth (accepted implementation candidate)
 - The owner found RC4 okay initially, but repetitive after a few loops. The fixed continuation is replaced by deterministic phrase generation: three to six notes, changing order, unequal spacing, varied lengths, related voicings, register, colour and width.
 - Each 26-second phrase opportunity develops differently and leaves at least six seconds for release. Activity and camera approach reveal optional notes; no additional source or timer is created. The opening retains its earlier figure and sustained tones still leave after awakening.
-- RC4 remains preserved at source `e8373efb00e2ec615ad4424c63e1ff0f671e84a2`, saved Lab version 6, without deployment or tag. RC5 is an unaccepted listening candidate.
+- RC4 remains preserved at source `e8373efb00e2ec615ad4424c63e1ff0f671e84a2`, saved Lab version 6, without deployment or tag. RC5 was subsequently accepted for provisional Lab release.
 
 ## v0.10.3-rc.4 — 2026-09-14 — Sonic Earth (superseded phrased candidate)
 - Owner assessment of RC3: the opening was okay, but the continuation became too droning. The opening is retained; the two sustained harmonic tones now fade away over 3.2 seconds after awakening completes.

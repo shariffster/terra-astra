@@ -1,20 +1,20 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.3-rc.5';
+export const currentVersion = '0.10.3';
 
 export const releases = [
   {
-    version: '0.10.3-rc.5',
+    version: '0.10.3',
     date: '2026-09-14',
     dateLabel: '14 September 2026',
-    title: 'Hear the living Earth — Sonic Earth candidate',
-    milestone: 'Listening review · Not yet accepted',
+    title: 'Hear the living Earth — Sonic Earth',
+    milestone: 'People’s Choice Lab · Accepted for now',
     changes: [
       'A small sound control invites you to hear Earth after it settles. Every fresh visit starts silently; sound remains optional throughout the journey.',
       'An original evolving harmonic field brings warmth to Earth. Sustained opening tones leave after awakening; later phrases change note order, spacing, voicing and register, with pauses between them. Approaching activity reveals extra detail.',
       'New York, Singapore and Palm follow their road and coastal activity. Makkah uses only its interpretive circular movement; Challenger Deep becomes quieter and darker with descent.',
       'Astra’s actual voice output lowers the world gently. Mute, hidden tabs, replay and interrupted sessions release or suspend the sound cleanly.',
     ],
-    review: 'Candidate for listening review. After the texture-led passes were judged rough, then too faint, the owner requested a repeating cinematic harmonic layer. This is an original procedural figure with no recordings or borrowed score. Makkah retains only its existing movement interpretation at local scale. Engineering checks cannot establish headphone, laptop-speaker, physical-phone or authenticated GPT-Live-1 listening quality; acceptance remains pending. The accepted v0.10.2 source tag and Lab saved version 4 remain the rollback. Canonical and the immutable v0.9 archive are untouched.',
+    review: 'Accepted provisionally by the owner after iterative listening: workable for now, with further sound design needed. The owner requested an original cinematic harmonic layer after the texture-led candidates, then less drone and more variation. No recordings or borrowed score are used. Makkah retains only its existing movement interpretation at local scale. A separate QA browser was found capable of overlapping playback and was silenced; earlier listening may have been affected. Physical-device audio and authenticated GPT-Live-1 intelligibility are not certified by the engineering checks. The v0.10.2 tag and Lab saved version 4 remain the rollback. Canonical and the immutable v0.9 archive are untouched.',
   },
   {
     version: '0.10.2',
