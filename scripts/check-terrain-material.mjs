@@ -26,7 +26,7 @@ for(let i=0;i<points.length;i+=6){
   const a=material(r,phase,2,metres,horizon,{time:0}),b=material(r,phase,2,metres,horizon,{time:24});
   assert.ok(Object.values(a).every(Number.isFinite)&&Object.values(b).every(Number.isFinite));
   if(isSurface){
-    assert.ok(a.r>1&&a.r<1.001&&b.r>1&&b.r<1.001,'Marine medium stays below cable/ship radii');
+    assert.ok(a.r>1&&a.r<1.001&&b.r>1&&b.r<1.001,'Marine medium stays below surface vessels');
     assert.ok(Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z)<.003,'Bounded coherent drift');
     const quiet=material(r,phase,2,metres,horizon,{sea:0});assert.equal(quiet.light,0,'No marine layer before the existing ocean awakening');
     const paused=material(r,phase,2,metres,horizon,{motion:0,time:0}),pausedLater=material(r,phase,2,metres,horizon,{motion:0,time:40});assert.deepEqual(paused,pausedLater,'Reduced motion is still');

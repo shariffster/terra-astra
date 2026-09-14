@@ -61,7 +61,7 @@ function seed(id: string) {
   hash = Math.imul(hash ^ (hash >>> 16), 0x21f0aaad);
   return (hash ^ (hash >>> 15)) >>> 0;
 }
-const firstSea = ['sea-south-china', 'sea-north-atlantic', 'sea-indian', 'sea-arabian', 'sea-bay-bengal', 'sea-mediterranean'];
+const firstSea = ['sea-sg-scs', 'sea-sg-malacca', 'sea-lanka-arabian', 'sea-ny-channel', 'sea-gibraltar-sicily', 'sea-japan-hawaii'];
 const firstAir = new Set(['Singapore ↔ Tokyo', 'Singapore ↔ Dubai', 'Singapore ↔ Sydney', 'New York ↔ London', 'New York ↔ San Francisco', 'London ↔ Dubai'].map(label => `${label} · illustrated`));
 function priority(signal: WorldSignal) {
   const copy = Number(signal.id.match(/-light-(\d+)$/)?.[1] ?? 1) - 1;

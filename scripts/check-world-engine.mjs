@@ -52,7 +52,7 @@ engine.skipGenesis();
 const baseOptions={glow:1.15,shimmer:1.1,depth:true,threads:.55,density:.85,borders:false,motion:false};engine.configure(baseOptions);tick();
 const objects=()=>{const result=[];rendered.scene.traverse(o=>{if(o instanceof THREE.Points)result.push(o);});return result;};
 assert.deepEqual(objects().filter(o=>o.userData.backgroundDepth).map(o=>o.userData.backgroundDepth).sort((a,b)=>a-b),[8,30],'Two faint physical background depths');assert.equal(engine.worldState().layers.ships,true,'Sea movement starts enabled');assert.ok(objects().some(o=>o.userData.seaBackbone),'Existing engine carries illustrated sea pulses');
-const shells=()=>objects().filter(o=>o.userData.shell&&o.userData.shell!=='ships');
+const shells=()=>objects().filter(o=>['satellites','aircraft'].includes(o.userData.shell));
 assert.equal(shells().length,2,'One orbital and one atmosphere shell');
 const radii=shells().map(o=>{const a=o.geometry.getAttribute('position');return [o.userData.shell,...Array.from({length:a.count},(_,i)=>Math.hypot(a.getX(i),a.getY(i),a.getZ(i)))];});
 for(const [layer,...values] of radii)assert.ok(values.every(r=>layer==='satellites'?r>=1.19&&r<=1.39:r>=1.024&&r<1.19),'Air clears sculpted land and remains below orbital shells');

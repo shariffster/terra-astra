@@ -2,6 +2,15 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.5 — 2026-09-14 — Run D: Living Planet
+- Isolated visual branch from exact accepted v0.10.2, with no Run C/Sonic Earth changes. The v0.10.3 series remains reserved for that separate work.
+- 84 satellites, 200 aircraft on 40 corridors, 176 ships on 44 connected, ETOPO-water-checked maritime structures, and 56 illustrated network trunks/branches.
+- Soft teal particulate sea lanes share the ships’ fixed path geometry. A diffuse transverse spread is rejected wherever it crosses the existing land mask.
+- Distinct icy orbital, warm atmospheric, sea-teal vessel and lilac network materials, with individual size, exposure, trail and shimmer rhythms.
+- Cable points follow sampled seafloor plus bounded clearance through existing terrain displacement. Precise filaments and quiet pulses remain perceptible from the planet.
+- Region exposure grows selectively; city/street fade, 2.5-second settlement breath, 18-second awakening, pause, reduced motion, replay and renderer disposal are preserved.
+- One extra batched draw call for sea lanes; no new data provider, destination, audio, terrain redesign, dashboard or dependency. Lab-only save/deploy and handoff receipts are separate from this source entry.
+
 ## v0.10.2 — 2026-09-14 — Terrain, ocean and planetary depth
 - Lab-only Run B on `people-choice/v0.10`; preserves the exact v0.10.1 source tag and saved rollback package.
 - Adds view-dependent ETOPO relief, grazing slope light, restrained point sizing and quieter lowlands/body competition. City and street retain their existing geometry.

@@ -11,8 +11,8 @@ The user wants visible version tracking and preserved iterations.
 
 ## People's Choice setup boundary (2026-09-13)
 
-- Work only on `people-choice/v0.10` in this worktree. Read `docs/PEOPLES-CHOICE-VERSIONING.md` before any Sites operation.
+- Run D user authority (14 September): work only on `people-choice/run-d-living-planet` in this isolated worktree, rooted at accepted `ff3d0fe8e6024918d2b14dba83cb3613acdf6023` / `v0.10.2`. This supersedes the earlier single-branch setup boundary. Run C audio stays separate. Read `docs/PEOPLES-CHOICE-VERSIONING.md` before any Sites operation.
 - This checkout's `.openai/hosting.json` targets only the v0.10 lab. Do not restore the canonical project ID from historical source.
 - Never mutate, save a version to, deploy to, rename, or change access/environment on the v0.9 archive Site after setup. The archive packaging checkout under ignored `work/` is historical setup material, not a development target.
 - Canonical production stays on v0.9. Crossover requires explicit human approval of the exact accepted v0.10 build. Never redirect canonical to the lab.
-- Setup authorizes topology and documentation only. Wait for the product brief before feature development.
+- The Run D Living Planet brief authorizes visual planetary systems, verification, Lab-only deployment if clearly superior, and Drive handoff. Canonical and v0.9 archive remain immutable in this run.

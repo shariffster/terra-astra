@@ -1,24 +1,26 @@
 // Geometry/provenance checks, not a claim about actual undersea cable locations.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cablePaths, CABLE_SEGMENTS_PER_PATH, sampleCable, sampleCablePulse } from '../lib/world/cables.ts';
+import { registerHooks } from 'node:module';
+registerHooks({ resolve(specifier, context, next) { return next(context.parentURL?.includes('/lib/') && specifier.startsWith('.') && !specifier.endsWith('.ts') ? specifier + '.ts' : specifier, context); } });
+const { cablePaths, CABLE_SEGMENTS_PER_PATH, sampleCable, sampleCablePulse } = await import('../lib/world/cables.ts');
 import { sampleElevation } from '../lib/terra/spatial.ts';
 const data = readFileSync(new URL('../public/data/relief-grid.bin', import.meta.url));
 const grid = new Int16Array(data.buffer, data.byteOffset, data.byteLength / 2);
 const a = new Float64Array(3), b = new Float64Array(3);
 const distance = () => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const before = JSON.stringify(cablePaths);
-assert.equal(cablePaths.length, 10);
-assert.equal(CABLE_SEGMENTS_PER_PATH, 64);
-assert.equal(new Set(cablePaths.map(c => c.id)).size, 10);
+assert.equal(cablePaths.length, 56);
+assert.equal(CABLE_SEGMENTS_PER_PATH, 256);
+assert.equal(new Set(cablePaths.map(c => c.id)).size, 56);
 let samples = 0;
 for (const path of cablePaths) {
   assert.equal(path.provenance, 'procedural');
   assert.ok(Object.isFrozen(path) && Object.isFrozen(path.segments) && Object.isFrozen(path.waypoints));
-  assert.ok(path.waypoints.length >= 4 && path.waypoints.length <= 8);
+  assert.ok(path.waypoints.length >= 2 && path.waypoints.length <= 60);
   assert.ok(path.segments.every(s => Object.isFrozen(s) && Object.isFrozen(s.basisA) && Object.isFrozen(s.basisB)));
   assert.ok(path.periodSeconds >= 200 && path.periodSeconds <= 320);
-  assert.equal(path.radius, 1.001);
+  assert.equal(path.radius, .996);
   for (let i = 0; i <= 1000; i++) {
     sampleCable(path, i / 1000, a); sampleCable(path, i / 1000, b);
     assert.deepEqual(a, b); assert.ok([...a].every(Number.isFinite));
@@ -43,4 +45,4 @@ for (const path of cablePaths) {
   }
 }
 assert.equal(JSON.stringify(cablePaths), before, 'Samples preserve fixed identities and geometry.');
-console.log(`PASS: ${samples} finite, water-checked, continuous cable samples; 10 immutable authored paths; slow lag-correct pulses; ${CABLE_SEGMENTS_PER_PATH} renderer segments per path.`);
+console.log(`PASS: ${samples} finite, water-checked, continuous cable samples; 56 immutable connected paths; slow lag-correct pulses; ${CABLE_SEGMENTS_PER_PATH} renderer segments per path.`);

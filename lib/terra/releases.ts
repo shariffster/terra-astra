@@ -1,13 +1,27 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.2';
+export const currentVersion = '0.10.5';
 
 export const releases = [
+  {
+    version: '0.10.5',
+    date: '2026-09-14',
+    dateLabel: '14 September 2026',
+    title: 'Living Planet — currents, journeys and connections',
+    milestone: 'This Lab build',
+    changes: [
+      '84 icy orbital lights, 200 atmospheric journeys and 176 slower maritime lights keep their own heights, trails and glimmer rhythms.',
+      '44 soft sea corridors carry the ships through ocean basins and coastal approaches. The circulation follows the bundled ocean geography.',
+      '56 lilac undersea connections gather into trunks and branches, visible from orbit and seated above the sampled seafloor in depth views.',
+      'Global layers gain presence at regional scale and recede before city and street detail. Genesis, awakening and the five destinations remain connected.',
+    ],
+    review: 'Visual Run D starts from the preserved v0.10.2 baseline. Routes and activity are authored illustrations, never live tracking, actual cable alignments or navigation guidance. Radii, light and time are exaggerated for perception. Verification receipts accompany this release; physical-phone testing remains separate. People’s Choice Lab only.',
+  },
   {
     version: '0.10.2',
     date: '2026-09-14',
     dateLabel: '14 September 2026',
     title: 'Earth has form — Terrain, ocean and planetary depth',
-    milestone: 'This Lab build',
+    milestone: 'Preserved terrain checkpoint',
     changes: [
       'Mountains rise more clearly at low angles. Quiet lowlands, pale ridges and warm settlements retain the celestial Earth.',
       'A faint ocean surface awakens after ships and hidden connections. Shelves and seafloor sit beneath it; the existing ocean samples carry both layers.',

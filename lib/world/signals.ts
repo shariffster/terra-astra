@@ -1,3 +1,5 @@
+import { seaLanePaths } from './sea-lanes';
+import { sampleMarinePath, type MarinePath } from './marine-path';
 import { placeCatalogue } from '../personal/catalogue';
 
 /** Truth-inspired motion, not current positions, scheduled flights or tracked ships.
@@ -21,12 +23,13 @@ export type WorldSignal = Readonly<{
   basisB: XYZ;
   arcRadians: number;
   motion: 'orbit' | 'shuttle';
+  marinePath?: MarinePath;
   fromId?: string;
   toId?: string;
 }>;
 
 export const signalColors = Object.freeze({
-  satellites: '#A8F4FF', aircraft: '#7CE9E6', ships: '#53D8C6',
+  satellites: '#BCEAFF', aircraft: '#D5DFD4', ships: '#83D7B8',
 });
 export const signalDisclosure = 'Illustrated orbital, flight and sea motion. Not live tracking.';
 const TAU = Math.PI * 2;
@@ -50,7 +53,7 @@ function orbit(index: number, inclination: number, ascendingLongitude: number): 
   return Object.freeze({
     id, layer: 'satellites', label: `${inclination > 75 ? 'Near-polar' : 'Inclined'} orbital light ${index + 1}`,
     provenance: 'procedural', color: signalColors.satellites,
-    radius: index < 12 ? 1.20 + (index % 7) * .03 : [1.20, 1.29, 1.38][Math.floor((index - 12) / 20)],
+    radius: index < 12 ? 1.20 + (index % 7) * .03 : [1.20, 1.29, 1.38][Math.floor((index - 12) / 24)],
     periodSeconds: index < 12 ? 170 + index * 9 : 180 + Math.floor((index - 12) / 20) * 38 + (index % 5) * 3,
     phase: phaseFor(id), trailSeconds: 2.4, motion: 'orbit', arcRadians: TAU,
     basisA: geography(0, ascendingLongitude),
@@ -86,7 +89,7 @@ export const satelliteSignals: readonly WorldSignal[] = Object.freeze([
   orbit(0, 28, 12), orbit(1, 52, 40), orbit(2, 83, 71), orbit(3, 98, 100),
   orbit(4, 42, 132), orbit(5, 65, 165), orbit(6, 89, 193), orbit(7, 35, 228),
   orbit(8, 56, 257), orbit(9, 97, 284), orbit(10, 75, 310), orbit(11, 48, 339),
-  ...Array.from({ length: 60 }, (_, i) => orbit(i + 12, [32, 53, 86, 98][i % 4], (i * 137.508 + 17) % 360)),
+  ...Array.from({ length: 72 }, (_, i) => orbit(i + 12, [32, 53, 86, 98][i % 4], (i * 137.508 + 17) % 360)),
 ]);
 
 /** Geographic city anchors are the existing Natural Earth point catalogue.
@@ -119,25 +122,17 @@ function repeatCorridors(corridors: readonly WorldSignal[], count: number): read
   }))).flat());
 }
 
-export const aircraftSignals = repeatCorridors(aircraftCorridors, 3);
+export const aircraftSignals = repeatCorridors(aircraftCorridors, 5);
 
-/** Open-water illustrative legs; not shipping lanes or navigation instructions. */
-const seaCorridors: readonly WorldSignal[] = Object.freeze([
-  route('sea-south-china', 'ships', 'South China Sea · illustrated', geography(6, 111), geography(15, 114)),
-  route('sea-north-atlantic', 'ships', 'North Atlantic · illustrated', geography(35, -50), geography(45, -30)),
-  route('sea-indian', 'ships', 'Indian Ocean · illustrated', geography(-12, 60), geography(-5, 78)),
-  route('sea-south-pacific', 'ships', 'South Pacific · illustrated', geography(-25, -130), geography(-10, -115)),
-  route('sea-mediterranean', 'ships', 'Mediterranean · illustrated', geography(34, 20), geography(34.3, 26)),
-  route('sea-north-pacific', 'ships', 'North Pacific · illustrated', geography(32, 155), geography(37, -165)),
-  route('sea-arabian', 'ships', 'Arabian Sea · illustrated', geography(12, 57), geography(20, 65)),
-  route('sea-bay-bengal', 'ships', 'Bay of Bengal · illustrated', geography(7, 84), geography(18, 88)),
-  route('sea-northeast-atlantic', 'ships', 'Northeast Atlantic · illustrated', geography(44, -13), geography(53, -15)),
-  route('sea-south-atlantic', 'ships', 'South Atlantic · illustrated', geography(-25, -35), geography(-8, -20)),
-  route('sea-east-pacific', 'ships', 'Eastern Pacific · illustrated', geography(18, -115), geography(36, -129)),
-  route('sea-coral', 'ships', 'Coral Sea · illustrated', geography(-20, 158), geography(-31, 170)),
-]);
-
-export const shipSignals = repeatCorridors(seaCorridors, 2);
+/** Ships use the exact same water-checked geometry as their particulate lanes. */
+const seaCorridors: readonly WorldSignal[] = Object.freeze(seaLanePaths.map((path, index) => Object.freeze({
+  id: path.id, layer: 'ships' as const, label: path.label, provenance: 'procedural' as const,
+  color: signalColors.ships, radius: 1.002, periodSeconds: Math.max(90, path.totalArc * Math.PI / .0035),
+  phase: (index * .381966 + .17) % 1, trailSeconds: 5.5,
+  basisA: path.segments[0].basisA, basisB: path.segments[0].basisB,
+  arcRadians: path.totalArc, motion: 'shuttle' as const, marinePath: path,
+})));
+export const shipSignals = repeatCorridors(seaCorridors, 4);
 
 export const worldSignals: readonly WorldSignal[] = Object.freeze([...satelliteSignals, ...aircraftSignals, ...shipSignals]);
 
@@ -150,6 +145,12 @@ export function sampleSignal(signal: WorldSignal, timeSeconds: number, out: Sign
   const lag = Number.isFinite(lagSeconds) ? Math.max(0, lagSeconds) : 0;
   const cycle = ((time % signal.periodSeconds) - (lag % signal.periodSeconds)) / signal.periodSeconds + signal.phase;
   const phase = cycle - Math.floor(cycle);
+  if (signal.marinePath) {
+    sampleMarinePath(signal.marinePath, .5 - .5 * Math.cos(TAU * phase), out);
+    const scale = signal.radius / signal.marinePath.radius;
+    for (let axis = 0; axis < 3; axis++) out[axis] *= scale;
+    return;
+  }
   const angle = signal.motion === 'orbit' ? TAU * phase : signal.arcRadians * (.5 - .5 * Math.cos(TAU * phase));
   const c = Math.cos(angle) * signal.radius, s = Math.sin(angle) * signal.radius;
   out[0] = signal.basisA[0] * c + signal.basisB[0] * s;
