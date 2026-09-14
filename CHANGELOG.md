@@ -2,6 +2,22 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.3-rc.3 — 2026-09-14 — Sonic Earth (harmonic listening candidate)
+- The owner found RC2 softer but too faint and explicitly requested a repeating background layer with a contemplative cinematic character. This supersedes the original brief's prohibition on a musical bed; all other preservation and listening/deployment conditions remain.
+- Adds an original twelve-second suspended figure, warm organ-like periodic waveforms, slow octave-energy hand-offs and two damped spatial reflections. This is not a sampled soundtrack or a literal continuously rising Shepard glissando.
+- Six reusable harmonic voices follow renderer time, with no new timer or event scheduler. The exact 2.5-second settlement breath clears the harmonic field. Approach increases presence; depth muffles it; local Makkah excludes the figure. Astra ducks the entire output.
+- Retains RC2's soft noise textures and .14 master gain; improves audibility through midrange harmonic energy. Persistent source cap is now 15, plus at most six sparse events.
+- Unaccepted listening candidate. No release tag or Lab deployment until listening acceptance. See `docs/PEOPLES-CHOICE-RUN-C.md`.
+
+## v0.10.3-rc.2 — 2026-09-14 — Sonic Earth (superseded listening candidate)
+- Run C adds an isolated native Web Audio graph, a read-only world adapter, deterministic sparse scheduler and five destination movement profiles. No music framework, samples, dataset changes or new destinations.
+- Sound starts only from its own user gesture; every fresh visit is silent. Mute is remembered, and replay retains a reachable sound control.
+- The existing Genesis and awakening clocks drive the sonics. Actual camera altitude and bounded activity samples drive perspective, texture and event opportunity.
+- Remote Live output is metered for -10 dB ducking with a 100 ms attack and 800 ms release. Stop immediately pauses remote playback while preserving final usage handling.
+- One control timer, nine persistent sources and at most six brief events; muted/hidden contexts suspend. Disposal closes the graph and removes listeners.
+- Listening pass 1 was rejected by the owner as rough and too constant. RC2 removes continuous urban noise, replaces white noise with correlated bands and additional low-pass filtering, adds slow uneven air/ocean swells, softens event envelopes and reduces master gain from .18 to .14.
+- Owner assessment: softer, but too faint. Superseded by RC3's requested harmonic direction; never tagged or deployed.
+
 ## v0.10.2 — 2026-09-14 — Terrain, ocean and planetary depth
 - Lab-only Run B on `people-choice/v0.10`; preserves the exact v0.10.1 source tag and saved rollback package.
 - Adds view-dependent ETOPO relief, grazing slope light, restrained point sizing and quieter lowlands/body competition. City and street retain their existing geometry.

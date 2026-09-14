@@ -138,5 +138,9 @@ export function specialDestinationViews(ports: Ports) {
       }
     }
   }
-  return { ensure, update };
+  function circulationActivity(id: string | null) {
+    const flow = views.get(id ?? '')?.flow;
+    return flow ? Math.min(1, flow.material.uniforms.opacity.value / 2) * Math.sqrt(Math.min(1, flow.points.geometry.drawRange.count / Math.max(1, flow.count))) : 0;
+  }
+  return { ensure, update, circulationActivity };
 }

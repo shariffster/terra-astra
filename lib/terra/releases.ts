@@ -1,13 +1,27 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.2';
+export const currentVersion = '0.10.3-rc.3';
 
 export const releases = [
+  {
+    version: '0.10.3-rc.3',
+    date: '2026-09-14',
+    dateLabel: '14 September 2026',
+    title: 'Hear the living Earth — Sonic Earth candidate',
+    milestone: 'Listening review · Not yet accepted',
+    changes: [
+      'A small sound control invites you to hear Earth after it settles. Every fresh visit starts silently; sound remains optional throughout the journey.',
+      'An original repeating harmonic figure brings warmth and continuity to Earth. Soft organ-like tones and overlapping octaves grow through the existing awakening, while camera altitude changes their presence.',
+      'New York, Singapore and Palm follow their road and coastal activity. Makkah uses only its interpretive circular movement; Challenger Deep becomes quieter and darker with descent.',
+      'Astra’s actual voice output lowers the world gently. Mute, hidden tabs, replay and interrupted sessions release or suspend the sound cleanly.',
+    ],
+    review: 'Candidate for listening review. After the texture-led passes were judged rough, then too faint, the owner requested a repeating cinematic harmonic layer. This is an original procedural figure with no recordings or borrowed score. Makkah retains only its existing movement interpretation at local scale. Engineering checks cannot establish headphone, laptop-speaker, physical-phone or authenticated GPT-Live-1 listening quality; acceptance remains pending. The accepted v0.10.2 source tag and Lab saved version 4 remain the rollback. Canonical and the immutable v0.9 archive are untouched.',
+  },
   {
     version: '0.10.2',
     date: '2026-09-14',
     dateLabel: '14 September 2026',
     title: 'Earth has form — Terrain, ocean and planetary depth',
-    milestone: 'This Lab build',
+    milestone: 'Preserved v0.10.2 rollback',
     changes: [
       'Mountains rise more clearly at low angles. Quiet lowlands, pale ridges and warm settlements retain the celestial Earth.',
       'A faint ocean surface awakens after ships and hidden connections. Shelves and seafloor sit beneath it; the existing ocean samples carry both layers.',
