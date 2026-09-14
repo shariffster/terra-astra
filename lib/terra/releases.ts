@@ -1,13 +1,26 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.7';
+export const currentVersion = '0.10.8';
 
 export const releases = [
+  {
+    version: '0.10.8',
+    date: '2026-09-14',
+    dateLabel: '14 September 2026',
+    title: 'Sonic Earth + Living Planet',
+    milestone: 'Integrated Lab checkpoint',
+    changes: [
+      'The accepted Sonic Earth soundscape joins the accepted Living Planet: 84 satellites, 200 aircraft, 176 ships, 44 sea corridors and 56 undersea connections.',
+      'Hear the living Earth follows the same Genesis, awakening, journeys and destinations. Sound remains optional, with the accepted volume and voice ducking.',
+      'The richer planetary populations feed bounded, normalized sound activity. Their visual materials, depth, arrival readiness and history return are preserved.',
+    ],
+    review: 'Integration only. Both accepted source checkpoints and the v0.10.2 rollback remain preserved. Validation and listening limits are recorded in the integration handoff. People’s Choice Lab only.',
+  },
   {
     version: '0.10.7',
     date: '2026-09-14',
     dateLabel: '14 September 2026',
     title: 'Living Planet — the familiar orbital lights',
-    milestone: 'This Lab build',
+    milestone: 'Preserved Living Planet checkpoint',
     changes: [
       'Satellites return to the larger icy-cyan stars, brighter heads and trails, and original glimmer cadence of the accepted visual baseline.',
       'The orbital population stays at 84. Their smooth paths and 2.4-second trails retain the original feel, with the earlier approach fade restored.',
@@ -39,6 +52,32 @@ export const releases = [
       'Global layers gain presence at regional scale and recede before city and street detail. Genesis, awakening and the five destinations remain connected.',
     ],
     review: 'Visual Run D starts from the preserved v0.10.2 baseline. Routes and activity are authored illustrations, never live tracking, actual cable alignments or navigation guidance. Radii, light and time are exaggerated for perception. Verification receipts accompany this release; physical-phone testing remains separate. People’s Choice Lab only.',
+  },
+  {
+    version: '0.10.4',
+    date: '2026-09-14',
+    dateLabel: '14 September 2026',
+    title: 'Return to the living Earth',
+    milestone: 'People’s Choice Lab · Navigation repair',
+    changes: [
+      'Repairs the return links on Build history so they open Earth reliably.',
+      'Preserves the provisionally accepted Sonic Earth soundscape, its optional activation and all world behavior.',
+    ],
+    review: 'The v0.10.3 publication check exposed a framework navigation failure on the history page. Its return links now use normal document navigation, matching the entry into history and ensuring a fresh, silent Earth. Audio and listening limitations remain those recorded for v0.10.3.',
+  },
+  {
+    version: '0.10.3',
+    date: '2026-09-14',
+    dateLabel: '14 September 2026',
+    title: 'Hear the living Earth — Sonic Earth',
+    milestone: 'People’s Choice Lab · Accepted for now',
+    changes: [
+      'A small sound control invites you to hear Earth after it settles. Every fresh visit starts silently; sound remains optional throughout the journey.',
+      'An original evolving harmonic field brings warmth to Earth. Sustained opening tones leave after awakening; later phrases change note order, spacing, voicing and register, with pauses between them. Approaching activity reveals extra detail.',
+      'New York, Singapore and Palm follow their road and coastal activity. Makkah uses only its interpretive circular movement; Challenger Deep becomes quieter and darker with descent.',
+      'Astra’s actual voice output lowers the world gently. Mute, hidden tabs, replay and interrupted sessions release or suspend the sound cleanly.',
+    ],
+    review: 'Accepted provisionally by the owner after iterative listening: workable for now, with further sound design needed. The owner requested an original cinematic harmonic layer after the texture-led candidates, then less drone and more variation. No recordings or borrowed score are used. Makkah retains only its existing movement interpretation at local scale. A separate QA browser was found capable of overlapping playback and was silenced; earlier listening may have been affected. Physical-device audio and authenticated GPT-Live-1 intelligibility are not certified by the engineering checks. The v0.10.2 tag and Lab saved version 4 remain the rollback. Canonical and the immutable v0.9 archive are untouched.',
   },
   {
     version: '0.10.2',

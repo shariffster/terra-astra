@@ -2,6 +2,14 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.8 — Sonic Earth + Living Planet · 14 September 2026
+
+- Integrate accepted Sonic Earth v0.10.4 (`737767d55bf63a7fbda606caaa138dc4d86c42f9`) into accepted Living Planet v0.10.7 (`1ba5dafe446924c9e65ca6781ec0b7f621536c74`) on a dedicated branch.
+- Preserve the entire Living Planet renderer and 84 / 200 / 176 / 44 / 56 populations, arrival readiness repair, and document-navigation history return.
+- Preserve the exact audio engine, director, synthesis, profiles, sound control, lifecycle and Live ducking. Only adapt the renderer's cable activity readout to its current shader and normalize out visual exposure; object fractions use current populations.
+- One shared visual awakening clock, bounded aggregate sound, unchanged .14 master and -10 dB duck. No new sounds, controls, destinations, providers or visual tuning.
+- Source, verification, listening limits and publication receipts: integration handoff. Lab only; historical tags and saved versions remain intact.
+
 ## v0.10.7 — Restore the familiar satellite material · 14 September 2026
 
 - Owner-requested return toward the accepted v0.10.2 satellite appearance: size 2.6, head brightness 1.65, tail .55, opacity 1.4, icy cyan and original glimmer rhythm/strength.
@@ -22,6 +30,43 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Cable points follow sampled seafloor plus bounded clearance through existing terrain displacement. Precise filaments and quiet pulses remain perceptible from the planet.
 - Region exposure grows selectively; city/street fade, 2.5-second settlement breath, 18-second awakening, pause, reduced motion, replay and renderer disposal are preserved.
 - One extra batched draw call for sea lanes; no new data provider, destination, audio, terrain redesign, dashboard or dependency. Lab-only save/deploy and handoff receipts are separate from this source entry.
+
+## v0.10.4 — 2026-09-14 — Return-link repair
+- The v0.10.3 production smoke exposed a broken Return to Earth link on `/history`: the framework's RSC prefetch/navigation bridge throws before navigating.
+- Both history return links now use normal document navigation. This matches the existing history entry and gives Earth a fresh, silent lifecycle on return.
+- No audio implementation, world state, terrain, navigation command or provider changes. Preserves v0.10.3 and its successful saved Lab version 7/deployment as historical milestones.
+
+## v0.10.3 — 2026-09-14 — Sonic Earth (provisional Lab acceptance)
+- The owner accepted RC5 as workable for now and instructed the Lab release to proceed. This is provisional creative acceptance, not a claim that the sound is clearly superior in every setting.
+- Promotes the evolving phrase implementation from source `b96f70339ea84cf1e3a03175fce9cbde6fc6a0a5` with release-label and review-record changes only. All terrain, world and navigation systems remain preserved.
+- A separate QA browser was found capable of audible overlap and was suspended; prior listening may have been affected. Further listening should use one active audio surface. Physical-speaker/mobile and authenticated Live listening limits remain explicit.
+- Preserves v0.10.2 / saved Lab version 4, candidate source commits, saved versions 5 and 6, canonical and the immutable v0.9 archive.
+
+## v0.10.3-rc.5 — 2026-09-14 — Sonic Earth (accepted implementation candidate)
+- The owner found RC4 okay initially, but repetitive after a few loops. The fixed continuation is replaced by deterministic phrase generation: three to six notes, changing order, unequal spacing, varied lengths, related voicings, register, colour and width.
+- Each 26-second phrase opportunity develops differently and leaves at least six seconds for release. Activity and camera approach reveal optional notes; no additional source or timer is created. The opening retains its earlier figure and sustained tones still leave after awakening.
+- RC4 remains preserved at source `e8373efb00e2ec615ad4424c63e1ff0f671e84a2`, saved Lab version 6, without deployment or tag. RC5 was subsequently accepted for provisional Lab release.
+
+## v0.10.3-rc.4 — 2026-09-14 — Sonic Earth (superseded phrased candidate)
+- Owner assessment of RC3: the opening was okay, but the continuation became too droning. The opening is retained; the two sustained harmonic tones now fade away over 3.2 seconds after awakening completes.
+- The following figure uses shorter envelopes and a twenty-second cycle with approximately seven seconds free of new harmonic notes. Dampened reflection tails decay through the pause. Individual phrases gain clarity without raising master volume or noise.
+- RC3 is preserved at source `e8a7cdec4dcc46384e21ed9054f5b60377376eff` and saved Lab version 5, never deployed or tagged. RC4 remains an unaccepted listening candidate.
+
+## v0.10.3-rc.3 — 2026-09-14 — Sonic Earth (superseded harmonic candidate)
+- The owner found RC2 softer but too faint and explicitly requested a repeating background layer with a contemplative cinematic character. This supersedes the original brief's prohibition on a musical bed; all other preservation and listening/deployment conditions remain.
+- Adds an original twelve-second suspended figure, warm organ-like periodic waveforms, slow octave-energy hand-offs and two damped spatial reflections. This is not a sampled soundtrack or a literal continuously rising Shepard glissando.
+- Six reusable harmonic voices follow renderer time, with no new timer or event scheduler. The exact 2.5-second settlement breath clears the harmonic field. Approach increases presence; depth muffles it; local Makkah excludes the figure. Astra ducks the entire output.
+- Retains RC2's soft noise textures and .14 master gain; improves audibility through midrange harmonic energy. Persistent source cap is now 15, plus at most six sparse events.
+- Unaccepted listening candidate. No release tag or Lab deployment until listening acceptance. See `docs/PEOPLES-CHOICE-RUN-C.md`.
+
+## v0.10.3-rc.2 — 2026-09-14 — Sonic Earth (superseded listening candidate)
+- Run C adds an isolated native Web Audio graph, a read-only world adapter, deterministic sparse scheduler and five destination movement profiles. No music framework, samples, dataset changes or new destinations.
+- Sound starts only from its own user gesture; every fresh visit is silent. Mute is remembered, and replay retains a reachable sound control.
+- The existing Genesis and awakening clocks drive the sonics. Actual camera altitude and bounded activity samples drive perspective, texture and event opportunity.
+- Remote Live output is metered for -10 dB ducking with a 100 ms attack and 800 ms release. Stop immediately pauses remote playback while preserving final usage handling.
+- One control timer, nine persistent sources and at most six brief events; muted/hidden contexts suspend. Disposal closes the graph and removes listeners.
+- Listening pass 1 was rejected by the owner as rough and too constant. RC2 removes continuous urban noise, replaces white noise with correlated bands and additional low-pass filtering, adds slow uneven air/ocean swells, softens event envelopes and reduces master gain from .18 to .14.
+- Owner assessment: softer, but too faint. Superseded by RC3's requested harmonic direction; never tagged or deployed.
 
 ## v0.10.2 — 2026-09-14 — Terrain, ocean and planetary depth
 - Lab-only Run B on `people-choice/v0.10`; preserves the exact v0.10.1 source tag and saved rollback package.

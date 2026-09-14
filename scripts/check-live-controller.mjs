@@ -4,7 +4,7 @@ import { createLiveController } from '../components/terra-voice/live-controller.
 
 function harness(t, { getUserMedia } = {}) {
   t.mock.timers.enable({ apis: ['setTimeout'] });
-  const statuses = [], errors = [], delegations = [], transcripts = [];
+  const statuses = [], errors = [], delegations = [], transcripts = [], outputStreams = [], audios = [];
   class Track extends EventTarget {
     kind = 'audio'; readyState = 'live'; enabled = true; muted = false;
     stop() { this.readyState = 'ended'; }
@@ -27,11 +27,12 @@ function harness(t, { getUserMedia } = {}) {
     async setRemoteDescription() {}
     close() { this.connectionState = 'closed'; }
   }
-  class Audio { autoplay = false; pause() {} load() {} removeAttribute() {} async play() {} }
+  class Audio { autoplay = false; paused = true; constructor() { audios.push(this); } pause() { this.paused = true; this.onpause?.(); } load() {} removeAttribute() {} async play() { this.paused = false; } }
+  class MediaStream { constructor(tracks) { this.tracks = tracks; } getTracks() { return this.tracks; } getAudioTracks() { return this.tracks; } }
   const originals = new Map();
   for (const [key, value] of Object.entries({
     navigator: { mediaDevices: { getUserMedia: getUserMedia ?? (async () => stream) } },
-    RTCPeerConnection: Peer, Audio,
+    RTCPeerConnection: Peer, Audio, MediaStream,
     fetch: async url => Response.json(url.endsWith('/status') ? { configured: true, signedIn: true } : { transport: { sdp: 'answer' } }),
   })) {
     originals.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
@@ -39,6 +40,7 @@ function harness(t, { getUserMedia } = {}) {
   }
   const controller = createLiveController({
     onStatus: value => statuses.push(value), onError: value => errors.push(value),
+    onOutputStream: value => outputStreams.push(value),
     onDelegation: value => delegations.push(value), onTranscript: value => transcripts.push(value), onAssistantText() {},
   });
   t.after(() => {
@@ -48,7 +50,8 @@ function harness(t, { getUserMedia } = {}) {
     }
   });
   const receive = data => peers.at(-1).channel.dispatchEvent(new MessageEvent('message', { data: JSON.stringify(data) }));
-  return { controller, track, stream, statuses, errors, delegations, transcripts, receive, get peer() { return peers.at(-1); },
+  return { controller, track, stream, statuses, errors, delegations, transcripts, receive, outputStreams, get audio() { return audios.at(-1); },
+    async output() { const remote = new Track(); const event = new Event('track'); Object.defineProperty(event, 'track', { value: remote }); peers.at(-1).dispatchEvent(event); await Promise.resolve(); return remote; }, get peer() { return peers.at(-1); },
     async start() { await controller.start(); receive({ type: 'session.started' }); },
     input(delta, start_ms = 0, end_ms = 500) { receive({ type: 'session.input_transcript.delta', delta, start_ms, end_ms }); },
     delegate(id, offset_ms = 500) { receive({ type: 'session.delegation.created', offset_ms, delegation: { target: 'client', id } }); },
@@ -163,4 +166,23 @@ test('permission denial produces actionable feedback and no peer connection', as
   await h.controller.start();
   assert.match(h.errors.at(-1) ?? '', /Allow microphone access/i);
   assert.equal(h.statuses.at(-1), 'error'); assert.equal(h.peer, undefined);
+});
+
+
+test('remote output metering clears on interruption, mute, disconnect, ending and Stop', async t => {
+  const h = harness(t); await h.start();
+  const remote = await h.output(); assert.ok(h.outputStreams.at(-1));
+  h.audio.onwaiting(); assert.equal(h.outputStreams.at(-1), null);
+  h.audio.onplaying(); assert.ok(h.outputStreams.at(-1));
+  remote.dispatchEvent(new Event('mute')); assert.equal(h.outputStreams.at(-1), null);
+  remote.dispatchEvent(new Event('unmute')); assert.ok(h.outputStreams.at(-1));
+  h.peer.connectionState = 'disconnected'; h.peer.dispatchEvent(new Event('connectionstatechange')); assert.equal(h.outputStreams.at(-1), null);
+  h.peer.connectionState = 'connected'; h.peer.dispatchEvent(new Event('connectionstatechange')); assert.ok(h.outputStreams.at(-1));
+  remote.dispatchEvent(new Event('ended')); assert.equal(h.outputStreams.at(-1), null);
+  await h.output(); assert.ok(h.outputStreams.at(-1));
+  h.controller.stop(); assert.equal(h.outputStreams.at(-1), null); assert.equal(h.audio.paused, true);
+  h.receive({ type: 'session.closed' });
+  h.track.readyState = 'live'; await h.start(); await h.output(); assert.ok(h.outputStreams.at(-1));
+  h.peer.connectionState = 'failed'; h.peer.dispatchEvent(new Event('connectionstatechange')); assert.equal(h.outputStreams.at(-1), null);
+  remote.dispatchEvent(new Event('unmute')); assert.equal(h.outputStreams.at(-1), null, 'Stale session cannot reattach output');
 });

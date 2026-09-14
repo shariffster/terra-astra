@@ -54,6 +54,24 @@ const objects=()=>{const result=[];rendered.scene.traverse(o=>{if(o instanceof T
 assert.deepEqual(objects().filter(o=>o.userData.backgroundDepth).map(o=>o.userData.backgroundDepth).sort((a,b)=>a-b),[8,30],'Two faint physical background depths');assert.equal(engine.worldState().layers.ships,true,'Sea movement starts enabled');assert.ok(objects().some(o=>o.userData.seaBackbone),'Existing engine carries illustrated sea pulses');
 const shells=()=>objects().filter(o=>['satellites','aircraft'].includes(o.userData.shell));
 assert.equal(shells().length,2,'One orbital and one atmosphere shell');
+// Integration contract: dense visual populations remain unit acoustic activity.
+const acoustic=engine.audioState();
+assert.deepEqual([acoustic.activity.satellites,acoustic.activity.aircraft,acoustic.activity.ships,acoustic.activity.network],[1,1,1,1]);
+assert.deepEqual(acoustic.world,engine.worldState());
+assert.equal(acoustic.seconds,engine.audioState().seconds,'Reading sound never advances the renderer clock');
+const network=objects().find(o=>o.userData.network);
+const {livingExposure}=await import('../lib/terra/living-material.ts');
+for(const visibility of [0,.25,.5,1]){
+ network.material.uniforms.opacity.value=1.45*livingExposure(acoustic.altitude).cables*visibility;
+ assert.ok(Math.abs(engine.audioState().activity.network-visibility)<1e-12,'Network shader exposure is normalized to accepted unit activity');
+}
+for(const layer of ['satellites','aircraft','ships']){
+ const cloud=objects().find(o=>o.userData.shell===layer),full=cloud.geometry.drawRange.count;
+ cloud.geometry.setDrawRange(0,full/2);
+ assert.equal(engine.audioState().activity[layer],.5,'Half of any new population remains half acoustic intensity');
+ cloud.geometry.setDrawRange(0,full);
+}
+
 const radii=shells().map(o=>{const a=o.geometry.getAttribute('position');return [o.userData.shell,...Array.from({length:a.count},(_,i)=>Math.hypot(a.getX(i),a.getY(i),a.getZ(i)))];});
 for(const [layer,...values] of radii)assert.ok(values.every(r=>layer==='satellites'?r>=1.19&&r<=1.39:r>=1.024&&r<1.19),'Air clears sculpted land and remains below orbital shells');
 const paused=shells().map(o=>o.geometry.getAttribute('position').array.slice());engine.rotate(20,4);tick(1000);for(let i=0;i<2;i++)assert.deepEqual(shells()[i].geometry.getAttribute('position').array,paused[i],'Pause holds actual shell positions during camera interaction');
@@ -69,7 +87,7 @@ assert.equal(worldStates.at(-1).busy,false,'Direct reduced-motion arrival publis
 engine.orbit();tick();
 assert.equal((await complete({type:'flyTo',targetId:'new-york'})).ok,true);assert.equal(engine.worldState().targetId,'new-york');assert.equal(engine.worldState().tier,'city');assert.equal(stages.at(-1),'city');
 assert.ok(Math.abs(Math.atan2(rendered.camera.position.y,Math.hypot(rendered.camera.position.x,rendered.camera.position.z))*180/Math.PI-40.721562)<.01,'New York camera reaches true target');
-assert.equal(shells().every(o=>!o.visible),true,'Global shells fade by city scale');assert.ok(objects().filter(o=>o.userData.seaBackbone).every(o=>!o.visible),'Sea backbone fades before city scale');
+assert.equal(shells().every(o=>!o.visible),true,'Global shells fade by city scale');assert.equal(engine.audioState().activity.network,0,'Hidden local cable shader cannot feed the network bus');assert.ok(objects().filter(o=>o.userData.seaBackbone).every(o=>!o.visible),'Sea backbone fades before city scale');
 const nyBands=objects().filter(o=>o.userData.cityContinuation==='new-york');
 const nyNear=nyBands.find(o=>o.userData.cityContinuationBand==='intermediate'),nyFar=nyBands.find(o=>o.userData.cityContinuationBand==='far');
 assert.ok(nyNear?.visible&&nyFar?.visible,'Both NY continuation bands bridge the mapped core');
@@ -93,5 +111,5 @@ await complete({type:'resetView'});assert.equal(engine.worldState().targetId,nul
 assert.equal((await complete({type:'flyTo',targetId:'missing'})).ok,false);
 engine.configure({...baseOptions,motion:true});const flight=engine.command({type:'flyTo',targetId:'challenger-deep'});for(let i=0;i<5;i++){await Promise.resolve();tick(100);}host.clientWidth=390;host.clientHeight=844;resizeCallback();for(let i=0;i<80;i++){tick(100);await Promise.resolve();}assert.equal((await flight).ok,true);assert.ok(Math.abs(rendered.camera.position.distanceTo(trenchAnchor)-.62)<1e-6,'In-flight regional resize retains its intended horizon altitude');engine.region('indonesia');assert.equal(engine.worldState().targetId,null,'Explicit depth preset clears old command target');
 const lostCommand=engine.command({type:'flyTo',targetId:'singapore'});for(let i=0;i<6;i++){await Promise.resolve();tick(100);}assert.ok(graphicsLostCallback);graphicsLostCallback({preventDefault(){}});assert.equal((await lostCommand).ok,false,'Graphics loss settles active command');assert.equal((await engine.command({type:'resetView'})).ok,false,'Graphics loss rejects later commands');
-engine.dispose();assert.equal(frame,null);
+assert.equal(engine.audioState().available,false,'Renderer loss makes audio unavailable');engine.dispose();assert.equal(frame,null);assert.equal(engine.audioState().available,false,'Disposed renderer cannot feed sound');
 console.log('PASS: distinct orbital/aircraft shells with trails; real pause of positions; layer toggles; serialized target/scale commands; sourced NYC detail and activity; SG return; Mariana region; reset; invalid command. Inert Canvas lifecycle, not pixel/performance evidence.');

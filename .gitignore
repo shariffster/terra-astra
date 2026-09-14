@@ -50,3 +50,5 @@ next-env.d.ts
 
 # Local rendered verification artifacts
 /output/
+
+/.playwright-cli/

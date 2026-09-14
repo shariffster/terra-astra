@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { AudioWorldState } from '../audio/world-state';
 import { SPECIAL_CITIES } from '../world/special-destinations';
 import { specialDestinationViews } from '../world/special-destination-view';
 import { aircraftSignals, satelliteSignals, shipSignals, sampleSignal, signalColors, type WorldSignal } from '../world/signals';
@@ -21,7 +22,7 @@ import { TERRAIN, terrainTuning, terrainVertexGLSL } from './terrain-material';
 import { reliefRadius, sampleElevation, spatialBlend, spatialVertexGLSL, studyRegions, type EarthView, type StudyRegion } from './spatial';
 export type Stage = 'orbit'|'descending'|'city'|'ascending';
 export type ViewOptions = { glow:number; shimmer:number; depth:boolean; threads:number; density:number; borders:boolean; motion:boolean };
-export type Engine = { replayGenesis:()=>void; skipGenesis:()=>void; command:(command:WorldCommand)=>Promise<WorldCommandResult>; worldState:()=>WorldState; transform:(open:boolean)=>void; personal:(places:PersonalPlaces|null)=>void; descend:()=>Promise<void>; orbit:()=>void; zoom:(factor:number)=>void; rotate:(dx:number,dy:number)=>void; select:(id:string|null)=>void; configure:(o:ViewOptions)=>void; storyInset:(pixels:number)=>void; view:(view:EarthView)=>void; region:(region:StudyRegion)=>void; dispose:()=>void };
+export type Engine = { audioState:()=>AudioWorldState; replayGenesis:()=>void; skipGenesis:()=>void; command:(command:WorldCommand)=>Promise<WorldCommandResult>; worldState:()=>WorldState; transform:(open:boolean)=>void; personal:(places:PersonalPlaces|null)=>void; descend:()=>Promise<void>; orbit:()=>void; zoom:(factor:number)=>void; rotate:(dx:number,dy:number)=>void; select:(id:string|null)=>void; configure:(o:ViewOptions)=>void; storyInset:(pixels:number)=>void; view:(view:EarthView)=>void; region:(region:StudyRegion)=>void; dispose:()=>void };
 type Callbacks={discovery?:(ready:boolean)=>void;genesis?:(state:GenesisState)=>void;worldState?:(state:WorldState)=>void;transformation?:(state:TransformationState)=>void;personalSettled?:()=>void;stage:(s:Stage)=>void;ready:()=>void;error:(s:string,fatal?:boolean)=>void;coordinates:(lat:number,lon:number)=>void;interact:()=>void;arrival:(storyId:string|null)=>void;view?:(view:EarthView)=>void};
 type Cloud={points:THREE.Points;material:THREE.ShaderMaterial;count:number};
 const R=Math.PI/180;
@@ -329,6 +330,26 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
 
  function isBusy(){return genesisProgress<1||!!flight||!!morph||loadingDetail;}
  function worldState():WorldState{return {targetId,tier:scaleTier,busy:isBusy(),genesis:genesisState(genesisProgress),layers:{...layerFlags}};}
+ /** A bounded read-only view. Audio never advances a visual clock or samples
+  * every moving object; twelve representative traffic weights are sufficient. */
+ function audioState():AudioWorldState {
+  const urban=urbanViews.get(targetId??''),weights=urban?.model.trafficOpacity;
+  let activity=0;
+  if(weights?.length){const count=Math.min(12,weights.length);for(let i=0;i<count;i++)activity+=weights[Math.floor(i*weights.length/count)];activity/=count;}
+  const signalActivity=(index:number)=>{const v=signalViews[index];return layerFlags[v.layer]?Math.min(1,v.cloud.points.geometry.drawRange.count/Math.max(1,v.records.length*v.trailCount)):0;};
+  // Remove Run D's shader/material exposure from the acoustic activity. The
+  // denser 56-path network has the same unit range as accepted Sonic Earth.
+  const networkExposure=1.45*livingExposure(alt).cables;
+  const networkActivity=networkExposure>0?Math.max(0,Math.min(1,seaFilaments.material.uniforms.opacity.value/networkExposure)):0;
+  const present=genesisProgress>=1&&openProgress===0;
+  return {world:worldState(),epoch:journeyEpoch,available:!disposed&&!graphicsLost&&!signal.aborted,
+   seconds:time,awakening:{state:awakening.state,elapsed:awakening.elapsed,ocean:awakening.ocean},
+   altitude:alt,longitude:lon,latitude:lat,flying:!!flight,opening:openProgress,motion:options.motion,
+   activity:{satellites:signalActivity(0),aircraft:signalActivity(1),ships:signalActivity(2),
+    network:layerFlags.ships?networkActivity:0,
+    urban:present&&layerFlags.urban&&urban?activity*Math.min(1,urban.traffic.material.uniforms.opacity.value/1.6):0,
+    circulation:present&&layerFlags.urban?specialViews.circulationActivity(targetId):0}};
+ }
  function notifyWorld(){callbacks.worldState?.(worldState());}
  function notifyGenesis(force=false){const now=performance.now();if(!force&&now-lastGenesis<120)return;lastGenesis=now;callbacks.genesis?.(genesisState(genesisProgress));notifyWorld();}
  function skipGenesis(){if(disposed||graphicsLost||genesisProgress>=1)return;genesisProgress=1;awakening.settle(options.motion);lastTime=performance.now();stillFrames=0;notifyAwakening();notifyGenesis(true);}
@@ -447,5 +468,5 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  }
  function visibility(){stillFrames=0;if(document.hidden||graphicsLost){cancelAnimationFrame(raf);}else{lastTime=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);}}document.addEventListener('visibilitychange',visibility);
  genesisStarted=performance.now();lastTime=genesisStarted;if(genesisProgress===1)awakening.settle(options.motion);notifyAwakening();callbacks.ready();notifyGenesis(true);notifyTransformation(true);raf=requestAnimationFrame(frame);
- return {replayGenesis,skipGenesis,command,worldState,transform:setTransformation,personal:setPersonal,descend:async()=>{if(flight||morph||genesisProgress<1||openProgress>0)return;try{personalSettledAt=null;personalArrivalSent=false;clearStory();remembered=null;remembering=false;settledAt=null;arrivalSent=false;targetId='singapore';scaleTier='city';loadingDetail=true;fly(1.2965,103.851,.0018,'city');notifyWorld();try{await ensureCity();}finally{loadingDetail=false;stillFrames=0;notifyWorld();}if(disposed)return;}catch(e){if(!signal.aborted)callbacks.error('Singapore could not load. Your Earth is still here; try entering again.');throw e;}},orbit:()=>{if(flight||morph||stage!=='city')return;clearStory();remembering=!!remembered;settledAt=null;arrivalSent=false;targetId=null;scaleTier='planet';fly(19,95,homeAltitude(),'orbit');notifyWorld();},zoom,rotate,select,view:setView,region:setRegion,configure:(o)=>{options=o;if(!o.motion)awakening.advance(0,false);notifyAwakening();if(flight&&!o.motion)flight.duration=0;lastInteraction=performance.now();stillFrames=0;},storyInset:setStoryInset,dispose:destroy};
+ return {audioState,replayGenesis,skipGenesis,command,worldState,transform:setTransformation,personal:setPersonal,descend:async()=>{if(flight||morph||genesisProgress<1||openProgress>0)return;try{personalSettledAt=null;personalArrivalSent=false;clearStory();remembered=null;remembering=false;settledAt=null;arrivalSent=false;targetId='singapore';scaleTier='city';loadingDetail=true;fly(1.2965,103.851,.0018,'city');notifyWorld();try{await ensureCity();}finally{loadingDetail=false;stillFrames=0;notifyWorld();}if(disposed)return;}catch(e){if(!signal.aborted)callbacks.error('Singapore could not load. Your Earth is still here; try entering again.');throw e;}},orbit:()=>{if(flight||morph||stage!=='city')return;clearStory();remembering=!!remembered;settledAt=null;arrivalSent=false;targetId=null;scaleTier='planet';fly(19,95,homeAltitude(),'orbit');notifyWorld();},zoom,rotate,select,view:setView,region:setRegion,configure:(o)=>{options=o;if(!o.motion)awakening.advance(0,false);notifyAwakening();if(flight&&!o.motion)flight.duration=0;lastInteraction=performance.now();stillFrames=0;},storyInset:setStoryInset,dispose:destroy};
 }

@@ -77,7 +77,7 @@ const partial=shells().find(o=>o.userData.shell==='satellites');assert.ok(Array.
 tick(3000);assert.deepEqual(stats(),[84,82,0,0]);assert.ok(stats()[0]>first);
 tick(2500);assert.ok(stats()[1]===200&&stats()[2]>0&&stats()[2]<176&&stats()[3]===0);
 tick(2000);assert.ok(stats()[3]>0&&stats()[3]<56);tick(2000);assert.deepEqual(stats(),[84,200,176,56]);tick(3000);assert.equal(host.dataset.cablesFull,'56');tick(2000);assert.equal(host.dataset.awakening,'complete');assert.equal(host.dataset.awakeningSeconds,'18.000');assert.equal(sea.material.uniforms.seaMotion.value,1);
-for(const shell of shells()){assert.equal(shell.geometry.drawRange.count,shell.geometry.getAttribute('position').count);const b=shell.geometry.getAttribute('brightness');for(let i=0;i<b.count;i+=9)assert.ok(Math.abs(b.getX(i)-({satellites:1.45,aircraft:1.75,ships:1.95}[shell.userData.shell]))<1e-6,'Family-specific head exposure');}
+for(const shell of shells()){assert.equal(shell.geometry.drawRange.count,shell.geometry.getAttribute('position').count);const b=shell.geometry.getAttribute('brightness');for(let i=0;i<b.count;i+=9)assert.ok(Math.abs(b.getX(i)-({satellites:1.65,aircraft:1.75,ships:1.95}[shell.userData.shell]))<1e-6,'Family-specific head exposure');}
 assert.ok(AWAKENING.idleDegreesPerSecond/.65>=1.25&&AWAKENING.idleDegreesPerSecond/.65<=1.35);
 engine.replayGenesis();assert.equal(discoveries.at(-1),false);assert.ok(shells().every(o=>o.geometry.drawRange.count===0),'Replay clears shells synchronously');tick(10800);assert.equal(host.dataset.awakeningSeconds,'0.000');tick(2000);assert.deepEqual(stats(),[0,0,0,0]);
 // Hidden pages freeze this clock, rather than waking straight into all layers.

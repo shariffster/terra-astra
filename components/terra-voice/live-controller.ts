@@ -14,6 +14,8 @@ export type LiveControllerCallbacks = {
   onDelegation: (delegation: LiveDelegation) => void;
   onAssistantText: (text: string) => void;
   onError: (message: string) => void;
+  /** Actual remote playback only; the soundscape may meter it but never own it. */
+  onOutputStream?: (stream: MediaStream | null) => void;
 };
 
 export type LiveController = {
@@ -44,6 +46,7 @@ export function createLiveController(
   let channel: RTCDataChannel | null = null;
   let microphone: MediaStream | null = null;
   let audio: HTMLAudioElement | null = null;
+  let remoteStream: MediaStream | null = null;
   let connectionAbort: AbortController | null = null;
   let generation = 0;
   let ready = false;
@@ -91,6 +94,8 @@ export function createLiveController(
 
   function releaseResources(): void {
     generation += 1;
+    callbacks.onOutputStream?.(null);
+    remoteStream = null;
     ready = false;
     closing = false;
     pendingDelegation = null;
@@ -115,6 +120,7 @@ export function createLiveController(
     }
     peer = null;
     if (audio) {
+      audio.onplaying = audio.onpause = audio.onended = audio.onerror = audio.onwaiting = null;
       audio.pause();
       audio.srcObject = null;
       audio.removeAttribute("src");
@@ -396,10 +402,25 @@ export function createLiveController(
       peer = new RTCPeerConnection();
       audio = new Audio();
       audio.autoplay = true;
+      const publishOutput = () => {
+        if (isCurrent(runGeneration) && !closing && peer?.connectionState !== 'disconnected') callbacks.onOutputStream?.(remoteStream);
+      };
+      audio.onplaying = publishOutput;
+      audio.onpause = audio.onended = audio.onerror = audio.onwaiting = () => {
+        if (isCurrent(runGeneration)) callbacks.onOutputStream?.(null);
+      };
       peer.addEventListener("track", (trackEvent) => {
         if (!isCurrent(runGeneration) || !audio) return;
-        audio.srcObject = new MediaStream([trackEvent.track]);
-        void audio.play().catch(() => {
+        remoteStream = new MediaStream([trackEvent.track]);
+        audio.srcObject = remoteStream;
+        trackEvent.track.addEventListener('ended', () => {
+          if (isCurrent(runGeneration)) { remoteStream = null; callbacks.onOutputStream?.(null); }
+        });
+        trackEvent.track.addEventListener('mute', () => { if (isCurrent(runGeneration)) callbacks.onOutputStream?.(null); });
+        trackEvent.track.addEventListener('unmute', publishOutput);
+        void audio.play().then(publishOutput).catch(() => {
+          if (!isCurrent(runGeneration)) return;
+          callbacks.onOutputStream?.(null);
           reportError("Remote audio arrived, but browser autoplay was blocked.");
         });
       });
@@ -408,11 +429,13 @@ export function createLiveController(
         if (peer.connectionState === "failed") {
           failConnection('The voice connection was lost. Tap the microphone to reconnect.');
         } else if (peer.connectionState === 'disconnected') {
+          callbacks.onOutputStream?.(null);
           activeStatus();
           if (disconnectTimer === null) disconnectTimer = setTimeout(() => {
             if (isCurrent(runGeneration) && !closing && peer?.connectionState === 'disconnected') failConnection('The voice connection was lost. Tap the microphone to reconnect.');
           }, DISCONNECT_TIMEOUT_MS);
         } else if (peer.connectionState === 'connected') {
+          if (remoteStream && audio && !audio.paused) publishOutput();
           disconnectTimer = clearTimer(disconnectTimer);
           activeStatus();
         }
@@ -487,6 +510,8 @@ export function createLiveController(
       return;
     }
     closing = true;
+    callbacks.onOutputStream?.(null);
+    audio?.pause();
     // Stop capture immediately; only the data channel waits for final usage.
     // Set closing first so an ended event cannot report a false device failure.
     microphone?.getTracks().forEach((track) => track.stop());

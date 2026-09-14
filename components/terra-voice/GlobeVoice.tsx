@@ -11,6 +11,7 @@ import styles from './globe-voice.module.css';
 
 type Props = {
   ready: boolean;
+  onVoiceOutput?: (stream: MediaStream | null) => void;
   discoveryReady?: boolean;
   exploring?: boolean;
   worldState?: WorldState | null;
@@ -27,7 +28,7 @@ const SUGGESTIONS = [
 const INVITATION_KEY = 'terra-astra-discovery-v010';
 
 /** The invitation, typed questions and Live delegation share one bounded navigation path. */
-export default function GlobeVoice({ ready, exploring = false, discoveryReady = true, worldState, onAskReady }: Props) {
+export default function GlobeVoice({ ready, exploring = false, discoveryReady = true, worldState, onAskReady, onVoiceOutput }: Props) {
   const [open, setOpen] = useState(false);
   const [invitationDismissed, setInvitationDismissed] = useState(() => {
     try { return sessionStorage.getItem(INVITATION_KEY) === 'seen'; } catch { return false; }
@@ -116,7 +117,7 @@ export default function GlobeVoice({ ready, exploring = false, discoveryReady = 
 
   useEffect(() => {
     live.current = createLiveController({
-      onStatus: setStatus, onTranscript: setRows,
+      onStatus: setStatus, onTranscript: setRows, onOutputStream: onVoiceOutput,
       onError: (message) => {
         if (/sign.?in|signed in/i.test(message)) { setVoiceSignIn(true); setError(''); }
         else setError(message);
@@ -128,7 +129,7 @@ export default function GlobeVoice({ ready, exploring = false, discoveryReady = 
       active.current?.abort(); live.current?.dispose(); live.current = null;
       if (closeTimer.current) clearTimeout(closeTimer.current);
     };
-  }, []);
+  }, [onVoiceOutput]);
   useEffect(() => {
     onAskReady?.((question) => { void ask(question); });
     return () => onAskReady?.(null);

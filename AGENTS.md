@@ -16,3 +16,7 @@ The user wants visible version tracking and preserved iterations.
 - Never mutate, save a version to, deploy to, rename, or change access/environment on the v0.9 archive Site after setup. The archive packaging checkout under ignored `work/` is historical setup material, not a development target.
 - Canonical production stays on v0.9. Crossover requires explicit human approval of the exact accepted v0.10 build. Never redirect canonical to the lab.
 - The Run D Living Planet brief authorizes visual planetary systems, verification, Lab-only deployment if clearly superior, and Drive handoff. Canonical and v0.9 archive remain immutable in this run.
+
+## v0.10.8 integration authority (14 September 2026)
+
+The current user objective supersedes the earlier Run D-only branch boundary in this isolated checkout. Work only on `people-choice/integration-v0.10.8`, based on accepted v0.10.7, integrating exact accepted v0.10.4 Sonic Earth. No new feature work or retuning. Preserve both accepted branches/tags, v0.10.2, canonical and archive. Only the existing Lab may receive an integrated saved version and deployment after both systems survive validation.
