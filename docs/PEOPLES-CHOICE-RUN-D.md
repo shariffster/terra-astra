@@ -1,4 +1,4 @@
-# Run D — Living Planet · v0.10.6
+# Run D — Living Planet · v0.10.7
 
 14 September 2026. Visual-only release, isolated on `people-choice/run-d-living-planet` from accepted `ff3d0fe8e6024918d2b14dba83cb3613acdf6023` / annotated `v0.10.2`. No Run C source is merged. Versions 0.10.3 and 0.10.4 belong to the separate Sonic Earth work.
 
@@ -16,13 +16,13 @@ Canonical remains on v0.9, saved version 13; the immutable archive remains saved
 
 | Family | Population / structure | Material and motion |
 | --- | --- | --- |
-| Orbit | 84 satellites, radii 1.20–1.38 | Icy blue-white; sparse shell, smooth orbital motion, 2.4-second thin trails, occasional cool glints. |
+| Orbit | 84 satellites, radii 1.20–1.38 | Original larger icy-cyan stars; sparse shell, smooth orbital motion, 2.4-second thin trails and baseline glimmer cadence. |
 | Air | 200 aircraft on 40 existing sourced city corridors | Warmer pearl light, smaller heads, rapid atmospheric crossings, .65-second soft trails; existing ETOPO clearance retained. |
 | Sea | 176 ships, four per each of 44 sea structures | Sea-teal stars, enlarged heads, much slower motion and 5.5-second short wakes. Every vessel samples its own lane geometry. |
 | Sea lanes | 44 structures, 192 particles each: 8,448 points | Broad faint teal flow, counterflowing particles, feathered ends, water-clipped transverse spread. No line geometry, arrows or transport icons. |
 | Subsea network | 56 paths, 256 fine samples each plus 56 pulse heads | Lilac star filaments, branching offshore concentrations, mostly stationary trunks and slow travelling pulses. 14,392 points in two clouds. |
 
-All families retain the incumbent star shader, halo and glint identity. Relative shader rhythm factors are .46 orbit, 1.65 air, .29 ships, .26 lanes and .17 network. Shimmer strength factors are .65, .85, .58, .28 and .30 respectively. The existing global shimmer control scales them together. Motion, reveal and pulses use the existing engine clock, with no new timer or scheduler.
+All families retain the incumbent star shader, halo and glint identity. Relative shader rhythm factors are 1.0 orbit, 1.65 air, .29 ships, .26 lanes and .17 network. Shimmer strength factors are 1.0, .85, .58, .28 and .30 respectively. The existing global shimmer control scales them together. Motion, reveal and pulses use the existing engine clock, with no new timer or scheduler.
 
 ## Geographic and depth semantics
 
@@ -32,13 +32,15 @@ Cables are seated above sampled bathymetry: `floor + min(.0012, (1-floor)*.35)`.
 
 ## Scale and lifecycle
 
-Planet view exposes all major structures at restrained brightness. Regional gains are up to 22% for air, 30% for vessels and 55% for lanes/network before local fading. Orbit fades sooner on approach. All new planetary overlays reach zero at city and street altitudes. Existing Sea/Orbit/Air controls retain their meanings; Sea controls vessels, lanes and network together, without adding dashboard controls.
+Planet view exposes all major structures at restrained brightness. Regional gains are up to 22% for air, 30% for vessels and 55% for lanes/network before local fading. Orbit uses the accepted baseline approach fade. All new planetary overlays reach zero at city and street altitudes. Existing Sea/Orbit/Air controls retain their meanings; Sea controls vessels, lanes and network together, without adding dashboard controls.
 
 The existing exact 2.5-second settlement breath remains quiet. Orbit, aircraft, ships, lanes, cables and ocean join through the same 18-second awakening. Sea lanes awaken with shipping. Replay clears the material synchronously. Reduced motion shows a complete still network and no moving-object tails. Hidden pages pause; context loss and disposal follow the original lifecycle.
 
 One small QA correction moves the existing desktop Astra dock to its already-established upper-right city position for every city, preventing Palm and Makkah subtitles being covered. Mobile placement, destination geometry and content hierarchy are unchanged. The About disclosure now describes the enlarged illustrative network. History return links use ordinary document navigation so returning reliably initializes the globe in the published build; this small navigation repair carries no audio code.
 
 The first served checkpoint, v0.10.5 / saved version 9, exposed an inherited direct-entry race under reduced motion: the flight could finish before detail loaded, leaving the last published busy state true. v0.10.6 publishes readiness when detail finishes. A focused regression failed before the one-line repair and passes after it. v0.10.5 remains preserved.
+
+Owner review of the Lab requested a return to the earlier satellite size and behavior. v0.10.7 restores the accepted baseline orbital material (size 2.6, head 1.65, tail .55, opacity 1.4, cyan #A8F4FF, rhythm and shimmer strength 1) and original approach fade, while retaining the 84-object orbital population. Air, sea, network and the arrival repair remain unchanged.
 
 ## Performance and evidence
 

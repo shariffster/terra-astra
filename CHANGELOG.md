@@ -2,6 +2,12 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.7 — Restore the familiar satellite material · 14 September 2026
+
+- Owner-requested return toward the accepted v0.10.2 satellite appearance: size 2.6, head brightness 1.65, tail .55, opacity 1.4, icy cyan and original glimmer rhythm/strength.
+- Restore the original approach fade and retain 84 satellites, their current deterministic orbits and 2.4-second trails.
+- All other Living Planet systems and the arrival repair remain intact; preserve v0.10.5 and v0.10.6.
+
 ## v0.10.6 — Living Planet arrival readiness · 14 September 2026
 
 - Preserve v0.10.5 visual systems and its saved Lab milestone.

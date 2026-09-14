@@ -1,13 +1,25 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.6';
+export const currentVersion = '0.10.7';
 
 export const releases = [
+  {
+    version: '0.10.7',
+    date: '2026-09-14',
+    dateLabel: '14 September 2026',
+    title: 'Living Planet — the familiar orbital lights',
+    milestone: 'This Lab build',
+    changes: [
+      'Satellites return to the larger icy-cyan stars, brighter heads and trails, and original glimmer cadence of the accepted visual baseline.',
+      'The orbital population stays at 84. Their smooth paths and 2.4-second trails retain the original feel, with the earlier approach fade restored.',
+    ],
+    review: 'Adjusted after owner review of the Lab. Air, maritime circulation, subsea connections and the arrival readiness repair remain intact. Earlier Living Planet checkpoints are preserved. Lab only.',
+  },
   {
     version: '0.10.6',
     date: '2026-09-14',
     dateLabel: '14 September 2026',
     title: 'Living Planet — ready at every scale',
-    milestone: 'This Lab build',
+    milestone: 'Preserved arrival checkpoint',
     changes: [
       'The Living Planet materials remain: 84 satellites, 200 aircraft, 176 vessels, 44 sea structures and 56 subsea paths.',
       'Direct entry into Singapore now releases the scale controls when detail finishes loading, including an instant arrival with reduced motion.',

@@ -29,7 +29,7 @@ export type WorldSignal = Readonly<{
 }>;
 
 export const signalColors = Object.freeze({
-  satellites: '#BCEAFF', aircraft: '#D5DFD4', ships: '#83D7B8',
+  satellites: '#A8F4FF', aircraft: '#D5DFD4', ships: '#83D7B8',
 });
 export const signalDisclosure = 'Illustrated orbital, flight and sea motion. Not live tracking.';
 const TAU = Math.PI * 2;
