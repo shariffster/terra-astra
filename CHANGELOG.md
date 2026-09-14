@@ -2,6 +2,12 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.6 — Living Planet arrival readiness · 14 September 2026
+
+- Preserve v0.10.5 visual systems and its saved Lab milestone.
+- Publish direct Singapore detail readiness after an instant reduced-motion arrival, keeping scale navigation enabled.
+- Regression reproduces the inherited race before the one-line repair; native served navigation is rechecked.
+
 ## v0.10.5 — 2026-09-14 — Run D: Living Planet
 - Isolated visual branch from exact accepted v0.10.2, with no Run C/Sonic Earth changes. The v0.10.3 series remains reserved for that separate work.
 - 84 satellites, 200 aircraft on 40 corridors, 176 ships on 44 connected, ETOPO-water-checked maritime structures, and 56 illustrated network trunks/branches.

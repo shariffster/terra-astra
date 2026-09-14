@@ -1,4 +1,4 @@
-# Run D — Living Planet · v0.10.5
+# Run D — Living Planet · v0.10.6
 
 14 September 2026. Visual-only release, isolated on `people-choice/run-d-living-planet` from accepted `ff3d0fe8e6024918d2b14dba83cb3613acdf6023` / annotated `v0.10.2`. No Run C source is merged. Versions 0.10.3 and 0.10.4 belong to the separate Sonic Earth work.
 
@@ -37,6 +37,8 @@ Planet view exposes all major structures at restrained brightness. Regional gain
 The existing exact 2.5-second settlement breath remains quiet. Orbit, aircraft, ships, lanes, cables and ocean join through the same 18-second awakening. Sea lanes awaken with shipping. Replay clears the material synchronously. Reduced motion shows a complete still network and no moving-object tails. Hidden pages pause; context loss and disposal follow the original lifecycle.
 
 One small QA correction moves the existing desktop Astra dock to its already-established upper-right city position for every city, preventing Palm and Makkah subtitles being covered. Mobile placement, destination geometry and content hierarchy are unchanged. The About disclosure now describes the enlarged illustrative network. History return links use ordinary document navigation so returning reliably initializes the globe in the published build; this small navigation repair carries no audio code.
+
+The first served checkpoint, v0.10.5 / saved version 9, exposed an inherited direct-entry race under reduced motion: the flight could finish before detail loaded, leaving the last published busy state true. v0.10.6 publishes readiness when detail finishes. A focused regression failed before the one-line repair and passes after it. v0.10.5 remains preserved.
 
 ## Performance and evidence
 

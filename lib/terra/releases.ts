@@ -1,13 +1,25 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.5';
+export const currentVersion = '0.10.6';
 
 export const releases = [
+  {
+    version: '0.10.6',
+    date: '2026-09-14',
+    dateLabel: '14 September 2026',
+    title: 'Living Planet — ready at every scale',
+    milestone: 'This Lab build',
+    changes: [
+      'The Living Planet materials remain: 84 satellites, 200 aircraft, 176 vessels, 44 sea structures and 56 subsea paths.',
+      'Direct entry into Singapore now releases the scale controls when detail finishes loading, including an instant arrival with reduced motion.',
+    ],
+    review: 'A served-site check exposed an inherited arrival notification race. The targeted regression reproduced it before the repair; native reduced-motion entry and scale navigation are rechecked. The visual Run D checkpoint remains preserved as v0.10.5. Lab only.',
+  },
   {
     version: '0.10.5',
     date: '2026-09-14',
     dateLabel: '14 September 2026',
     title: 'Living Planet — currents, journeys and connections',
-    milestone: 'This Lab build',
+    milestone: 'Preserved Living Planet checkpoint',
     changes: [
       '84 icy orbital lights, 200 atmospheric journeys and 176 slower maritime lights keep their own heights, trails and glimmer rhythms.',
       '44 soft sea corridors carry the ships through ocean basins and coastal approaches. The circulation follows the bundled ocean geography.',
