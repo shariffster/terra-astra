@@ -1,7 +1,19 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.3';
+export const currentVersion = '0.10.4';
 
 export const releases = [
+  {
+    version: '0.10.4',
+    date: '2026-09-14',
+    dateLabel: '14 September 2026',
+    title: 'Return to the living Earth',
+    milestone: 'People’s Choice Lab · Navigation repair',
+    changes: [
+      'Repairs the return links on Build history so they open Earth reliably.',
+      'Preserves the provisionally accepted Sonic Earth soundscape, its optional activation and all world behavior.',
+    ],
+    review: 'The v0.10.3 publication check exposed a framework navigation failure on the history page. Its return links now use normal document navigation, matching the entry into history and ensuring a fresh, silent Earth. Audio and listening limitations remain those recorded for v0.10.3.',
+  },
   {
     version: '0.10.3',
     date: '2026-09-14',

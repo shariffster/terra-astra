@@ -1,6 +1,6 @@
 # Sonic Earth — Run C provisional Lab release
 
-14 September 2026. Release: **v0.10.3**, branch `people-choice/v0.10`, promoting the RC5 audio implementation.
+14 September 2026. Release: **v0.10.4**, branch `people-choice/v0.10`, retaining the RC5 audio implementation accepted in v0.10.3.
 
 ## Acceptance and preservation
 
@@ -15,6 +15,8 @@ The owner then found RC4 initially okay but repetitive after the first few loops
 **The owner accepted RC5 as workable for now and instructed the release to proceed. Clear superiority to silent v0.10.2 is not established.** This is provisional acceptance of the current direction, with sound design still needing work. Engineering checks do not establish enjoyment, long-session fatigue or physical speaker quality. Rejected RC3 is preserved at `e8a7cdec4dcc46384e21ed9054f5b60377376eff`, saved Lab version 5; RC4 at `e8373efb00e2ec615ad4424c63e1ff0f671e84a2`, saved version 6. Neither has a tag or deployment. Accepted implementation source is `b96f70339ea84cf1e3a03175fce9cbde6fc6a0a5`; final source/tag/save/deployment provenance is in the release handoff.
 
 A separate headed QA browser had an active, unmuted AudioContext while the owner's in-app preview could also play. It was suspended once identified. Overlapping playback may have affected earlier listening; its physical audibility was not measured. Further review uses one active audio surface. This limitation was disclosed before publication.
+
+v0.10.3 successfully published as saved Lab version 7. Its production smoke verified the served version, silent default, New York City/Street and mobile layout, then exposed a framework RSC navigation failure on the history page's return links. v0.10.4 changes those two links to ordinary document navigation, preserving the accepted audio byte-for-byte in source. The original tag and saved deployment remain historical milestones; they are not moved or overwritten.
 
 Preserved and verified before implementation:
 

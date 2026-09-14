@@ -2,6 +2,11 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.4 — 2026-09-14 — Return-link repair
+- The v0.10.3 production smoke exposed a broken Return to Earth link on `/history`: the framework's RSC prefetch/navigation bridge throws before navigating.
+- Both history return links now use normal document navigation. This matches the existing history entry and gives Earth a fresh, silent lifecycle on return.
+- No audio implementation, world state, terrain, navigation command or provider changes. Preserves v0.10.3 and its successful saved Lab version 7/deployment as historical milestones.
+
 ## v0.10.3 — 2026-09-14 — Sonic Earth (provisional Lab acceptance)
 - The owner accepted RC5 as workable for now and instructed the Lab release to proceed. This is provisional creative acceptance, not a claim that the sound is clearly superior in every setting.
 - Promotes the evolving phrase implementation from source `b96f70339ea84cf1e3a03175fce9cbde6fc6a0a5` with release-label and review-record changes only. All terrain, world and navigation systems remain preserved.

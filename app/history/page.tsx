@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { currentVersion, releases } from '@/lib/terra/releases';
 
 export const metadata: Metadata = {
@@ -11,8 +10,8 @@ export default function BuildHistory() {
   return (
     <main className="build-history">
       <header className="history-header">
-        <Link className="wordmark" href="/">TERRA <i aria-hidden="true">✦</i> ASTRA</Link>
-        <Link className="history-return" href="/">Return to Earth <span aria-hidden="true">↗</span></Link>
+        <a className="wordmark" href="/">TERRA <i aria-hidden="true">✦</i> ASTRA</a>
+        <a className="history-return" href="/">Return to Earth <span aria-hidden="true">↗</span></a>
       </header>
       <div className="history-intro">
         <p className="eyebrow">EARTH, CONSTELLATED</p>
