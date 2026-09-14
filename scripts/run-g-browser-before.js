@@ -1,0 +1,6 @@
+async page => {
+ await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:1440,height:900});await page.goto('https://terra-astra-peoples-choice-v010.riffster.chatgpt.site/');await page.waitForFunction(()=>window.terraAstra&&!window.terraAstra.getState().busy);await page.waitForTimeout(1600);
+ if(!await page.getByRole('link',{name:'Build history, version 0.10.9',exact:true}).count())throw Error('Lab baseline changed; cannot label Run F');
+ await page.screenshot({path:'output/playwright/before-run-f-planet.png'});await page.evaluate(()=>window.terraAstra.command({type:'flyTo',targetId:'singapore'}));await page.evaluate(()=>window.terraAstra.command({type:'setScale',tier:'region'}));await page.waitForTimeout(1200);await page.screenshot({path:'output/playwright/before-run-f-singapore-region.png'});const region=await page.evaluate(()=>({state:window.terraAstra.getState(),data:{...document.querySelector('.universe').dataset}}));
+ await page.getByRole('button',{name:'Explore the world',exact:true}).click();await page.screenshot({path:'output/playwright/before-run-f-destinations.png'});return {url:page.url(),version:'0.10.9',region,comparison:'Run F supports five authored destinations; Run G adds sourced territorial targets. Singapore Region and Malacca Region are different foci, not pixel-identical camera comparisons.'};
+}

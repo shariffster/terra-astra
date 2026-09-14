@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUpRight, RotateCcw, X } from 'lucide-react';
 import { sendWorldCommand } from '@/lib/world/bridge';
 import { WORLD_TARGETS, type WorldCommand, type WorldState } from '@/lib/world/commands';
 import styles from './world-navigation.module.css';
+import { OpenPlaceSearch } from './open-place-search';
 
 const DESTINATION_LINES: Record<string, string> = {
   singapore: 'City, island, constellation.',
@@ -43,7 +44,8 @@ export function WorldNavigation({ state, disabled, onReplay, onDepth }: { state:
     <button ref={trigger} type="button" className="journey-button world-explore" disabled={unavailable} onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="world-destination-collection">Explore the world <ArrowUpRight size={17}/></button>
     {open && <section id="world-destination-collection" className={`world-destinations ${styles.collection}`} aria-label="Explore destinations">
       <div className={`world-destinations-heading ${styles.heading}`}><h2>Follow a light.</h2><button type="button" aria-label="Close destinations" onClick={close}><X size={17}/></button></div>
-      <p className={styles.introduction}>Five places. Five ways the world moves.</p>
+      <OpenPlaceSearch onArrival={()=>setOpen(false)}/>
+      <p className={styles.introduction}>Five places, interpreted more deeply.</p>
       <div className={styles.places}>
         {WORLD_TARGETS.map(target => <button key={target.id} type="button" disabled={unavailable} className={`world-target ${styles.destination}`} aria-current={state?.targetId === target.id ? 'location' : undefined} onClick={() => void run({ type: 'flyTo', targetId: target.id })}>
           <span><span className={styles.name}>{target.label}</span><small>{DESTINATION_LINES[target.id] ?? target.detail}</small></span>

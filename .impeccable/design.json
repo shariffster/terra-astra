@@ -1,0 +1,327 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-14T10:10:26.779253Z",
+  "title": "Design System: Terra Astra",
+  "extensions": {
+    "colorMeta": {
+      "background": {
+        "role": "neutral",
+        "displayName": "Deep space",
+        "tonalRamp": [
+          "oklch(15.00% 0.01401 239.89)",
+          "oklch(26.43% 0.01401 239.89)",
+          "oklch(37.86% 0.01401 239.89)",
+          "oklch(49.29% 0.01401 239.89)",
+          "oklch(60.71% 0.01401 239.89)",
+          "oklch(72.14% 0.01401 239.89)",
+          "oklch(83.57% 0.01401 239.89)",
+          "oklch(95.00% 0.01401 239.89)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Pale foreground",
+        "tonalRamp": [
+          "oklch(15.00% 0.00673 233.64)",
+          "oklch(26.43% 0.00673 233.64)",
+          "oklch(37.86% 0.00673 233.64)",
+          "oklch(49.29% 0.00673 233.64)",
+          "oklch(60.71% 0.00673 233.64)",
+          "oklch(72.14% 0.00673 233.64)",
+          "oklch(83.57% 0.00673 233.64)",
+          "oklch(95.00% 0.00673 233.64)"
+        ]
+      },
+      "human-ink": {
+        "role": "primary",
+        "displayName": "Human ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.05155 84.53)",
+          "oklch(26.43% 0.05155 84.53)",
+          "oklch(37.86% 0.05155 84.53)",
+          "oklch(49.29% 0.05155 84.53)",
+          "oklch(60.71% 0.05155 84.53)",
+          "oklch(72.14% 0.05155 84.53)",
+          "oklch(83.57% 0.05155 84.53)",
+          "oklch(95.00% 0.05155 84.53)"
+        ]
+      },
+      "display-emphasis": {
+        "role": "primary",
+        "displayName": "Warm display emphasis",
+        "tonalRamp": [
+          "oklch(15.00% 0.05728 81.85)",
+          "oklch(26.43% 0.05728 81.85)",
+          "oklch(37.86% 0.05728 81.85)",
+          "oklch(49.29% 0.05728 81.85)",
+          "oklch(60.71% 0.05728 81.85)",
+          "oklch(72.14% 0.05728 81.85)",
+          "oklch(83.57% 0.05728 81.85)",
+          "oklch(95.00% 0.05728 81.85)"
+        ]
+      },
+      "geographic-land": {
+        "role": "secondary",
+        "displayName": "Cool land light",
+        "tonalRamp": [
+          "oklch(15.00% 0.04626 223.25)",
+          "oklch(26.43% 0.04626 223.25)",
+          "oklch(37.86% 0.04626 223.25)",
+          "oklch(49.29% 0.04626 223.25)",
+          "oklch(60.71% 0.04626 223.25)",
+          "oklch(72.14% 0.04626 223.25)",
+          "oklch(83.57% 0.04626 223.25)",
+          "oklch(95.00% 0.04626 223.25)"
+        ]
+      },
+      "geographic-coast": {
+        "role": "secondary",
+        "displayName": "Pale coast light",
+        "tonalRamp": [
+          "oklch(15.00% 0.01696 215.46)",
+          "oklch(26.43% 0.01696 215.46)",
+          "oklch(37.86% 0.01696 215.46)",
+          "oklch(49.29% 0.01696 215.46)",
+          "oklch(60.71% 0.01696 215.46)",
+          "oklch(72.14% 0.01696 215.46)",
+          "oklch(83.57% 0.01696 215.46)",
+          "oklch(95.00% 0.01696 215.46)"
+        ]
+      },
+      "night-light": {
+        "role": "primary",
+        "displayName": "Historical night light",
+        "tonalRamp": [
+          "oklch(15.00% 0.06633 84.88)",
+          "oklch(26.43% 0.06633 84.88)",
+          "oklch(37.86% 0.06633 84.88)",
+          "oklch(49.29% 0.06633 84.88)",
+          "oklch(60.71% 0.06633 84.88)",
+          "oklch(72.14% 0.06633 84.88)",
+          "oklch(83.57% 0.06633 84.88)",
+          "oklch(95.00% 0.06633 84.88)"
+        ]
+      },
+      "personal-star": {
+        "role": "primary",
+        "displayName": "Personal star",
+        "tonalRamp": [
+          "oklch(15.00% 0.09291 83.16)",
+          "oklch(26.43% 0.09291 83.16)",
+          "oklch(37.86% 0.09291 83.16)",
+          "oklch(49.29% 0.09291 83.16)",
+          "oklch(60.71% 0.09291 83.16)",
+          "oklch(72.14% 0.09291 83.16)",
+          "oklch(83.57% 0.09291 83.16)",
+          "oklch(95.00% 0.09291 83.16)"
+        ]
+      },
+      "personal-thread": {
+        "role": "primary",
+        "displayName": "Personal thread",
+        "tonalRamp": [
+          "oklch(15.00% 0.10134 79.78)",
+          "oklch(26.43% 0.10134 79.78)",
+          "oklch(37.86% 0.10134 79.78)",
+          "oklch(49.29% 0.10134 79.78)",
+          "oklch(60.71% 0.10134 79.78)",
+          "oklch(72.14% 0.10134 79.78)",
+          "oklch(83.57% 0.10134 79.78)",
+          "oklch(95.00% 0.10134 79.78)"
+        ]
+      },
+      "muted-text": {
+        "role": "neutral",
+        "displayName": "Receding blue-gray",
+        "tonalRamp": [
+          "oklch(15.00% 0.02182 232.22)",
+          "oklch(26.43% 0.02182 232.22)",
+          "oklch(37.86% 0.02182 232.22)",
+          "oklch(49.29% 0.02182 232.22)",
+          "oklch(60.71% 0.02182 232.22)",
+          "oklch(72.14% 0.02182 232.22)",
+          "oklch(83.57% 0.02182 232.22)",
+          "oklch(95.00% 0.02182 232.22)"
+        ]
+      },
+      "form-surface": {
+        "role": "neutral",
+        "displayName": "Translucent form surface",
+        "tonalRamp": [
+          "oklch(15.00% 0.02461 245.58 / 0.929)",
+          "oklch(26.43% 0.02461 245.58 / 0.929)",
+          "oklch(37.86% 0.02461 245.58 / 0.929)",
+          "oklch(49.29% 0.02461 245.58 / 0.929)",
+          "oklch(60.71% 0.02461 245.58 / 0.929)",
+          "oklch(72.14% 0.02461 245.58 / 0.929)",
+          "oklch(83.57% 0.02461 245.58 / 0.929)",
+          "oklch(95.00% 0.02461 245.58 / 0.929)"
+        ]
+      },
+      "input-surface": {
+        "role": "neutral",
+        "displayName": "Dark input surface",
+        "tonalRamp": [
+          "oklch(15.00% 0.02656 244.84)",
+          "oklch(26.43% 0.02656 244.84)",
+          "oklch(37.86% 0.02656 244.84)",
+          "oklch(49.29% 0.02656 244.84)",
+          "oklch(60.71% 0.02656 244.84)",
+          "oklch(72.14% 0.02656 244.84)",
+          "oklch(83.57% 0.02656 244.84)",
+          "oklch(95.00% 0.02656 244.84)"
+        ]
+      },
+      "input-border": {
+        "role": "neutral",
+        "displayName": "Input outline",
+        "tonalRamp": [
+          "oklch(15.00% 0.03213 240.23)",
+          "oklch(26.43% 0.03213 240.23)",
+          "oklch(37.86% 0.03213 240.23)",
+          "oklch(49.29% 0.03213 240.23)",
+          "oklch(60.71% 0.03213 240.23)",
+          "oklch(72.14% 0.03213 240.23)",
+          "oklch(83.57% 0.03213 240.23)",
+          "oklch(95.00% 0.03213 240.23)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Geographic and personal display",
+        "purpose": "Inherited Georgia headings; Run G uses it for generic place identity."
+      },
+      "body": {
+        "displayName": "Reading and controls",
+        "purpose": "Inherited Arial copy, actions and provenance."
+      },
+      "label": {
+        "displayName": "Quiet orientation",
+        "purpose": "Inherited compact controls and supporting location context."
+      }
+    },
+    "shadows": [
+      {
+        "name": "story-panel",
+        "value": "0 18px 65px #0002",
+        "purpose": "Current inherited story panel shadow. Generic Run G context does not adopt this shadow."
+      }
+    ],
+    "motion": [
+      {
+        "name": "journey-hover",
+        "value": "background .3s, border-color .3s",
+        "purpose": "Inherited journey-action hover; disabled for reduced motion."
+      },
+      {
+        "name": "explore-reveal",
+        "value": ".28s cubic-bezier(.16,1,.3,1)",
+        "purpose": "Existing Explore collection entrance; removed for reduced motion."
+      },
+      {
+        "name": "generic-window-overlap",
+        "value": "850ms",
+        "purpose": "Run G renderer source-road window blend, implementation-documented; reduced motion reveals the endpoint. This is not a global UI timing token."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "incumbent-phone",
+        "value": "700px"
+      },
+      {
+        "name": "incumbent-narrow-phone",
+        "value": "370px"
+      },
+      {
+        "name": "run-g-short-phone-height-at-phone-width",
+        "value": "700px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Journey action",
+      "kind": "button",
+      "description": "Inherited warm bordered primary journey action. Phone padding changes with the incumbent breakpoint.",
+      "html": "<button class=\"ds-journey\"><span>Return to orbit</span><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m5 12 7-7 7 7M12 19V5\"/></svg></button>",
+      "css": ".ds-journey{display:flex;align-items:center;gap:32px;font:14px Arial,Helvetica,sans-serif;letter-spacing:.015em;padding:17px 24px;border:1px solid #bfab835c;background:#d8b77e0a;border-radius:3px;color:#e8d8b9;transition:background .3s,border-color .3s;white-space:nowrap;cursor:pointer}.ds-journey:hover:not(:disabled){background:#d8b77e18;border-color:#bfab83b0}.ds-journey:focus-visible{outline:2px solid #dfcda5;outline-offset:5px}.ds-journey:disabled{cursor:wait;opacity:.45}@media(max-width:700px){.ds-journey{padding:14px 16px;gap:14px;font-size:13px}}@media(prefers-reduced-motion:reduce){.ds-journey{transition:none}}"
+    },
+    {
+      "name": "Quiet text action",
+      "kind": "button",
+      "description": "Inherited secondary action without an enclosing surface.",
+      "html": "<button class=\"ds-text-action\">Reform Earth</button>",
+      "css": ".ds-text-action{display:flex;gap:12px;align-items:center;background:none;border:0;color:#e2cda6;font:14px Arial,Helvetica,sans-serif;padding:12px 0;text-align:left;cursor:pointer}.ds-text-action:hover{color:white}.ds-text-action:focus-visible{outline:2px solid #dfcda5;outline-offset:5px}.ds-text-action:disabled{cursor:wait;opacity:.45}"
+    },
+    {
+      "name": "Personal place input",
+      "kind": "input",
+      "refersTo": "place-input",
+      "description": "Existing personal three-place chooser input; this enclosed field is distinct from Run G search.",
+      "html": "<label class=\"ds-personal-label\" for=\"ds-personal-place\">A place you call home</label><div class=\"ds-personal-input\"><input id=\"ds-personal-place\" placeholder=\"Search places\"/></div>",
+      "css": ".ds-personal-label{display:block;font:13px/1.5 Arial,Helvetica,sans-serif;color:#d5c8ae;margin-bottom:8px}.ds-personal-input{height:44px;width:100%;min-width:0;border:1px solid #526573;border-radius:3px;background:#0b1721;box-shadow:none;display:flex}.ds-personal-input input{width:100%;min-width:0;border:0;background:transparent;padding:0 12px;font:14px Arial,Helvetica,sans-serif;color:#e6e9e9;caret-color:var(--primary);outline:none}.ds-personal-input input::placeholder{color:#9fb0bc}.ds-personal-input:focus-within{border-color:#e1c99e;outline:2px solid #e1c99e;outline-offset:2px}@media(max-width:700px){.ds-personal-input input{font-size:16px}}"
+    },
+    {
+      "name": "Personal form surface",
+      "kind": "card",
+      "refersTo": "place-form",
+      "description": "Existing more opaque panel for personal constellation input. The excerpt shows its heading and reading surface.",
+      "html": "<section class=\"ds-personal-form\"><h2>Your constellation.</h2><p>The places we carry become stars.</p></section>",
+      "css": ".ds-personal-form{width:100%;min-width:0;color:var(--primary);background:#061019ed;border:1px solid #6c879142;border-radius:4px;padding:25px;scrollbar-width:thin;scrollbar-color:#38505e #08121a}.ds-personal-form h2{font:400 31px/1.15 Georgia,\"Times New Roman\",serif;letter-spacing:-.025em;margin:0 0 12px;text-wrap:balance}.ds-personal-form p{margin:0;color:#abbac3;font:14px/1.55 Arial,Helvetica,sans-serif}.ds-personal-form::selection{background:#d8b77e;color:#061019}@media(max-width:700px){.ds-personal-form{padding:20px}.ds-personal-form h2{font-size:27px;margin-bottom:8px}.ds-personal-form p{font-size:13px}}"
+    },
+    {
+      "name": "World scale navigation",
+      "kind": "nav",
+      "description": "Inherited quiet scale labels with an underline for the active step and real disabled states.",
+      "html": "<nav class=\"ds-scales\" aria-label=\"World scale\"><button>Planet</button><button aria-current=\"step\">Region</button><button>City</button><button>Street</button></nav>",
+      "css": ".ds-scales{display:flex;gap:15px}.ds-scales button{border:0;border-bottom:1px solid transparent;background:none;min-height:44px;padding:10px 4px;color:#a5b4c1;font:13px Arial,Helvetica,sans-serif;text-transform:capitalize;cursor:pointer}.ds-scales button[aria-current]{color:#e8d6b4;border-bottom-color:#e8d6b4}.ds-scales button:hover{color:#fff8e8}.ds-scales button:focus-visible{outline:2px solid #dfcda5;outline-offset:5px}.ds-scales button:disabled{cursor:default;opacity:.45}@media(max-width:700px){.ds-scales{gap:12px}}"
+    },
+    {
+      "name": "World layer toggles",
+      "kind": "chip",
+      "description": "Existing Explore-menu layer controls. Pressed and unpressed styling expresses the layer state.",
+      "html": "<div class=\"ds-layer-toggles\"><span>Above &amp; around Earth</span><button aria-pressed=\"true\">Orbit</button><button aria-pressed=\"true\">Air</button><button aria-pressed=\"false\">Sea</button></div>",
+      "css": ".ds-layer-toggles{display:flex;gap:8px;align-items:center;border-top:1px solid #c7b79025;padding-top:12px;flex-wrap:wrap;font:12px Arial,Helvetica,sans-serif}.ds-layer-toggles>span{flex:1 1 auto;font-size:11px;color:#adbdc6;white-space:nowrap}.ds-layer-toggles button{background:transparent;border:1px solid #9bafa440;color:#d0d9d7;min-height:35px;padding:6px 9px;border-radius:2px;font:inherit;cursor:pointer}.ds-layer-toggles button[aria-pressed=false]{color:#a3b2bc;border-color:#87979f25}.ds-layer-toggles button:focus-visible{outline:2px solid #dfcda5;outline-offset:3px}.ds-layer-toggles button:disabled{opacity:.45;cursor:wait}@media(max-width:700px){.ds-layer-toggles{gap:7px}.ds-layer-toggles button{min-height:36px;padding:6px 8px}}"
+    },
+    {
+      "name": "Open Earth name search",
+      "kind": "input",
+      "description": "Run G only: a baseline search field in the Explore collection. Explicit submission and ambiguity/status copy belong to its runtime.",
+      "html": "<form class=\"ds-open-search\"><label for=\"ds-open-query\">Find a place on Earth</label><div class=\"ds-open-input\"><input id=\"ds-open-query\" type=\"search\" autocomplete=\"off\" maxlength=\"120\" placeholder=\"Kyoto, the Alps, your hometown…\"/><button type=\"submit\" aria-label=\"Go to place\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M7 17 17 7M7 7h10v10\"/></svg></button></div></form>",
+      "css": ".ds-open-search{padding:6px 0 14px;border-bottom:1px solid #c7b79030;font-family:Arial,Helvetica,sans-serif}.ds-open-search label{display:block;font-size:14px;color:#ded1b4;margin-bottom:10px}.ds-open-input{display:flex;align-items:center;gap:8px;border-bottom:1px solid #a8b6bf80}.ds-open-input input{width:100%;min-width:0;background:transparent;border:0;color:#ece0c6;font:14px/1.5 Arial,sans-serif;padding:9px 0;outline-offset:3px;caret-color:#f1d59d}.ds-open-input input::placeholder{color:#aab7bf}.ds-open-input button{background:transparent;color:#ead6b1;border:0;min-width:40px;min-height:44px;cursor:pointer}.ds-open-search :focus-visible{outline:2px solid #dfcda5;outline-offset:3px}.ds-open-input button:disabled{cursor:wait;opacity:.45}@media(max-width:700px){.ds-open-search{padding-bottom:9px}.ds-open-input input{font-size:16px}}"
+    },
+    {
+      "name": "Generic place context and sources",
+      "kind": "custom",
+      "description": "Run G only: place identity and native disclosure stay subordinate to geographic light. Open the disclosure to inspect its real surface behavior.",
+      "html": "<aside class=\"ds-place-context\" aria-label=\"Place context\"><h2>Kyoto</h2><p>Japan · 60 km metropolitan context</p><details class=\"ds-provenance\"><summary>Sourced local roads</summary><p>Roads: <a href=\"https://openfreemap.org/\">OpenFreeMap</a>, © OpenMapTiles / <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>. City light is interpretive. No live tracking.</p></details></aside>",
+      "css": ".ds-place-context{width:280px;max-width:100%;color:#ead9b6;font-family:Arial,Helvetica,sans-serif}.ds-place-context h2{font:400 34px/1.12 Georgia,serif;margin:0 0 10px;text-wrap:balance;overflow-wrap:anywhere}.ds-place-context>p{font:13px/1.6 Arial,sans-serif;color:#bbc6c9;margin:0 0 18px}.ds-provenance{font:12px/1.6 Arial,sans-serif;color:#b3c1cb;max-width:280px}.ds-provenance summary{cursor:pointer;color:#d4d5c5;font-size:13px;padding:8px 0;min-height:36px}.ds-provenance p{margin:8px 0}.ds-provenance a{text-decoration:underline;text-underline-offset:3px;color:#dfd0b3}.ds-provenance[open]{background:#080d15f2;padding:0 12px 10px;margin-left:-12px}.ds-place-context :focus-visible{outline:2px solid #dfcda5;outline-offset:3px}@media(max-width:700px){.ds-place-context h2{font-size:28px;max-width:245px}.ds-place-context>p{font-size:12px;margin-bottom:5px}.ds-provenance summary{font-size:12px}.ds-provenance[open]{max-height:205px;overflow:auto}}@media(max-height:700px) and (max-width:700px){.ds-place-context h2{font-size:25px;margin-bottom:5px}}"
+    },
+    {
+      "name": "Nearby sourced settlement",
+      "kind": "button",
+      "description": "Run G Region context only: a settlement name and sourced distance form a compact destination row. The text list hides on phones.",
+      "html": "<div class=\"ds-nearby\"><button>Ōtsu<span>11 km</span></button><button>Ōsaka<span>44 km</span></button></div>",
+      "css": ".ds-nearby{display:flex;flex-direction:column;gap:0;margin-bottom:18px;max-width:235px}.ds-nearby button{background:transparent;border:0;border-bottom:1px solid #c6b79526;color:#d5d4c5;display:flex;gap:12px;justify-content:space-between;text-align:left;padding:10px 0;font:14px/1.3 Arial,sans-serif;min-height:38px;cursor:pointer}.ds-nearby button span{font-size:12px;color:#a9b9c4;white-space:nowrap}.ds-nearby button:hover{color:#fff0cc}.ds-nearby button:focus-visible{outline:2px solid #dfcda5;outline-offset:3px}@media(max-width:700px){.ds-nearby{display:none}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Earth, constellated",
+    "overview": "Earth, constellated: a dark spatial experience in which geographic particles remain the main composition. Cool light describes the planet; warmer stars and fine connections carry human meaning. Generous darkness, restrained controls, and expressive serif phrases let the object lead.\n\nThis records the built system, not a proposed redesign. Ground truth is `app/globals.css`, `app/personal-constellation-form.module.css`, `app/terra-experience.tsx`, and the rendering code in `lib/terra/`. The desktop Astra, form, ending, and phone-width Astra/ending captures in `../demo-tooling/qa/` support the composition descriptions; their release badges are historical capture state.\n\nRun G preserves this incumbent world. Its generic named-place journey and current phone adaptations are scoped in [the Open Earth surface brief](.impeccable/surfaces/app-terra-experience-tsx.md). Earlier capture measurements below remain historical observations; the brief records the current cascade without replacing the personal or authored compositions. Source behavior and attribution remain in [the Run G implementation record](docs/PEOPLES-CHOICE-RUN-G.md).",
+    "keyCharacteristics": [],
+    "rules": [],
+    "dos": [
+      "Do keep the globe and transformed volume visually dominant.",
+      "Do preserve the cool geographic / warm human relationship and the Georgia / Arial pairing.",
+      "Do keep personal stars and their labels legible through desktop and phone compositions.",
+      "Do preserve the visible connection between the three meaningful places and their return to Earth."
+    ],
+    "donts": [
+      "Don't replace the authored sky with a generic card grid or decorative background treatment.",
+      "Don't turn faint interfaces into competing luminous objects.",
+      "Don't describe imagined interior material or the personal Astra arrangement as measured geography."
+    ]
+  }
+}

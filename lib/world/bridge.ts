@@ -31,7 +31,7 @@ export function subscribeWorldState(listener: (state: WorldState) => void) {
 export function connectWorldNavigator(execute: (command: WorldCommand) => Promise<WorldCommandResult>, getState: () => WorldState | null) {
   const api:WorldNavigator={targets:WORLD_TARGETS,getState,command:async input=>{
     const command=validateWorldCommand(input);
-    if(!command) throw new TypeError('Unknown world command or target. Use the guaranteed target catalogue.');
+    if(!command) throw new TypeError('Unknown world command or target. Use an authored ID or a place name.');
     let result:WorldCommandResult;
     try{result=await execute(command);}catch{result={ok:false,command,reason:'That journey could not complete. Try another destination.'};}
     window.dispatchEvent(new CustomEvent(WORLD_RESULT_EVENT,{detail:result}));

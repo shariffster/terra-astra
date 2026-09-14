@@ -264,3 +264,33 @@ html{color-scheme:dark}.story-sheet,.about-dialog,.tuning-dialog{scrollbar-width
 .genesis-active > .masthead:has([data-sound-control]) > :not([data-sound-control]){visibility:hidden!important;pointer-events:none!important}
 .genesis-active .masthead [data-sound-control]{visibility:visible;pointer-events:auto}
 @media(min-width:701px) and (max-width:1000px){.masthead:has([data-sound-control]) .edition{display:none}.masthead [data-sound-control]{margin-left:auto}}
+
+/* Run G: quiet place context, in the existing celestial material. */
+.open-place-search{padding:6px 0 14px;border-bottom:1px solid #c7b79030}
+.open-place-search label{display:block;font-size:14px;color:#ded1b4;margin-bottom:10px}
+.open-place-input{display:flex;align-items:center;gap:8px;border-bottom:1px solid #a8b6bf80}
+.open-place-input input{width:100%;min-width:0;background:transparent;border:0;color:#ece0c6;font:14px/1.5 Arial,sans-serif;padding:9px 0;outline-offset:3px;caret-color:#f1d59d}
+.open-place-input input::placeholder{color:#aab7bf}.open-place-input button{background:transparent;color:#ead6b1;border:0;min-width:40px;min-height:44px}
+.open-place-search>p{font:13px/1.5 Arial,sans-serif;color:#bdcbd3;margin:9px 0 0}
+.place-choices{display:flex;flex-direction:column;gap:0;margin-top:10px;max-height:230px;overflow:auto}
+.place-choices button{background:transparent;border:0;border-bottom:1px solid #b6b9ac35;color:#ecd8b0;text-align:left;padding:12px 4px;font-size:15px;min-height:44px}
+.place-choices small{display:block;margin-top:4px;color:#b3c0c9;font-size:12px}.place-choices button:hover{color:#fff4da}
+.open-world-context{position:absolute;left:34px;top:145px;z-index:8;width:min(280px,24vw);color:#ead9b6;pointer-events:auto}
+.open-world-context h2{font:400 34px/1.12 Georgia,serif;margin:0 0 10px;text-wrap:balance;overflow-wrap:anywhere}
+.open-world-context>p{font:13px/1.6 Arial,sans-serif;color:#bbc6c9;margin:0 0 18px}
+.nearby-places{display:flex;flex-direction:column;gap:0;margin-bottom:18px;max-width:235px}
+.nearby-places button{background:transparent;border:0;border-bottom:1px solid #c6b79526;color:#d5d4c5;display:flex;gap:12px;justify-content:space-between;text-align:left;padding:10px 0;font:14px/1.3 Arial,sans-serif;min-height:38px}
+.nearby-places button span{font-size:12px;color:#a9b9c4;white-space:nowrap}.nearby-places button:hover{color:#fff0cc}
+.open-provenance{font:12px/1.6 Arial,sans-serif;color:#b3c1cb;max-width:280px}
+.open-provenance summary{cursor:pointer;color:#d4d5c5;font-size:13px;padding:8px 0;min-height:36px}
+.open-provenance p{margin:8px 0}.open-provenance a{text-decoration:underline;text-underline-offset:3px;color:#dfd0b3}
+.open-provenance[open]{background:#080d15f2;padding:0 12px 10px;margin-left:-12px}
+.open-settlement .marker-label{font-size:12px;background:#060a10bd;padding:3px 7px;color:#dbcaa9}
+.open-place-search :focus-visible,.open-world-context :focus-visible,.place-choices :focus-visible{outline:2px solid #dfcda5;outline-offset:3px}
+.experience[data-target^="ne-"] .opening,.experience[data-target^="osm-"] .opening,.experience[data-target^="gn-"] .opening{opacity:0;pointer-events:none}
+@media(max-width:700px){.open-world-context{left:23px;top:118px;width:calc(100vw - 106px);max-width:290px}.open-world-context h2{font-size:28px;max-width:245px}.open-world-context>p{font-size:12px;margin-bottom:5px}.nearby-places{display:none}.open-provenance summary{font-size:12px}.open-provenance[open]{max-height:205px;overflow:auto}.open-settlement .marker-label{font-size:11px}.open-place-search{padding-bottom:9px}.credits .credit-links{max-width:62vw;flex-wrap:wrap;justify-content:flex-end;gap:5px 12px}.journey-location .location-label{max-width:calc(100vw - 195px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+@media(max-width:700px){.open-place-input input{font-size:16px}.stage-orbit:has(.open-world-context) .depth-toggle{display:none}.stage-orbit .open-world-context{top:145px}}
+@media(max-height:700px) and (max-width:700px){.open-world-context{top:105px}.stage-orbit .open-world-context{top:140px}.open-world-context h2{font-size:25px;margin-bottom:5px}}
+.geography-credit-short{display:none}
+@media(max-width:700px){.credits:has(.open-data-credit){font-size:11px}.credits:has(.open-data-credit) .geography-credit-long{display:none}.credits:has(.open-data-credit) .geography-credit-short{display:inline}.credits:has(.open-data-credit) .credit-links{max-width:none;justify-content:flex-start;gap:2px 14px}.experience:has(.open-world-context) .view-tools{top:auto;bottom:270px}}
+@media(max-width:700px){.experience:has(.open-data-credit) .journey-location{min-width:0;flex:1}.experience:has(.open-data-credit) .journey-location>div{min-width:0;flex:1}.experience:has(.open-data-credit) .journey-location .location-label{max-width:100%}.experience:has(.open-data-credit) .journey-bar>.journey-button{flex-shrink:0;max-width:60%;min-width:0}.experience:has(.open-data-credit) .journey-bar>.journey-button span{min-width:0;overflow:hidden;text-overflow:ellipsis}.experience:has(.open-data-credit) .journey-bar>.journey-button svg{flex-shrink:0}}

@@ -6,6 +6,7 @@ import QuestionBar from '../terra-input/QuestionBar';
 import { createLiveController, type TranscriptRow } from './live-controller';
 import { readAnswerStream } from './answer-stream';
 import { executeLiveNavigation, planLiveNavigation } from './world-navigator';
+import type { ResolvedWorldTarget } from '@/lib/world/open-types';
 import type { WorldState } from '@/lib/world/commands';
 import styles from './globe-voice.module.css';
 
@@ -20,9 +21,9 @@ type Props = {
 type LiveController = ReturnType<typeof createLiveController>;
 
 const SUGGESTIONS = [
-  'Show me the vibe in New York',
+  'Take me to Kyoto',
   'Take me to Makkah',
-  'Show me Palm Jumeirah',
+  'Show me the Alps',
   'Where is the deepest place on Earth?',
 ] as const;
 const INVITATION_KEY = 'terra-astra-discovery-v010';
@@ -37,6 +38,8 @@ export default function GlobeVoice({ ready, exploring = false, discoveryReady = 
   const [rows, setRows] = useState<TranscriptRow[]>([]);
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState('');
+  const [placeChoices,setPlaceChoices]=useState<ResolvedWorldTarget[]>([]);
+  const lastPlaceQuestion=useRef('');
   const [busy, setBusy] = useState(false);
   const [voiceSignIn, setVoiceSignIn] = useState(false);
   const live = useRef<LiveController | null>(null);
@@ -62,7 +65,7 @@ export default function GlobeVoice({ ready, exploring = false, discoveryReady = 
   }, [startedExploring]); // Visual staging comes from the renderer-owned clock.
 
 
-  const ask = useCallback(async (question: string, delegationId?: string, reveal = true) => {
+  const ask = useCallback(async (question: string, delegationId?: string, reveal = true, choice?:string) => {
     if (!ready || !question.trim()) return;
     const sequence = ++requestNumber.current;
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -70,9 +73,10 @@ export default function GlobeVoice({ ready, exploring = false, discoveryReady = 
     active.current?.abort();
     const request = new AbortController();
     active.current = request;
-    setOpen(reveal); setBusy(true); setError(''); setVoiceSignIn(false); setAnswer('');
+    setOpen(reveal);setPlaceChoices([]);lastPlaceQuestion.current=question; setBusy(true); setError(''); setVoiceSignIn(false); setAnswer('');
     try {
-      const plan = planLiveNavigation(question);
+      const planned = planLiveNavigation(question);
+      const plan=planned&&choice?{...planned,commands:planned.commands.map(command=>command.type==='flyToPlace'?{...command,choice}:command)}:planned;
       if (plan) {
         setAnswer(plan.acknowledgement);
         const result = await executeLiveNavigation(plan, {
@@ -80,9 +84,11 @@ export default function GlobeVoice({ ready, exploring = false, discoveryReady = 
           onDispatch: (_command, index) => { if (index === 0) live.current?.say(delegationId ?? null, plan.acknowledgement); },
         });
         if (request.signal.aborted) return;
-        if (!result.ok) throw new Error(result.reason ?? 'The world could not move there.');
-        setAnswer(plan.context);
-        live.current?.say(delegationId ?? null, plan.context);
+        if (!result.ok) {setPlaceChoices(result.resolution?.candidates??[]);throw new Error(result.reason ?? 'The world could not move there.');}
+        const target=result.resolution?.target;
+        const explanation=plan.context||(target?`${target.label}. ${target.region?target.region+'. ':''}The view opens at ${target.tier} scale. ${target.mode==='open'?'Sourced geography with interpretive light; local roads appear where available.':target.detail}`:'The journey has arrived.');
+        setAnswer(explanation);
+        live.current?.say(delegationId ?? null, explanation);
         // Navigation gives the canvas back after the acknowledgement has been read.
         if (reveal && !delegationId) closeTimer.current = setTimeout(() => {
           if (requestNumber.current === sequence) setOpen(false);
@@ -161,6 +167,7 @@ export default function GlobeVoice({ ready, exploring = false, discoveryReady = 
       {answer && <p className={styles.answer} aria-live="polite">{answer}</p>}
       {voiceSignIn && <p className={styles.signIn} role="status"><a href="/signin-with-chatgpt?return_to=%2F">Sign in with ChatGPT to talk</a><span>Or choose a suggestion and explore right away.</span></p>}
       {error && <p className={styles.error} role="alert">{error}{/sign.?in|signed in/i.test(error) && <> <a href="/signin-with-chatgpt?return_to=%2F">Sign in with ChatGPT</a><span className={styles.errorHelp}>You can still explore the places above.</span></>}</p>}
+      {placeChoices.length>0&&<div className="place-choices" aria-label="Matching places">{placeChoices.map(p=><button key={p.id} onClick={()=>void ask(lastPlaceQuestion.current,undefined,true,p.id)}>{p.label}<small>{p.region||p.kind}</small></button>)}</div>}
       {rows.length > 0 && <details className={styles.transcript}><summary>Conversation</summary>{rows.slice(-6).map((row, index) => <p key={index}><strong>{row.who === 'user' ? 'You' : 'Astra'}:</strong> {row.text}</p>)}</details>}
       <p className={styles.status}>{connected ? `Live · ${statusLabel}` : voiceSignIn ? 'Exploration is open to everyone.' : 'Tap a suggestion, type, or talk to Astra.'}</p>
     </div>}

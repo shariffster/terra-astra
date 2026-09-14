@@ -1,7 +1,21 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.9';
+export const currentVersion = '0.10.10';
 
 export const releases = [
+  {
+    version: '0.10.10',
+    date: '2026-09-14',
+    dateLabel: '14 September 2026',
+    title: 'Open Earth — places beyond the five',
+    milestone: 'Run G · People’s Choice Lab',
+    changes: [
+      'Find cities, islands, mountains and regions by name. Sourced place records guide the journey; ambiguous names offer a choice.',
+      'Region opens into terrain, shores, nearby settlements and relevant connections, framed to the place’s geographic scale.',
+      'Generic cities combine sourced local roads, simpler major corridors and interpretive metropolitan light. Local exploration moves through overlapping road neighborhoods as you travel.',
+      'The five deeply authored destinations retain their special character. Sonic Earth, Genesis and the accepted planetary systems remain.',
+    ],
+    review: 'Road coverage depends on open data availability; missing detail returns to a broader view. Interpretive lights are not mapped streets, and activity is not live tracking. Phone viewport checks passed; physical-phone and authenticated Live listening remain owner QA. Canonical stays frozen at v0.10.8.',
+  },
   {
     version: '0.10.9',
     date: '2026-09-14',

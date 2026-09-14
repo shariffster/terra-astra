@@ -1,0 +1,6 @@
+async page => {
+ await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:1440,height:900});await page.goto('http://localhost:5198/');await page.waitForFunction(()=>window.terraAstra&&!window.terraAstra.getState().busy);await page.waitForTimeout(1800);await page.screenshot({path:'output/playwright/final-planet.png'});
+ const command=c=>page.evaluate(c=>window.terraAstra.command(c),c);const rows=[];
+ for(const [query,slug] of [['Kyoto','kyoto'],['Northern Italy','northern-italy'],['The Alps','alps'],['Strait of Malacca','malacca'],['Lake Victoria','lake-victoria']]){await command({type:'flyToPlace',query});await page.waitForTimeout(2600);await page.screenshot({path:'output/playwright/final-'+slug+'-region.png'});rows.push(await page.evaluate(()=>window.terraAstra.getState()));if(query==='Kyoto'){await command({type:'setScale',tier:'city'});await page.waitForFunction(()=>!window.terraAstra.getState().open.detailLoading,{},{timeout:15000});await page.waitForTimeout(500);await page.screenshot({path:'output/playwright/final-kyoto-city.png'});await command({type:'setScale',tier:'street'});await page.waitForTimeout(500);await page.screenshot({path:'output/playwright/final-kyoto-street.png'});}}
+ await command({type:'flyToPlace',query:'Kyoto'});await page.waitForTimeout(1600);return {rows};
+}

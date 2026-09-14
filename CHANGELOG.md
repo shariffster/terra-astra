@@ -2,6 +2,16 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.10 — Run G: Open Earth, Region and continuous local exploration · 14 September 2026
+
+- Extend exact Run F `4e72ab7c00b5290a5f51cd009fd17036a76d0dc2` on `people-choice/run-g-open-earth`. Lab only; canonical v0.10.8 and Maker’s Mark remain excluded.
+- Resolve place names through 9,901 bundled source records and optional bounded server-side Photon lookup. Preserve five authored IDs and upgrade matching names into those original experiences. AI passes names, never coordinates.
+- Add adaptive territorial Region framing, source terrain and coast/lake shores, nearby settlements and major roads through the incumbent renderer. Distant planetary systems recede; accepted populations remain intact.
+- Add three generic City LOD bands: sourced local roads, simplified major roads and explicitly interpretive urban lights. Circular feathering and a moving 3×3 road window with 850 ms overlap avoid a fixed rectangular city boundary.
+- Bound Region/City/client road caches to 3/2/24 entries; road tiles also cap at 6 MiB. Server road cache caps at 32/8 MiB. Abort superseded work; local preparation ends within ten seconds and failed detail returns to broad City.
+- Retain held-input normalization and clearing, adding geographic tier speeds for open places. Touch, pinch, typed Ask Astra, provenance and both phone viewport sizes were exercised.
+- All 23 regression suites passed. Twenty representative open places, five authored destinations, two long Street traversals, Region recentering, failure recovery and repeated journeys have receipts. Physical phones and authenticated Live listening remain owner QA. See `docs/PEOPLES-CHOICE-RUN-G.md`; actual save/deployment identities are separate native receipts.
+
 ## v0.10.9 — Run F: Ocean volume, flow and network richness · 14 September 2026
 
 - Isolated from exact integrated v0.10.8 `e8dac0cfda17422ea570bb9581c49384d9f9069f`. Canonical stays frozen; the separate Celestial Maker’s Mark is neither merged nor used.

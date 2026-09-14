@@ -24,3 +24,7 @@ The current user objective supersedes the earlier Run D-only branch boundary in 
 ## Run F authority (14 September 2026)
 
 The explicit Run F user brief supersedes those historical branch boundaries here. Work only on `people-choice/run-f-ocean-volume-flow-network`, rooted at exact integrated v0.10.8 `e8dac0cfda17422ea570bb9581c49384d9f9069f`. Canonical is now live at v0.10.8 and is frozen. Only the existing v0.10 Lab may receive Run F after QA. Do not modify, merge, deploy or depend on the parallel Celestial Maker’s Mark work. Preserve Sonic Earth and unrelated systems. Upload final evidence to the existing Run F Drive folder, then stop; no automatic Run G.
+
+## Run G authority (14 September 2026)
+
+The explicit Run G objective supersedes historical branch boundaries in this worktree. Work only on `people-choice/run-g-open-earth`, from accepted `4e72ab7c00b5290a5f51cd009fd17036a76d0dc2` / `v0.10.9`. Canonical stays frozen at v0.10.8. Preserve the five authored destinations, Sonic Earth, Genesis and Run F systems. Only the existing People's Choice Lab may receive Run G after QA demonstrates improvement. No Maker's Mark integration. Upload the requested evidence to the Run G Drive folder; stop after Run G.

@@ -45,9 +45,13 @@ components:
 
 ## Overview
 
+**Creative North Star: "Earth, constellated"**
+
 Earth, constellated: a dark spatial experience in which geographic particles remain the main composition. Cool light describes the planet; warmer stars and fine connections carry human meaning. Generous darkness, restrained controls, and expressive serif phrases let the object lead.
 
 This records the built system, not a proposed redesign. Ground truth is `app/globals.css`, `app/personal-constellation-form.module.css`, `app/terra-experience.tsx`, and the rendering code in `lib/terra/`. The desktop Astra, form, ending, and phone-width Astra/ending captures in `../demo-tooling/qa/` support the composition descriptions; their release badges are historical capture state.
+
+Run G preserves this incumbent world. Its generic named-place journey and current phone adaptations are scoped in [the Open Earth surface brief](.impeccable/surfaces/app-terra-experience-tsx.md). Earlier capture measurements below remain historical observations; the brief records the current cascade without replacing the personal or authored compositions. Source behavior and attribution remain in [the Run G implementation record](docs/PEOPLES-CHOICE-RUN-G.md).
 
 ## Colors
 
@@ -88,6 +92,8 @@ Actions and inputs are nearly rectangular with subtly softened corners; story an
 - **Personal constellation:** three numbered places with their meanings, matched to warm stars and connecting threads. Change, clear, and return actions stay visible in the narrative area. Closing copy recalls the submitted places beside the reformed globe.
 - **Story sheet:** a compact translucent reading panel with a serif name and quotation. Longer biography and place details reveal on request; mobile placement preserves space for the city.
 - **View rail and stage bar:** small functional icons and quiet orientation text frame the canvas. Preserve accessible names, visible focus, and existing disabled states during movement.
+
+- **Open Earth extension:** name search, generic place context and source disclosure use the existing material and type pairing. Their Region/City/Street composition and responsive exceptions belong to the Open Earth surface brief, not to global component rules.
 
 ## Do's and Don'ts
 

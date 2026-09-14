@@ -1,0 +1,57 @@
+{
+  "prepared": "2026-09-14",
+  "revision": "789c9904087846cc3361302857aa2e76b0ae71ff",
+  "sources": [
+    {
+      "dataset": "ne_10m_populated_places_simple",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/789c9904087846cc3361302857aa2e76b0ae71ff/geojson/ne_10m_populated_places_simple.geojson",
+      "sha256": "fd3fa867a320cbd5c5b6bb5bc550afeec2939fb2cef688e508007282a55ac42f",
+      "license": "Public domain"
+    },
+    {
+      "dataset": "ne_10m_geography_regions_points",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/789c9904087846cc3361302857aa2e76b0ae71ff/geojson/ne_10m_geography_regions_points.geojson",
+      "sha256": "25821b530966e62756faebf53699f12bf73550f8228aa4bbdf3e4132dd7cf806",
+      "license": "Public domain"
+    },
+    {
+      "dataset": "ne_10m_geography_regions_polys",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/789c9904087846cc3361302857aa2e76b0ae71ff/geojson/ne_10m_geography_regions_polys.geojson",
+      "sha256": "b7b26e50ea917d3696aec87f932def2bf5f890f5770e441d59c162c6f4c92a77",
+      "license": "Public domain"
+    },
+    {
+      "dataset": "ne_10m_geography_marine_polys",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/789c9904087846cc3361302857aa2e76b0ae71ff/geojson/ne_10m_geography_marine_polys.geojson",
+      "sha256": "53f865e8ffa966cdd402145c82c5cd14ee7ce974cd0eb9a3f59f03a4cfd2d66c",
+      "license": "Public domain"
+    },
+    {
+      "dataset": "ne_50m_admin_0_countries",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/789c9904087846cc3361302857aa2e76b0ae71ff/geojson/ne_50m_admin_0_countries.geojson",
+      "sha256": "3e458fc036ad0a66411f2c1e6cac49c5d7bfb81cb1123bc513b22511a2b7fdeb",
+      "license": "Public domain"
+    },
+    {
+      "dataset": "ne_10m_lakes",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/789c9904087846cc3361302857aa2e76b0ae71ff/geojson/ne_10m_lakes.geojson",
+      "sha256": "2d036f53dedec578001c5c30c2959ee7d4eebc1306900fa4367c49929ec8f2d9",
+      "license": "Public domain"
+    },
+    {
+      "dataset": "ne_10m_admin_1_states_provinces",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/789c9904087846cc3361302857aa2e76b0ae71ff/geojson/ne_10m_admin_1_states_provinces.geojson",
+      "sha256": "22d0e3ad85eb3e27f17cabf8ba2d50e554fbc27a87796ff891d958185da62fb5",
+      "license": "Public domain"
+    },
+    {
+      "dataset": "Mount Fuji source snapshot",
+      "url": "https://photon.komoot.io/api/?q=Mount+Fuji+Japan&limit=5&lang=en",
+      "sha256": "422b622243782018680ab0c8fd0ac7a0c904c37d2bdf9c39128d274be9a9d62c",
+      "license": "OpenStreetMap ODbL",
+      "sourceId": "https://www.openstreetmap.org/node/714354378"
+    }
+  ],
+  "count": 9901,
+  "note": "Historical source points and generalized bounds, not surveyed addresses. Context radii and camera framing are interpretive."
+}

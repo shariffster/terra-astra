@@ -55,9 +55,9 @@ assert.equal(planLiveNavigation('Show satellite Sentinel-2A.'), null, 'A named s
 assert.equal(planLiveNavigation('Rephrase the description of Singapore.'), null);
 assert.equal(planLiveNavigation('Showcase satellites.'), null, 'Navigation verbs use word boundaries');
 assert.equal(planLiveNavigation('Findings about Singapore are unrelated.'), null, 'Substrings do not become navigation commands');
-assert.equal(planLiveNavigation('Take me to Tokyo.'), null);
-assert.equal(planLiveNavigation('Show Paris city.'), null);
-assert.equal(planLiveNavigation('Show street level in Tokyo.'), null);
+assert.deepEqual(planLiveNavigation('Take me to Tokyo.').commands,[{type:'flyToPlace',query:'Tokyo'}]);
+assert.equal(planLiveNavigation('Show Paris city.').commands[0].type,'flyToPlace');
+assert.deepEqual(planLiveNavigation('Show street level in Tokyo.').commands,[{type:'flyToPlace',query:'Tokyo'},{type:'setScale',tier:'street'}]);
 assert.deepEqual(planLiveNavigation('Zoom to city level.').commands, [{ type: 'setScale', tier: 'city' }]);
 assert.deepEqual(planLiveNavigation('Hide satellites.').commands, [{ type: 'focusLayer', layer: 'satellites', enabled: false }]);
 assert.deepEqual(planLiveNavigation('Take me to Singapore and hide urban activity.').commands, [

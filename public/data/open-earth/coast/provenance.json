@@ -1,0 +1,18 @@
+{
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/789c9904087846cc3361302857aa2e76b0ae71ff/geojson/ne_10m_coastline.geojson",
+      "sha256": "6f75ae0e0de157b14946e2255eb1f5486d9a13819032e26d4610852d296788f6"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/789c9904087846cc3361302857aa2e76b0ae71ff/geojson/ne_10m_lakes.geojson",
+      "sha256": "2d036f53dedec578001c5c30c2959ee7d4eebc1306900fa4367c49929ec8f2d9"
+    }
+  ],
+  "license": "Natural Earth public domain",
+  "prepared": "2026-09-14",
+  "segments": 169742,
+  "tileDegrees": 20,
+  "simplificationDegrees": 0.012,
+  "note": "Generalized ocean and inland-lake shorelines; not local navigation data."
+}

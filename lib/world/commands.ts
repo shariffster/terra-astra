@@ -1,17 +1,19 @@
 import { SPECIAL_TARGETS } from './special-destinations';
+import type { OpenWorldContext, PlaceResolution, ResolvedWorldTarget } from './open-types';
 /** Serializable boundary for YC's Live navigator. Rendering stays inside the engine. */
 export type ScaleTier = 'planet' | 'region' | 'city' | 'street';
 export type WorldLayer = 'satellites' | 'aircraft' | 'ships' | 'urban';
 export type WorldCommand =
   | { type: 'flyTo'; targetId: string }
+  | { type: 'flyToPlace'; query: string; choice?: string }
   | { type: 'setScale'; tier: ScaleTier }
   | { type: 'focusLayer'; layer: WorldLayer; enabled?: boolean }
   | { type: 'highlightTarget'; targetId: string }
   | { type: 'resetView' };
 export type GenesisPhase = 'core' | 'compression' | 'ignition' | 'ejection' | 'capture' | 'settlement' | 'complete';
 export type GenesisState = Readonly<{ phase: GenesisPhase; progress: number; busy: boolean }>;
-export type WorldState = Readonly<{ targetId: string | null; tier: ScaleTier; busy: boolean; genesis: GenesisState; layers: Readonly<Record<WorldLayer, boolean>> }>;
-export type WorldCommandResult = Readonly<{ ok: boolean; command: WorldCommand; reason?: string }>;
+export type WorldState = Readonly<{ targetId: string | null; tier: ScaleTier; busy: boolean; genesis: GenesisState; layers: Readonly<Record<WorldLayer, boolean>>; resolvedTarget?:ResolvedWorldTarget; open?:OpenWorldContext; resolving?:boolean }>;
+export type WorldCommandResult = Readonly<{ ok: boolean; command: WorldCommand; reason?: string; resolution?:PlaceResolution }>;
 export type WorldTarget = Readonly<{ id: string; label: string; lat: number; lon: number; tier: ScaleTier; detail: string }>;
 export const WORLD_TARGETS: readonly WorldTarget[] = Object.freeze(([
   { id: 'singapore', label: 'Singapore', lat: 1.2965, lon: 103.851, tier: 'city', detail: 'Detailed central Singapore streets; procedural activity.' },
@@ -22,6 +24,7 @@ export const WORLD_TARGETS: readonly WorldTarget[] = Object.freeze(([
 export function validateWorldCommand(input: unknown): WorldCommand | null {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
   const c=input as Record<string,unknown>;
+  if(c.type==='flyToPlace')return typeof c.query==='string'&&c.query.trim().length>=1&&c.query.length<=120&&(c.choice===undefined||typeof c.choice==='string'&&c.choice.length<=100)?{type:'flyToPlace',query:c.query.trim(),...(typeof c.choice==='string'?{choice:c.choice}:{})}:null;
   if(c.type==='flyTo'||c.type==='highlightTarget') return typeof c.targetId==='string'&&WORLD_TARGETS.some(t=>t.id===c.targetId)?{type:c.type,targetId:c.targetId}:null;
   if(c.type==='resetView')return {type:'resetView'};
   if(c.type==='setScale'&&['planet','region','city','street'].includes(c.tier as string))return {type:'setScale',tier:c.tier as ScaleTier};

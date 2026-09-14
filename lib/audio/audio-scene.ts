@@ -66,7 +66,8 @@ export function directAudio(world: AudioWorldState, reducedMotion: boolean): Aud
   const local = 1 - ramp(Math.log(Math.max(.0001, world.altitude)), Math.log(.004), Math.log(.18));
   const street = 1 - ramp(world.altitude, .00065, .0023);
   const near = 1 - ramp(world.altitude, .18, 1.8);
-  const profile = destinationProfile(world.world.targetId);
+  const generic=world.world.open;
+  const profile = destinationProfile(world.world.targetId) ?? (generic?{grainRate:.22*generic.urban,grainHz:300,warmth:.3,ocean:generic.ocean,width:.5,circulation:0,pressure:0}:null);
   const deep = (profile?.pressure ?? 0) * (1 - ramp(world.altitude, .32, 1.8));
   const terra = 1 - ease(world.opening);
   const a = world.activity;

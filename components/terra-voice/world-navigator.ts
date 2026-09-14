@@ -2,6 +2,7 @@
 
 import { sendWorldCommand } from '../../lib/world/bridge';
 import type { WorldCommand, WorldCommandResult, WorldLayer, ScaleTier } from '../../lib/world/commands';
+import type { PlaceResolution } from '../../lib/world/open-types';
 
 export type LiveNavigationPlan = Readonly<{
   commands: WorldCommand[];
@@ -13,6 +14,7 @@ export type LiveNavigationExecution = Readonly<{
   ok: boolean;
   reason?: string;
   commandsAccepted: number;
+  resolution?: PlaceResolution;
 }>;
 
 type NavigationSender = (command: WorldCommand) => Promise<WorldCommandResult>;
@@ -84,6 +86,9 @@ export function planLiveNavigation(question: string): LiveNavigationPlan | null 
   const text = normalized(question);
   if (!text) return null;
 
+  const around=question.trim().match(/^what(?:'s|’s| is) around (.+?)[?.!]*$/i);
+  if(around)return {commands:[{type:'flyToPlace',query:around[1].trim()}],acknowledgement:'Finding the regional view.',context:''};
+
   // Answers, comparisons and particular-object tracking need the model/backend.
   // A visual phrase inside such a request is supporting context, not a complete plan.
   if (EXPLANATION_PATTERN.test(text) || TRACKING_ACTION_PATTERN.test(text) || NAMED_TRACKING_OBJECT_PATTERN.test(text)) return null;
@@ -138,6 +143,14 @@ export function planLiveNavigation(question: string): LiveNavigationPlan | null 
     return { commands: [{ type: 'setScale', tier: scale }], acknowledgement: scale === 'planet' ? 'Pulling back.' : `Moving to ${scale} scale.`, context: 'The current target is retained when that scale is supported.' };
   }
 
+  const placeScale=question.trim().match(/^(?:show|view|take me to) (?:the )?(street|city|regional?)(?: level| scale| view)? (?:in|around|of) (.+?)[?.!]*$/i);
+  if(placeScale)return {commands:[{type:'flyToPlace',query:placeScale[2].trim()},{type:'setScale',tier:placeScale[1].startsWith('region')?'region':placeScale[1].toLowerCase() as ScaleTier}],acknowledgement:'Finding the place.',context:''};
+
+  // Pass the original Unicode name through the deterministic resolver. The AI
+  // layer cannot supply latitude, longitude or an invented destination ID.
+  const openPlace=question.trim().match(/^(?:take me to|show me|show|fly(?: me)? to|go to|visit|find|locate|bring me to|where is|what(?:'s|’s| is) around)\s+(.+?)[?.!]*$/i);
+  if(openPlace&&!layer&&!/\b(?:cutaway|perspective|diagram|image|model|picture|photo|drawing|chart)\b/i.test(openPlace[1]))return {commands:[{type:'flyToPlace',query:openPlace[1].trim()}],acknowledgement:'Finding the place.',context:''};
+
   return null;
 }
 
@@ -148,6 +161,7 @@ export async function executeLiveNavigation(
 ): Promise<LiveNavigationExecution> {
   const sender = options.send ?? sendWorldCommand;
   let commandsAccepted = 0;
+  let resolution:PlaceResolution|undefined;
   for (let index = 0; index < plan.commands.length; index += 1) {
     if (options.signal.aborted) return { ok: false, reason: 'Navigation was cancelled.', commandsAccepted };
     const command = plan.commands[index];
@@ -158,9 +172,10 @@ export async function executeLiveNavigation(
     } catch (error) {
       return { ok: false, reason: error instanceof Error ? error.message : 'The visual command failed.', commandsAccepted };
     }
-    if (!result.ok) return { ok: false, reason: result.reason ?? 'The world rejected that visual command.', commandsAccepted };
+    if(result.resolution)resolution=result.resolution;
+    if (!result.ok) return { ok: false, reason: result.reason ?? 'The world rejected that visual command.', commandsAccepted, ...(resolution?{resolution}:{}) };
     commandsAccepted += 1;
     if (options.signal.aborted) return { ok: false, reason: 'Navigation was cancelled.', commandsAccepted };
   }
-  return { ok: true, commandsAccepted };
+  return { ok: true, commandsAccepted, ...(resolution?{resolution}:{}) };
 }
