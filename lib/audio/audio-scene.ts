@@ -22,6 +22,7 @@ export type AudioScene = {
   seconds: number;
   harmonicPresence: number;
   harmonicIntroduction: boolean;
+  harmonicDetail: number;
 };
 const ramp = (n: number, start: number, end: number) => ease((n - start) / (end - start));
 
@@ -39,6 +40,7 @@ export function directAudio(world: AudioWorldState, reducedMotion: boolean): Aud
     swell: motion ? .12 + .88 * (Math.sin(world.seconds * .073 + .4) * .5 + .5) ** 3 : .3,
     motion, genesis, drift: 0, seconds: world.seconds, harmonicPresence: 0,
     harmonicIntroduction: genesis || world.awakening.elapsed < 18,
+    harmonicDetail: .55,
   };
   if (!world.available) return scene;
   if (genesis) {
@@ -88,6 +90,7 @@ export function directAudio(world: AudioWorldState, reducedMotion: boolean): Aud
   // Makkah retains only its existing movement interpretation at local scale.
   scene.buses.harmonic = ramp(t, AWAKENING.breath, 18) * (.62 + local * .10) * (1 - deep * .80) * (1 - (profile?.circulation ?? 0) * local) * (1 - ease(world.opening) * .18);
   scene.harmonicPresence = ((scene.harmonicIntroduction ? .50 : .80) + local * (scene.harmonicIntroduction ? .42 : .20) * a.urban) * (1 - deep * .90);
+  scene.harmonicDetail = (.55 + local * .35 * a.urban + ease(world.opening) * .15) * (1 - deep * .7);
   scene.rates.orbit = .22 * awake('satellites') * a.satellites * (1 - local) * (1 - deep);
   scene.rates.atmosphere = .12 * awake('aircraft') * a.aircraft * (1 - local) * (1 - deep);
   scene.rates.ocean = .10 * awake('ships') * a.ships * (1 - deep * .94);

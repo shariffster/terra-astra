@@ -2,7 +2,12 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
-## v0.10.3-rc.4 — 2026-09-14 — Sonic Earth (phrased listening candidate)
+## v0.10.3-rc.5 — 2026-09-14 — Sonic Earth (evolving listening candidate)
+- The owner found RC4 okay initially, but repetitive after a few loops. The fixed continuation is replaced by deterministic phrase generation: three to six notes, changing order, unequal spacing, varied lengths, related voicings, register, colour and width.
+- Each 26-second phrase opportunity develops differently and leaves at least six seconds for release. Activity and camera approach reveal optional notes; no additional source or timer is created. The opening retains its earlier figure and sustained tones still leave after awakening.
+- RC4 remains preserved at source `e8373efb00e2ec615ad4424c63e1ff0f671e84a2`, saved Lab version 6, without deployment or tag. RC5 is an unaccepted listening candidate.
+
+## v0.10.3-rc.4 — 2026-09-14 — Sonic Earth (superseded phrased candidate)
 - Owner assessment of RC3: the opening was okay, but the continuation became too droning. The opening is retained; the two sustained harmonic tones now fade away over 3.2 seconds after awakening completes.
 - The following figure uses shorter envelopes and a twenty-second cycle with approximately seven seconds free of new harmonic notes. Dampened reflection tails decay through the pause. Individual phrases gain clarity without raising master volume or noise.
 - RC3 is preserved at source `e8a7cdec4dcc46384e21ed9054f5b60377376eff` and saved Lab version 5, never deployed or tagged. RC4 remains an unaccepted listening candidate.

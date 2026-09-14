@@ -1,7 +1,7 @@
 import { AUDIO_LIMITS, BUS_NAMES, type BusName } from './world-state';
 import { seededRandom, type EventKind } from './seeded-scheduler';
 import type { AudioScene } from './audio-scene';
-import { harmonicWeave, WEAVE_FREQUENCIES } from './harmonic-weave';
+import { harmonicFrame, WEAVE_FREQUENCIES } from './harmonic-weave';
 
 type Ramp = { from: number; to: number; start: number; end: number };
 const ramps = new WeakMap<AudioParam, Ramp>();
@@ -46,6 +46,7 @@ export class WorldAudioGraph {
   private readonly pressure: Texture;
   private readonly weave: Texture[];
   private readonly harmonicRoom: GainNode;
+  private readonly harmonicColour: BiquadFilterNode;
   private disposed = false;
   peakVoices = 0;
   eventCount = 0;
@@ -73,7 +74,9 @@ export class WorldAudioGraph {
       const gain = own(context.createGain()); gain.gain.value = 0; gain.connect(highpass); return [name, gain];
     })) as Record<BusName, GainNode>;
     this.harmonicRoom = own(context.createGain());
-    this.harmonicRoom.connect(this.buses.harmonic);
+    this.harmonicColour = own(context.createBiquadFilter());
+    this.harmonicColour.type = 'lowpass'; this.harmonicColour.frequency.value = 3200; this.harmonicColour.Q.value = .5;
+    this.harmonicRoom.connect(this.harmonicColour).connect(this.buses.harmonic);
     // Two quiet damped reflections give the sustained figure depth. The bus
     // follows the room, so settlement and voice ducking clear the whole field.
     for (const [seconds, position] of [[.413, -.65], [.619, .65]]) {
@@ -82,7 +85,7 @@ export class WorldAudioGraph {
       const feedback = own(context.createGain()); feedback.gain.value = .22;
       const wet = own(context.createGain()); wet.gain.value = .22;
       const pan = own(context.createStereoPanner()); pan.pan.value = position;
-      this.harmonicRoom.connect(delay).connect(filter);
+      this.harmonicColour.connect(delay).connect(filter);
       filter.connect(feedback).connect(delay); filter.connect(wet).connect(pan).connect(this.buses.harmonic);
     }
     this.noise = context.createBuffer(1, Math.round(context.sampleRate * 8), context.sampleRate);
@@ -158,10 +161,13 @@ export class WorldAudioGraph {
       smoothParam(partial.pan.pan, scene.motion ? Math.cos(phase) * scene.width : 0, now, .8);
     });
     smoothParam(this.pressure.gain.gain, scene.pressure * .065, now, .9);
-    const weave = harmonicWeave(scene.seconds, scene.harmonicPresence, scene.motion, scene.harmonicIntroduction);
+    const weave = harmonicFrame(scene.seconds, scene.harmonicPresence, scene.motion, scene.harmonicIntroduction, scene.harmonicDetail);
+    smoothParam(this.harmonicColour.frequency, scene.harmonicIntroduction ? 8500 : weave.colour * (.8 + scene.harmonicDetail * .2), now, 2);
     this.weave.forEach((tone, i) => {
-      smoothParam(tone.gain.gain, weave[i], now, i < 2 && !scene.harmonicIntroduction ? 3.2 : .18);
-      smoothParam(tone.pan.pan, (i % 2 ? 1 : -1) * scene.width * (.12 + i * .065), now, .8);
+      // Voicing changes at phrase boundaries, after a guaranteed quiet tail.
+      smoothParam((tone.source as OscillatorNode).frequency, weave.frequencies[i], now, .4);
+      smoothParam(tone.gain.gain, weave.levels[i], now, i < 2 && !scene.harmonicIntroduction ? 3.2 : .18);
+      smoothParam(tone.pan.pan, (i % 2 ? 1 : -1) * scene.width * (.12 + i * .065) * weave.spread, now, .8);
     });
     this.prune(now);
   }

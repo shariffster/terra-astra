@@ -14,7 +14,7 @@ const { VoiceActivity } = await import('../lib/audio/audio-engine.ts');
 const { WorldAudioGraph } = await import('../lib/audio/synthesis.ts');
 const { AudioDirector } = await import('../lib/audio/audio-director.ts');
 const { genesisState } = await import('../lib/terra/genesis.ts');
-const { harmonicWeave } = await import('../lib/audio/harmonic-weave.ts');
+const { harmonicWeave, planHarmonicPhrase, PHRASE_SECONDS } = await import('../lib/audio/harmonic-weave.ts');
 
 function world(patch = {}) {
   return { world: { targetId: null, tier: 'planet', busy: false, genesis: genesisState(1), layers: { satellites: true, aircraft: true, ships: true, urban: true } },
@@ -82,7 +82,16 @@ test('harmonic figure has no seam jump, stays bounded for long sessions and rest
   assert.deepEqual(maximum.slice(0,2),[0,0]);
   assert.ok(maximum.slice(2).every(level=>level>.04));
   assert.ok(harmonicWeave(20,1,true,true)[0]>.20,'Opening retains its original warmth');
-  for (let seconds=13.3;seconds<20;seconds+=.1) assert.ok(harmonicWeave(seconds,1,true).every(level=>level===0),'Every settled phrase has a real rest');
+  const phrases=Array.from({length:60},(_,i)=>planHarmonicPhrase(i));
+  assert.equal(new Set(phrases.map(p=>JSON.stringify(p))).size,60,'Phrases do not repeat their note order, timing and voicing');
+  assert.ok(new Set(phrases.map(p=>p.notes.map(n=>n.voice).join('-'))).size>30,'Variation changes the actual note sequence, not just its gain');
+  assert.ok(new Set(phrases.map(p=>p.frequencies.join(','))).size>=5,'Long sessions develop related voicings');
+  assert.deepEqual(planHarmonicPhrase(8),planHarmonicPhrase(8),'The same world time stays deterministic');
+  for(let i=0;i<phrases.length;i++) {
+    const end=Math.max(...phrases[i].notes.map(n=>n.at+n.duration));
+    assert.ok(end<PHRASE_SECONDS-6,'Each phrase leaves at least six seconds for a rest');
+    for(let seconds=end+.1;seconds<PHRASE_SECONDS;seconds+=.1) assert.ok(harmonicWeave(i*PHRASE_SECONDS+seconds,1,true).every(level=>level===0));
+  }
   assert.deepEqual(harmonicWeave(0,1,false),harmonicWeave(800,1,false));
 });
 test('reduced motion removes pan drift and reduces events; graphics loss silences every bus', () => {
