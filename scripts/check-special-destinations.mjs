@@ -20,7 +20,7 @@ class Canvas {
   addEventListener(type,callback) {if(type==='webglcontextlost')graphicsLostCallback=callback;} removeEventListener() {} setAttribute() {} remove() {}
 }
 globalThis.document = { hidden: false, createElement: () => new Canvas(), createElementNS: () => new Canvas(), addEventListener: noop, removeEventListener: noop };
-globalThis.window = { devicePixelRatio: 1, innerWidth: 1363 };
+globalThis.window = { addEventListener:()=>{},removeEventListener:()=>{}, devicePixelRatio: 1, innerWidth: 1363 };
 globalThis.matchMedia = () => ({ matches: false });
 globalThis.ResizeObserver = class { constructor(callback) { resizeCallback = callback; } observe() {} disconnect() {} };
 globalThis.Path2D = class { moveTo() {} lineTo() {} };

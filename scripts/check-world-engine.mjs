@@ -17,14 +17,14 @@ registerHooks({ resolve(specifier, context, next) {
 let clock = 0, frame = null, resizeCallback = null;
 const noop = () => {};
 const ctx = new Proxy({ createRadialGradient: () => ({ addColorStop: noop }) }, { get: (o, key) => o[key] ?? noop, set: (o, key, value) => { o[key] = value; return true; } });
-let graphicsLostCallback=null,keyCallback=null;
+let graphicsLostCallback=null,keyCallback=null,keyUpCallback=null;
 class Canvas {
   style = {}; width = 1; height = 1;
   getContext(type) { return type === '2d' ? ctx : null; }
   addEventListener(type,callback) {if(type==='webglcontextlost')graphicsLostCallback=callback;if(type==='keydown')keyCallback=callback;} removeEventListener() {} setAttribute() {} remove() {}
 }
 globalThis.document = { hidden: false, createElement: () => new Canvas(), createElementNS: () => new Canvas(), addEventListener: noop, removeEventListener: noop };
-globalThis.window = { devicePixelRatio: 1, innerWidth: 1363 };
+globalThis.window = { devicePixelRatio: 1, innerWidth: 1363, addEventListener(type,fn){if(type==='keyup')keyUpCallback=fn;},removeEventListener:noop };
 globalThis.matchMedia = () => ({ matches: false });
 globalThis.ResizeObserver = class { constructor(callback) { resizeCallback = callback; } observe() {} disconnect() {} };
 globalThis.Path2D = class { moveTo() {} lineTo() {} };
@@ -59,7 +59,7 @@ const acoustic=engine.audioState();
 assert.deepEqual([acoustic.activity.satellites,acoustic.activity.aircraft,acoustic.activity.ships,acoustic.activity.network],[1,1,1,1]);
 assert.deepEqual(acoustic.world,engine.worldState());
 assert.equal(acoustic.seconds,engine.audioState().seconds,'Reading sound never advances the renderer clock');
-const network=objects().find(o=>o.userData.network);
+const network=objects().find(o=>o.userData.seaBackbone);
 const {livingExposure}=await import('../lib/terra/living-material.ts');
 for(const visibility of [0,.25,.5,1]){
  network.material.uniforms.opacity.value=1.45*livingExposure(acoustic.altitude).cables*visibility;
@@ -79,7 +79,17 @@ engine.configure({...baseOptions,motion:true});tick(1000);assert.notDeepEqual(sh
 async function complete(cmd){let done=false,result;const pending=engine.command(cmd).then(v=>{done=true;result=v;});for(let i=0;i<150&&!done;i++){await new Promise(resolve=>setImmediate(resolve));tick(100);}assert.ok(done,'Command resolves within bounded lifecycle');await pending;return result;}
 assert.equal((await complete({type:'focusLayer',layer:'satellites',enabled:false})).ok,true);tick();assert.equal(shells().find(o=>o.userData.shell==='satellites').visible,false);
 assert.equal((await complete({type:'focusLayer',layer:'satellites',enabled:true})).ok,true);tick();assert.equal(shells().find(o=>o.userData.shell==='satellites').visible,true);
-const keyTarget={matches:()=>false,isContentEditable:false,closest:()=>null};const press=(key,extra={})=>{let prevented=false;keyCallback({key,target:keyTarget,preventDefault(){prevented=true;},...extra});return prevented;};const keyboardPose=rendered.camera.position.clone();assert.equal(press('q'),true);tick();assert.ok(rendered.camera.position.distanceTo(keyboardPose)>.01,'Focused canvas Q orbits');const afterOrbit=rendered.camera.position.clone();assert.equal(press('w',{target:{matches:()=>true}}),false);tick();assert.deepEqual(rendered.camera.position.toArray(),afterOrbit.toArray(),'Typing target ignored');assert.equal(press('w',{ctrlKey:true}),false);tick();assert.deepEqual(rendered.camera.position.toArray(),afterOrbit.toArray(),'Browser modifier shortcut ignored');const oldRadius=rendered.camera.position.length();press('r');tick();assert.ok(rendered.camera.position.length()<oldRadius,'R zooms inward');press('t');tick();assert.equal(views.at(-1),'oblique','T tilts through existing camera');press('g');tick();assert.equal(views.at(-1),'globe');
+const keyTarget={matches:()=>false,isContentEditable:false,closest:()=>null};const press=(key,extra={})=>{let prevented=false;keyCallback({key,target:keyTarget,preventDefault(){prevented=true;},...extra});return prevented;};const releaseKey=key=>keyUpCallback({key});const keyboardPose=rendered.camera.position.clone();assert.equal(press('q'),true);tick();releaseKey('q');assert.ok(rendered.camera.position.distanceTo(keyboardPose)>.01,'Focused canvas Q orbits');const afterOrbit=rendered.camera.position.clone();assert.equal(press('w',{target:{matches:()=>true}}),false);tick();assert.deepEqual(rendered.camera.position.toArray(),afterOrbit.toArray(),'Typing target ignored');assert.equal(press('w',{ctrlKey:true}),false);tick();assert.deepEqual(rendered.camera.position.toArray(),afterOrbit.toArray(),'Browser modifier shortcut ignored');const oldRadius=rendered.camera.position.length();press('r');tick();releaseKey('r');assert.ok(rendered.camera.position.length()<oldRadius,'R zooms inward');press('t');tick();releaseKey('t');assert.equal(views.at(-1),'oblique','T tilts through existing camera');press('g');tick();releaseKey('g');assert.equal(views.at(-1),'globe');
+// A fixed renderer clock proves diagonal speed independently of browser timing.
+const heldLengths=[];
+for(const keys of ['w','wa','wd','sa','sd']){
+ await complete({type:'resetView'});const start=engine.audioState();
+ for(const key of keys)press(key);
+ for(let frame=0;frame<10;frame++)tick(20);
+ for(const key of keys)releaseKey(key);tick(20);
+ const end=engine.audioState();heldLengths.push(Math.hypot(end.longitude-start.longitude,end.latitude-start.latitude));
+}
+for(const length of heldLengths)assert.ok(Math.abs(length-heldLengths[0])<1e-10,'Simultaneous diagonals have exactly the axial displacement at fixed elapsed time');
 // Direct entry may complete its zero-motion flight before async detail arrives.
 // Subscribers must receive the later ready state so scale buttons unlock.
 const directEntry=engine.descend();tick(100);await directEntry;tick();

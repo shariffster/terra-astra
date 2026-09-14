@@ -20,3 +20,7 @@ The user wants visible version tracking and preserved iterations.
 ## v0.10.8 integration authority (14 September 2026)
 
 The current user objective supersedes the earlier Run D-only branch boundary in this isolated checkout. Work only on `people-choice/integration-v0.10.8`, based on accepted v0.10.7, integrating exact accepted v0.10.4 Sonic Earth. No new feature work or retuning. Preserve both accepted branches/tags, v0.10.2, canonical and archive. Only the existing Lab may receive an integrated saved version and deployment after both systems survive validation.
+
+## Run F authority (14 September 2026)
+
+The explicit Run F user brief supersedes those historical branch boundaries here. Work only on `people-choice/run-f-ocean-volume-flow-network`, rooted at exact integrated v0.10.8 `e8dac0cfda17422ea570bb9581c49384d9f9069f`. Canonical is now live at v0.10.8 and is frozen. Only the existing v0.10 Lab may receive Run F after QA. Do not modify, merge, deploy or depend on the parallel Celestial Maker’s Mark work. Preserve Sonic Earth and unrelated systems. Upload final evidence to the existing Run F Drive folder, then stop; no automatic Run G.

@@ -22,7 +22,10 @@ export function marinePath(id: string, label: string, locations: readonly LatLon
     const dot = Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
     const arc = Math.acos(dot), denominator = Math.sin(arc);
     if (denominator < 1e-6) throw new Error(`Invalid marine segment: ${id}`);
-    segments.push(Object.freeze({ basisA: a, basisB: xyz((b[0] - a[0] * dot) / denominator, (b[1] - a[1] * dot) / denominator, (b[2] - a[2] * dot) / denominator), arc, start: totalArc, end: totalArc + arc }));
+    // Cross products avoid cancellation on the short authored strait legs.
+    const nx=a[1]*b[2]-a[2]*b[1],ny=a[2]*b[0]-a[0]*b[2],nz=a[0]*b[1]-a[1]*b[0];
+    const length=Math.hypot(nx,ny,nz);
+    segments.push(Object.freeze({ basisA: a, basisB: xyz((ny*a[2]-nz*a[1])/length,(nz*a[0]-nx*a[2])/length,(nx*a[1]-ny*a[0])/length), arc, start: totalArc, end: totalArc + arc }));
     totalArc += arc;
   }
   return Object.freeze({ id, label: `${label} · illustrated`, provenance: 'procedural', radius, periodSeconds: 200 + index % 10 * 13, phase: (index * .381966 + .14) % 1, waypoints, segments: Object.freeze(segments), totalArc });

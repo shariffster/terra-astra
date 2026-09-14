@@ -23,7 +23,7 @@ class Canvas {
   addEventListener() {} removeEventListener() {} setAttribute() {} remove() {}
 }
 globalThis.document = { hidden: false, createElement: () => new Canvas(), createElementNS: () => new Canvas(), addEventListener: noop, removeEventListener: noop };
-globalThis.window = { devicePixelRatio: 1, innerWidth: 1363 };
+globalThis.window = { addEventListener:()=>{},removeEventListener:()=>{}, devicePixelRatio: 1, innerWidth: 1363 };
 globalThis.matchMedia = () => ({ matches: false });
 globalThis.ResizeObserver = class { constructor(callback) { resizeCallback = callback; } observe() {} disconnect() {} };
 globalThis.Path2D = class { moveTo() {} lineTo() {} };
@@ -57,8 +57,9 @@ for(let id=1;id<=3000;id++){
 }
 assert.equal(GENESIS_DURATION,10800);assert.equal(genesisState(0).phase,'core');assert.equal(genesisState(1).busy,false);assert.ok(genesisLight(.344).flash>.99);assert.equal(genesisLight(1).exposure,1);
 assert.equal(engine.worldState().genesis.phase,'core');tick();
-const clouds=[];rendered.scene.traverse(o=>{if(o instanceof THREE.Points&&o.userData.spatial)clouds.push({object:o,positions:o.geometry.getAttribute('position').array.slice()});});
+const clouds=[];rendered.scene.traverse(o=>{if(o instanceof THREE.Points&&o.userData.spatial&&!o.userData.network&&!o.userData.oceanVolume)clouds.push({object:o,positions:o.geometry.getAttribute('position').array.slice()});});
 assert.equal(rendered.scene.userData.coreRadius,0,'Opaque globe suppressed through genesis');
+rendered.scene.traverse(o=>{if(o.userData.network||o.userData.oceanVolume)assert.equal(o.material.uniforms.opacity.value,0,'Ocean additions stay hidden during Genesis');});
 const initialIds=new Set();for(const c of clouds){const ids=c.object.geometry.getAttribute('particleId');for(let i=0;i<ids.count;i++){assert.ok(!initialIds.has(ids.getX(i)));initialIds.add(ids.getX(i));}}
 assert.ok(initialIds.size>300000,'Existing geographic clouds participate with unique stable IDs');
 host.clientWidth=390;host.clientHeight=844;resizeCallback();

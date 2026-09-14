@@ -24,7 +24,7 @@ class Canvas {
   addEventListener(type,callback) {if(type==='webglcontextlost')graphicsLostCallback=callback;if(type==='keydown')keyCallback=callback;} removeEventListener() {} setAttribute() {} remove() {}
 }
 globalThis.document = { hidden: false, createElement: () => new Canvas(), createElementNS: () => new Canvas(), addEventListener: (type,callback)=>{if(type==='visibilitychange')visibilityCallback=callback;}, removeEventListener: noop };
-globalThis.window = { devicePixelRatio: 1, innerWidth: 1363 };
+globalThis.window = { addEventListener:()=>{},removeEventListener:()=>{}, devicePixelRatio: 1, innerWidth: 1363 };
 globalThis.matchMedia = () => ({ matches: false });
 globalThis.ResizeObserver = class { constructor(callback) { resizeCallback = callback; } observe() {} disconnect() {} };
 globalThis.Path2D = class { moveTo() {} lineTo() {} };
@@ -76,7 +76,7 @@ tick(1000);assert.ok(stats()[0]>0&&stats()[0]<84);assert.deepEqual(stats().slice
 const partial=shells().find(o=>o.userData.shell==='satellites');assert.ok(Array.from(partial.geometry.getAttribute('brightness').array).some(b=>b>0&&b<.1),'Individual light/trail fade');
 tick(3000);assert.deepEqual(stats(),[84,82,0,0]);assert.ok(stats()[0]>first);
 tick(2500);assert.ok(stats()[1]===200&&stats()[2]>0&&stats()[2]<176&&stats()[3]===0);
-tick(2000);assert.ok(stats()[3]>0&&stats()[3]<56);tick(2000);assert.deepEqual(stats(),[84,200,176,56]);tick(3000);assert.equal(host.dataset.cablesFull,'56');tick(2000);assert.equal(host.dataset.awakening,'complete');assert.equal(host.dataset.awakeningSeconds,'18.000');assert.equal(sea.material.uniforms.seaMotion.value,1);
+tick(2000);assert.ok(stats()[3]>0&&stats()[3]<116);tick(2000);assert.deepEqual(stats(),[84,200,176,116]);tick(3000);assert.equal(host.dataset.cablesFull,'116');tick(2000);assert.equal(host.dataset.awakening,'complete');assert.equal(host.dataset.awakeningSeconds,'18.000');assert.equal(sea.material.uniforms.seaMotion.value,1);
 for(const shell of shells()){assert.equal(shell.geometry.drawRange.count,shell.geometry.getAttribute('position').count);const b=shell.geometry.getAttribute('brightness');for(let i=0;i<b.count;i+=9)assert.ok(Math.abs(b.getX(i)-({satellites:1.65,aircraft:1.75,ships:1.95}[shell.userData.shell]))<1e-6,'Family-specific head exposure');}
 assert.ok(AWAKENING.idleDegreesPerSecond/.65>=1.25&&AWAKENING.idleDegreesPerSecond/.65<=1.35);
 engine.replayGenesis();assert.equal(discoveries.at(-1),false);assert.ok(shells().every(o=>o.geometry.drawRange.count===0),'Replay clears shells synchronously');tick(10800);assert.equal(host.dataset.awakeningSeconds,'0.000');tick(2000);assert.deepEqual(stats(),[0,0,0,0]);
@@ -84,7 +84,7 @@ engine.replayGenesis();assert.equal(discoveries.at(-1),false);assert.ok(shells()
 document.hidden=true;visibilityCallback();assert.equal(frame,null);clock+=60000;document.hidden=false;visibilityCallback();tick(100);assert.equal(host.dataset.awakeningSeconds,'2.100');
 // Pointer-driven rotation remains responsive without resolving the sequence.
 const pose=rendered.camera.position.clone();engine.rotate(15,3);tick(100);assert.ok(rendered.camera.position.distanceTo(pose)>.01);assert.deepEqual(stats(),[0,0,0,0]);
-engine.configure({...opts,motion:false});tick();assert.equal(host.dataset.awakening,'complete');assert.deepEqual(stats(),[84,200,176,56]);for(const o of shells()){const b=o.geometry.getAttribute('brightness');for(let i=0;i<b.count;i++)if(i%9)assert.equal(b.getX(i),0);}
+engine.configure({...opts,motion:false});tick();assert.equal(host.dataset.awakening,'complete');assert.deepEqual(stats(),[84,200,176,116]);for(const o of shells()){const b=o.geometry.getAttribute('brightness');for(let i=0;i<b.count;i++)if(i%9)assert.equal(b.getX(i),0);}
 tick();tick();const paused=renders;tick(1000);assert.equal(renders,paused,'Static state stops expensive rendering');
 engine.configure(opts);engine.replayGenesis();tick(10800);
 const early=engine.command({type:'flyTo',targetId:'challenger-deep'});for(let i=0;i<8;i++)await Promise.resolve();assert.equal(stages.at(-1),'ascending','Early destination immediately owns camera');assert.equal(Number(host.dataset.worldCommandQueueMs),0);tick(1200);assert.equal(host.dataset.awakening,'complete');tick(5600);await Promise.resolve();assert.equal((await early).ok,true);

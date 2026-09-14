@@ -2,6 +2,16 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.9 — Run F: Ocean volume, flow and network richness · 14 September 2026
+
+- Isolated from exact integrated v0.10.8 `e8dac0cfda17422ea570bb9581c49384d9f9069f`. Canonical stays frozen; the separate Celestial Maker’s Mark is neither merged nor used.
+- Add 9,600 bounded suspended water stars, eight interpretive currents with 1,536 points, and true bathymetry-relative depth. Quiet global exposure grows in Horizon/Cutaway and disappears before local city detail.
+- Grow 44 sea structures to 86 and 56 illustrated cables to 116, with route bundles, regional branches, 50 offshore convergence regions and unequal intensity. Keep 176 ships, their teal material and surface motion. Narrow Singapore/Dover passages and surface Suez/Panama connections are explicitly schematic.
+- Add 14 seeded cable-journey slots with gaps and soft arrival; one-hour sampling observes 9–14 active journeys and reaches all 116 paths. Network remains lilac and below the sea, using existing floor displacement and depth testing.
+- Sample slow lane/water animation at at most 30 Hz on the existing clock; no new scheduler, per-route draw calls or data provider. Add three batched clouds. Preserve pause, reduced motion, awakening and cleanup.
+- Implement frame-integrated held navigation, exact normalized WASD diagonals, window keyup and clear-on-blur/visibility/replay/disposal. Keep Q/E, R/F, T/G, 0–4 and arrows.
+- Preserve the Sonic Earth implementation, normalization, 84 satellites, 200 aircraft, terrain, Genesis, destinations and current release fixes. See `docs/PEOPLES-CHOICE-RUN-F.md`; native publication receipts remain separate from this source record.
+
 ## v0.10.8 — Sonic Earth + Living Planet · 14 September 2026
 
 - Integrate accepted Sonic Earth v0.10.4 (`737767d55bf63a7fbda606caaa138dc4d86c42f9`) into accepted Living Planet v0.10.7 (`1ba5dafe446924c9e65ca6781ec0b7f621536c74`) on a dedicated branch.

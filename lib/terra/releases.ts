@@ -1,7 +1,21 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.8';
+export const currentVersion = '0.10.9';
 
 export const releases = [
+  {
+    version: '0.10.9',
+    date: '2026-09-14',
+    dateLabel: '14 September 2026',
+    title: 'Ocean volume, flow and connected light',
+    milestone: 'Run F · People’s Choice Lab',
+    changes: [
+      'Sparse suspended stars and eight interpretive current structures give the ocean a quiet water column above its sculpted floor.',
+      '176 ships share 86 maritime structures, including regional branches, ocean bundles and schematic canal connections. 116 fine undersea paths gather around 50 offshore hub regions.',
+      'Quiet signal journeys travel along the network. Regional focus brings nearby connections forward while distant paths recede; global layers fade before city and street exploration.',
+      'Held WASD keys now move together with normalized diagonal speed. Releasing keys or leaving the canvas clears movement. The accepted Sonic Earth, 84 satellites, 200 aircraft and destination experiences remain.',
+    ],
+    review: 'Illustrative routes, hub regions and currents, not live tracking or actual cable alignments. Canonical remains frozen at v0.10.8. Physical mobile and authenticated Live listening remain owner QA; detailed evidence is in the Run F handoff.',
+  },
   {
     version: '0.10.8',
     date: '2026-09-14',

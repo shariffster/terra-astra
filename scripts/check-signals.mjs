@@ -9,6 +9,7 @@ registerHooks({ resolve(specifier, context, next) {
 } });
 const { worldSignals, satelliteSignals, aircraftSignals, shipSignals, sampleSignal } = await import('../lib/world/signals.ts');
 const { placeCatalogue } = await import('../lib/personal/catalogue.ts');
+const { schematicPassage, schematicCanal } = await import('../lib/world/ocean-geography.ts');
 const { sampleElevation } = await import('../lib/terra/spatial.ts');
 const gridBuffer = readFileSync(new URL('../public/data/relief-grid.bin', import.meta.url));
 const grid = new Int16Array(gridBuffer.buffer, gridBuffer.byteOffset, gridBuffer.byteLength / 2);
@@ -18,11 +19,11 @@ const snapshot = JSON.stringify(worldSignals);
 assert.equal(satelliteSignals.length, 84); assert.equal(aircraftSignals.length, 200); assert.equal(shipSignals.length, 176);
 assert.equal(new Set(worldSignals.map(s => s.id)).size, worldSignals.length);
 assert.equal(new Set(aircraftSignals.map(s => s.id.replace(/-light-\d+$/, ''))).size, 40);
-assert.equal(new Set(shipSignals.map(s => s.id.replace(/-light-\d+$/, ''))).size, 44);
+assert.equal(new Set(shipSignals.map(s => s.id.replace(/-light-\d+$/, ''))).size, 86);
 for (const signals of [aircraftSignals, shipSignals]) {
   for (const original of signals.filter(s => !/-light-\d+$/.test(s.id))) {
     const copies = signals.filter(s => s.id === original.id || s.id.startsWith(original.id + '-light-'));
-    assert.equal(copies.length, original.layer === 'aircraft' ? 5 : 4);
+    if(original.layer==='aircraft')assert.equal(copies.length,5);else assert.ok(copies.length>=1);
     assert.equal(new Set(copies.map(s => s.phase)).size, copies.length, 'Corridor lights have distinct phases.');
     assert.ok(copies.every(s => s.basisA === original.basisA && s.basisB === original.basisB), 'Copies reuse fixed corridor geometry.');
   }
@@ -55,7 +56,7 @@ for (const signal of worldSignals) {
     if (signal.layer === 'ships') {
       const lat = Math.asin(a[1] / signal.radius) * 180 / Math.PI;
       const lon = Math.atan2(a[0], a[2]) * 180 / Math.PI;
-      assert.ok(sampleElevation(grid, 1440, 720, lon, lat) < 0, `${signal.id} route must stay over water in the bundled ETOPO grid.`);
+      assert.ok(sampleElevation(grid, 1440, 720, lon, lat) < 0 || schematicPassage(lon,lat) || (signal.id.startsWith('canal-')&&schematicCanal(lon,lat)), `${signal.id} crosses non-schematic land at ${lat},${lon}.`);
     }
     samples++;
   }
@@ -76,4 +77,4 @@ for (const signal of worldSignals) {
 }
 assert.equal(JSON.stringify(worldSignals), snapshot, 'Samples never mutate immutable identities or geometry.');
 assert.ok(satelliteSignals.every(signal => Math.PI * 2 / signal.periodSeconds < .038));
-console.log(`PASS: ${samples} finite, bounded, continuous, repeatable samples; 84 orbital lights; 200 aircraft on 40 sourced corridors; 176 ships on 44 ETOPO-water-checked corridors; exact lagged trails and immutable records.`);
+console.log(`PASS: ${samples} finite, bounded, continuous, repeatable samples; 84 orbital lights; 200 aircraft on 40 sourced corridors; 176 ships on 86 water-checked or explicitly schematic corridors; exact lagged trails and immutable records.`);

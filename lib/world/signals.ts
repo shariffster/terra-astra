@@ -132,7 +132,15 @@ const seaCorridors: readonly WorldSignal[] = Object.freeze(seaLanePaths.map((pat
   basisA: path.segments[0].basisA, basisB: path.segments[0].basisB,
   arcRadians: path.totalArc, motion: 'shuttle' as const, marinePath: path,
 })));
-export const shipSignals = repeatCorridors(seaCorridors, 4);
+// Keep the accepted 176 vessels. One per route, then distribute the remainder
+// by authored regional intensity. Short gateways are denser than quiet basins.
+const shipCopies = seaCorridors.map(() => 1);
+for(let n=seaCorridors.length;n<176;n++) {
+  let best=0;
+  for(let i=1;i<seaCorridors.length;i++)if(seaLanePaths[i].intensity/shipCopies[i]>seaLanePaths[best].intensity/shipCopies[best])best=i;
+  shipCopies[best]++;
+}
+export const shipSignals:readonly WorldSignal[]=Object.freeze(seaCorridors.flatMap((signal,i)=>Array.from({length:shipCopies[i]},(_,copy)=>Object.freeze({...signal,id:copy?`${signal.id}-light-${copy+1}`:signal.id,phase:(signal.phase+copy/shipCopies[i])%1}))));
 
 export const worldSignals: readonly WorldSignal[] = Object.freeze([...satelliteSignals, ...aircraftSignals, ...shipSignals]);
 

@@ -1,7 +1,7 @@
-import { livingRoutes } from './living-routes';
+import { oceanNetwork } from './ocean-network-data';
 import { marinePath, sampleMarinePath, type MarinePath } from './marine-path';
 
-export const seaLanePaths = Object.freeze(livingRoutes.sea.map((p, i) => marinePath(p.id, p.label, p.waypoints, i, 1.0012)));
+export const seaLanePaths = Object.freeze(oceanNetwork.sea.map((p, i) => Object.freeze({...marinePath(p.id, p.label, p.waypoints, i, 1.0012), tier:p.tier, intensity:p.intensity})));
 export const SEA_LANE_PARTICLES = 192;
 export const seaLaneColor = '#479E8E';
 export const seaLaneDisclosure = 'Illustrated maritime circulation, shaped by the bundled ocean geography. Not live tracking or navigation routes.';
