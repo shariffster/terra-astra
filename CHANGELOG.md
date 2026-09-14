@@ -2,7 +2,12 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
-## v0.10.3-rc.3 — 2026-09-14 — Sonic Earth (harmonic listening candidate)
+## v0.10.3-rc.4 — 2026-09-14 — Sonic Earth (phrased listening candidate)
+- Owner assessment of RC3: the opening was okay, but the continuation became too droning. The opening is retained; the two sustained harmonic tones now fade away over 3.2 seconds after awakening completes.
+- The following figure uses shorter envelopes and a twenty-second cycle with approximately seven seconds free of new harmonic notes. Dampened reflection tails decay through the pause. Individual phrases gain clarity without raising master volume or noise.
+- RC3 is preserved at source `e8a7cdec4dcc46384e21ed9054f5b60377376eff` and saved Lab version 5, never deployed or tagged. RC4 remains an unaccepted listening candidate.
+
+## v0.10.3-rc.3 — 2026-09-14 — Sonic Earth (superseded harmonic candidate)
 - The owner found RC2 softer but too faint and explicitly requested a repeating background layer with a contemplative cinematic character. This supersedes the original brief's prohibition on a musical bed; all other preservation and listening/deployment conditions remain.
 - Adds an original twelve-second suspended figure, warm organ-like periodic waveforms, slow octave-energy hand-offs and two damped spatial reflections. This is not a sampled soundtrack or a literal continuously rising Shepard glissando.
 - Six reusable harmonic voices follow renderer time, with no new timer or event scheduler. The exact 2.5-second settlement breath clears the harmonic field. Approach increases presence; depth muffles it; local Makkah excludes the figure. Astra ducks the entire output.

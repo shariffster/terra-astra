@@ -1,6 +1,6 @@
 # Sonic Earth — Run C listening candidate
 
-14 September 2026. Current candidate: **v0.10.3-rc.3**, branch `people-choice/v0.10`.
+14 September 2026. Current candidate: **v0.10.3-rc.4**, branch `people-choice/v0.10`.
 
 ## Acceptance and preservation
 
@@ -8,7 +8,9 @@ The owner rejected the first pass as both rough/static-like and too constant. RC
 
 That explicit follow-up supersedes the original brief's “no musical bed” direction. RC3 adds an original procedural harmonic figure. It does not use a recording, a borrowed score, a literal continuously rising Shepard glissando, or claims about the real sound of a destination. Its octave energy circulates while pitch stays stable. Local Makkah continues to exclude this figure and retains only the existing procedural circulation interpretation.
 
-**RC3 is unaccepted. Superiority to silent v0.10.2 is UNKNOWN.** Listening acceptance is required before a release tag or Lab deployment. Engineering checks do not establish enjoyment, long-session fatigue or physical speaker quality.
+The owner judged RC3's opening okay but its continuation too droning. RC4 preserves the opening and fades the two sustained harmonic tones out over 3.2 seconds after the existing awakening completes. It then uses shorter phrases in a twenty-second cycle, with approximately seven seconds without new harmonic notes. Reflection tails decay through the pause. The individual notes have more presence, while master gain and noise remain unchanged.
+
+**RC4 is unaccepted. Superiority to silent v0.10.2 is UNKNOWN.** Listening acceptance is required before a release tag or Lab deployment. Engineering checks do not establish enjoyment, long-session fatigue or physical speaker quality. Rejected RC3 is preserved at `e8a7cdec4dcc46384e21ed9054f5b60377376eff`, saved Lab version 5, without a tag or deployment.
 
 Preserved and verified before implementation:
 
@@ -27,7 +29,7 @@ Candidate source/save/deployment provenance is recorded in the final handoff aft
 
 `AudioDirector` reads this view at 20 Hz, maps it through pure `directAudio()`, crossfades the graph, resets sparse scheduling on replay/destination changes and meters Live output. No React update occurs per audio tick. `SeededScheduler` has no timer of its own; it integrates event opportunity from renderer time, drops missed opportunities after stalls, and enforces concurrency and rate limits. `WorldAudioGraph` owns synthesis and disposal; `AudioEngine` owns the AudioContext, activation and actual-output metering. The small hook and header control own the user gesture and preference.
 
-`harmonicWeave()` reads the same renderer time. Six reusable voices at 108, 162, 216, 288, 324 and 432 Hz form sustained warmth and a twelve-second overlapping figure; octave energy moves over 64 seconds. It is an original suspended figure, with no note-on timer, downloaded audio or additional state clock. Two filtered reflections at .413/.619 seconds, feedback .22 and wet gain .22, add restrained width. A normalized native PeriodicWave supplies organ-like harmonics; see [the API reference](https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createPeriodicWave).
+`harmonicWeave()` reads the same renderer time. Six reusable voices at 108, 162, 216, 288, 324 and 432 Hz form the opening's warmth and overlapping figure; octave energy moves over 64 seconds. Once visual awakening completes, the two sustained voices fade away and the remaining four use a twenty-second cycle with a rest. Note envelopes shorten from 4.6 to 3.2 seconds. It is an original suspended figure, with no note-on timer, downloaded audio or additional state clock. Two filtered reflections at .413/.619 seconds, feedback .22 and wet gain .22, add restrained width. A normalized native PeriodicWave supplies organ-like harmonics; see [the API reference](https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createPeriodicWave).
 
 ## Buses, levels and timings
 
@@ -42,7 +44,7 @@ All buses feed the same conservative master chain: high-pass 26 Hz → variable 
 | Network | Sparse 180–280 Hz resonant signals, .044 event peak, .85 s attack and 4.1 s duration; activity-driven bus up to .29. |
 | Urban | Short softened noise grains with .12–.21 s attack, .55–1 s duration and .14 peak before bus. No continuous urban noise. |
 | Destination | Existing Makkah circulation partials (108/162/216 Hz), 36 Hz depth pressure and restrained warm local events. |
-| Harmonic | RC3's sustained tones and repeating figure. Bus grows to .62 at planet and up to .72 locally; deep attenuation and local Makkah exclusion. Entire field clears during settlement and ducks with voice. |
+| Harmonic | Sustained opening tones followed by shorter phrases with rests. Bus grows to .62 at planet and up to .72 locally; deep attenuation and local Makkah exclusion. Entire field clears during settlement and ducks with voice. |
 
 These are graph controls, not calibrated speaker loudness. GainNode values in development diagnostics may retain stale scalar reads when a bus has no active source; target mapping is defined by `directAudio()`.
 
@@ -76,13 +78,13 @@ Output callbacks clear on pause, waiting, end, track mute, disconnection, failur
 
 Every fresh load creates zero AudioContexts and zero audio timers, even if stored preference says enabled. The sound button's gesture creates/resumes audio. Explicit mute persists, fades over .14 seconds and suspends processing. Hidden pages suspend and stop the timer; visibility recovery fades over 1.2 seconds. Context interruption exposes “Resume Earth sound.” A lost renderer makes the adapter unavailable and suspends audio. Disposal removes listeners, releases sources and closes the context after a 100 ms tail.
 
-Caps: **15 persistent sources**, **6 one-shots**, **2 one-shots per rolling second**, minimum .55 seconds between events, **one 50 ms control timer**. Harmonic motion uses existing persistent voices. No AudioWorklet or music framework. Reduced motion fixes the harmonic figure to a calm held voicing, removes pan drift and reduces sparse events to 32%.
+Caps: **15 persistent sources**, **6 one-shots**, **2 one-shots per rolling second**, minimum .55 seconds between events, **one 50 ms control timer**. Harmonic motion uses existing persistent voices. No AudioWorklet or music framework. Reduced motion retains only a very quiet held voicing, removes pan drift and reduces sparse events to 32%.
 
 ## Evidence and limits
 
 Local artifacts are under ignored `output/playwright/sonic-earth/`. Native OfflineAudioContext WAVs use the actual graph with captured renderer snapshots; they are not recordings of the device output. `initial/` preserves the first pass, `rc2/` preserves the softer second pass. Metrics and screenshots are review evidence, not physical listening acceptance.
 
-- Eleven focused sonic checks cover exact settlement, original layer onsets, replay mapping, continuous scale, destination exclusions, ten minutes of bounded/seam-continuous harmonic modulation, seeded scheduling, voice recovery, resource disposal, silent load and rapid lifecycle changes.
+- Eleven focused sonic checks cover exact settlement, original layer onsets, replay mapping, continuous scale, destination exclusions, ten minutes of bounded/seam-continuous harmonic modulation, explicit phrase rests, opening preservation, seeded scheduling, voice recovery, resource disposal, silent load and rapid lifecycle changes.
 - Twelve Live controller checks cover lifecycle, reconnect/failure, actual output notification, Stop and final usage handling.
 - Existing awakening, world-engine, Genesis, Live navigation and special-destination regressions passed. Geometry and visual clocks were not modified.
 - Native Mac Chromium/WebGL exercised all five destination flights, Planet/Region/City/Street where supported, typed Ask Astra → New York, manual camera drag, activation, mute/unmute, interrupted-context resume, refresh, reduced motion and forced WebGL context loss.
@@ -92,16 +94,19 @@ Local artifacts are under ignored `output/playwright/sonic-earth/`. Native Offli
 - RC2 native navigation stayed at approximately 120 fps after warmup; across five destination traces, median 120 fps and minimum 110.1–118.1 fps. RC3's 542 native samples through replay, awakening, phone viewport changes and Singapore arrival had median 120 fps, minimum 118 fps, mean control work .102 ms per 50 ms tick and maximum .5 ms. There were 15 persistent sources, peak three active sparse events and no page errors. This excludes audio-thread CPU and is not a hardware benchmark.
 - RC3 native settlement sampled at renderer time 10.8112 s / awakening .0083 s already had harmonic gain zero; it stayed zero throughout the sampled 2.5 s breath. Mute produced a suspended context, zero events and zero control timers. `/history` and return to Earth were exercised; fresh remount had zero AudioContexts. CDP did not provide a context-destroyed event across navigation, so explicit native close-event telemetry is not claimed.
 - Final TypeScript, targeted ESLint, focused sonic/Live checks and production build passed. The build retains the inherited large-chunk advisory. Development diagnostics are excluded from the production build.
-- RC3 PCM measurements below cover the same native world traces used for RC2, at 44.1 kHz stereo. They measure graph output, not physical speaker level. Makkah/depth traces include approach transitions.
+- RC4 PCM measurements below cover the same native world traces used for RC2/RC3, at 44.1 kHz stereo. They measure graph output, not physical speaker level. Makkah/depth traces include approach transitions. A separate sixty-second continuation holds a captured Singapore state and advances renderer-time samples for audio review; it is a controlled continuation, not a sixty-second recording of live navigation.
 
 | Render | Duration | Peak dBFS | RMS dBFS | Peak sparse voices |
 | --- | ---: | ---: | ---: | ---: |
-| Genesis and awakening | 33 s | -24.21 | -35.65 | 3 |
-| New York | 23 s | -24.04 | -31.99 | 4 |
-| Singapore | 23 s | -23.53 | -31.24 | 3 |
-| Palm Jumeirah | 23 s | -23.54 | -31.60 | 4 |
-| Makkah approach/local | 23 s | -24.59 | -39.94 | 2 |
-| Challenger Deep | 22 s | -28.85 | -39.56 | 2 |
+| Genesis and awakening | 33 s | -24.21 | -36.03 | 3 |
+| New York | 23 s | -26.11 | -38.12 | 4 |
+| Singapore | 23 s | -25.50 | -38.55 | 3 |
+| Palm Jumeirah | 23 s | -24.48 | -36.79 | 4 |
+| Makkah approach/local | 23 s | -26.57 | -44.53 | 2 |
+| Challenger Deep | 22 s | -33.50 | -43.53 | 2 |
+| Singapore continuation | 60 s | -24.71 | -37.45 | 2 |
+
+The continuation's one-second RMS ranges from -31.98 dBFS in a phrase to -55.60 dBFS in a rest after activation, confirming substantial release between phrases rather than a continuous high-level bed. This is an engineering observation, not a claim that the owner prefers the result.
 
 - Local `/api/terra/status` reports unconfigured and signed out, so authenticated GPT-Live-1 is unavailable locally. Physical headphone, laptop-speaker, low-system-volume, phone audio, Live intelligibility and multi-minute fatigue acceptance remain human listening work.
 

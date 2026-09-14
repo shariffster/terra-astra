@@ -79,7 +79,10 @@ test('harmonic figure has no seam jump, stays bounded for long sessions and rest
     for(let i=0;i<current.length;i++) {assert.ok(current[i]>=0&&current[i]<.4);assert.ok(Math.abs(current[i]-previous[i])<.018);maximum[i]=Math.max(maximum[i],current[i]);}
     previous=current;
   }
-  assert.ok(maximum.every(level=>level>.04));
+  assert.deepEqual(maximum.slice(0,2),[0,0]);
+  assert.ok(maximum.slice(2).every(level=>level>.04));
+  assert.ok(harmonicWeave(20,1,true,true)[0]>.20,'Opening retains its original warmth');
+  for (let seconds=13.3;seconds<20;seconds+=.1) assert.ok(harmonicWeave(seconds,1,true).every(level=>level===0),'Every settled phrase has a real rest');
   assert.deepEqual(harmonicWeave(0,1,false),harmonicWeave(800,1,false));
 });
 test('reduced motion removes pan drift and reduces events; graphics loss silences every bus', () => {

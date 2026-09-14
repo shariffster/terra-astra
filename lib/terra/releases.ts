@@ -1,16 +1,16 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.3-rc.3';
+export const currentVersion = '0.10.3-rc.4';
 
 export const releases = [
   {
-    version: '0.10.3-rc.3',
+    version: '0.10.3-rc.4',
     date: '2026-09-14',
     dateLabel: '14 September 2026',
     title: 'Hear the living Earth — Sonic Earth candidate',
     milestone: 'Listening review · Not yet accepted',
     changes: [
       'A small sound control invites you to hear Earth after it settles. Every fresh visit starts silently; sound remains optional throughout the journey.',
-      'An original repeating harmonic figure brings warmth and continuity to Earth. Soft organ-like tones and overlapping octaves grow through the existing awakening, while camera altitude changes their presence.',
+      'An original repeating harmonic figure brings warmth to Earth. Sustained opening tones leave after awakening; shorter phrases return with pauses between them. Camera altitude changes their presence.',
       'New York, Singapore and Palm follow their road and coastal activity. Makkah uses only its interpretive circular movement; Challenger Deep becomes quieter and darker with descent.',
       'Astra’s actual voice output lowers the world gently. Mute, hidden tabs, replay and interrupted sessions release or suspend the sound cleanly.',
     ],

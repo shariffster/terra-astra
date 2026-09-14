@@ -158,9 +158,9 @@ export class WorldAudioGraph {
       smoothParam(partial.pan.pan, scene.motion ? Math.cos(phase) * scene.width : 0, now, .8);
     });
     smoothParam(this.pressure.gain.gain, scene.pressure * .065, now, .9);
-    const weave = harmonicWeave(scene.seconds, scene.harmonicPresence, scene.motion);
+    const weave = harmonicWeave(scene.seconds, scene.harmonicPresence, scene.motion, scene.harmonicIntroduction);
     this.weave.forEach((tone, i) => {
-      smoothParam(tone.gain.gain, weave[i], now, .18);
+      smoothParam(tone.gain.gain, weave[i], now, i < 2 && !scene.harmonicIntroduction ? 3.2 : .18);
       smoothParam(tone.pan.pan, (i % 2 ? 1 : -1) * scene.width * (.12 + i * .065), now, .8);
     });
     this.prune(now);
