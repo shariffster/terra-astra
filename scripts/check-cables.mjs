@@ -46,4 +46,4 @@ for (const path of cablePaths) {
   }
 }
 assert.equal(JSON.stringify(cablePaths), before, 'Samples preserve fixed identities and geometry.');
-console.log(`PASS: ${samples} finite, ETOPO-checked or documented schematic strait, continuous cable samples; 116 immutable connected paths; slow lag-correct pulses; ${CABLE_SEGMENTS_PER_PATH} renderer segments per path.`);
+console.log(`PASS: ${samples} finite, ETOPO-checked or documented schematic strait, continuous cable samples; 116 immutable connected paths; slow lag-correct pulses; ${CABLE_SEGMENTS_PER_PATH} fallback samples per path.`);

@@ -1,7 +1,20 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.10';
+export const currentVersion = '0.10.11';
 
 export const releases = [
+  {
+    version: '0.10.11',
+    date: '2026-09-16',
+    dateLabel: '16 September 2026',
+    title: 'Subsea connections, drawn in light',
+    milestone: 'Cable refinement · People’s Choice Lab',
+    changes: [
+      'Continuous fine lilac strokes reveal the existing undersea network, with soft edges and a restrained halo.',
+      'Rounded, ocean-constrained bends replace angular waypoint joins. Coincident strands separate gently and gather at their existing offshore hubs.',
+      'Quiet signal lights follow the same curves. Regional focus, sculpted depth, awakening and reduced motion retain the established behaviour.',
+    ],
+    review: 'The 116 routes and 50 offshore hub regions remain illustrative, not surveyed cable alignments or live network status. The Canvas fallback uses smooth point paths. Shipping-lane correction is a separate next pass; canonical remains at v0.10.8.',
+  },
   {
     version: '0.10.10',
     date: '2026-09-14',

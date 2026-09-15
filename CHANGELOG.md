@@ -2,6 +2,15 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.11 — Smooth subsea filaments · 16 September 2026
+
+- Extend preserved v0.10.10 `80aa9c5a40a9b8a833c4d4c7621202fd04ea0d43` in `people-choice/v0.10.11-smooth-cables`; People's Choice Lab only.
+- Give the existing 116 cable illustrations continuous lilac strokes, anti-aliased edges and a restrained halo in one shared ribbon batch. Keep the established core, hub and signal colours.
+- Round 195 waypoint bends with tangent-matched spherical curves. Constrain rounding and coincident-strand separation using the existing ETOPO ocean mask and the two documented schematic strait exceptions.
+- Precompute seated geometry once; moving signals sample that exact geometry on the existing clock. Preserve awakening, terrain response, scale exposure, pause, reduced motion and Sonic Earth activity normalization. Canvas retains a smooth point fallback.
+- Preserve 50 offshore hubs, fourteen signal slots, all route identities and earlier release entries. Shared marine geometry, ships and shipping lanes are unchanged; their correction follows cable acceptance.
+- See `docs/SMOOTH-CABLES-V01011.md` for validation and limitations. Saved-version and deployment identities are recorded separately.
+
 ## v0.10.10 — Run G: Open Earth, Region and continuous local exploration · 14 September 2026
 
 - Extend exact Run F `4e72ab7c00b5290a5f51cd009fd17036a76d0dc2` on `people-choice/run-g-open-earth`. Lab only; canonical v0.10.8 and Maker’s Mark remain excluded.

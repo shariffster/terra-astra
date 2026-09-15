@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.11 cable refinement authority (16 September 2026)
+
+The user's latest instruction authorizes `people-choice/v0.10.11-smooth-cables`, from accepted v0.10.10 `80aa9c5a40a9b8a833c4d4c7621202fd04ea0d43`. Refine cable curvature and the established lilac material; preserve route provenance, history, clocks and unrelated systems. Publish only to the existing People's Choice Lab after QA. Canonical v0.10.8, archive and Maker's Mark remain untouched. Shipping-lane correction is the subsequent pass, after cable acceptance.
+
 The user wants visible version tracking and preserved iterations.
 
 - Before changing this Site, read `CHANGELOG.md` and the current `lib/terra/releases.ts`. Follow the current Sites skills and the user's scope and publication instructions.

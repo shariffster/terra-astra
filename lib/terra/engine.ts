@@ -8,7 +8,9 @@ import { SPECIAL_CITIES } from '../world/special-destinations';
 import { specialDestinationViews } from '../world/special-destination-view';
 import { aircraftSignals, satelliteSignals, shipSignals, sampleSignal, signalColors, type WorldSignal } from '../world/signals';
 import { createCityContinuation, continuationBandWeight, continuationScale } from '../world/city-continuation';
-import { cablePaths, cableColor, CABLE_SEGMENTS_PER_PATH, CABLE_PULSE_SLOTS, cableJourney, cableHubs, sampleCable } from '../world/cables';
+import { cablePaths, cableColor, CABLE_SEGMENTS_PER_PATH, CABLE_PULSE_SLOTS, cableJourney, cableHubs } from '../world/cables';
+import { prepareSmoothCables, sampleSmoothCable } from '../world/smooth-cables';
+import { cableFilamentGeometry, cableFilamentVertex, cableFilamentFragment } from './cable-filaments';
 import { seaLanePaths, seaLaneColor, SEA_LANE_PARTICLES, sampleSeaLane } from '../world/sea-lanes';
 import { createOceanVolume, sampleSuspended, currentPaths, CURRENT_PARTICLES, sampleCurrent, oceanExposure } from '../world/ocean-volume';
 import { LIVING_MATERIAL, livingExposure, networkRadius } from './living-material';
@@ -29,7 +31,7 @@ export type Stage = 'orbit'|'descending'|'city'|'ascending';
 export type ViewOptions = { glow:number; shimmer:number; depth:boolean; threads:number; density:number; borders:boolean; motion:boolean };
 export type Engine = { audioState:()=>AudioWorldState; replayGenesis:()=>void; skipGenesis:()=>void; command:(command:WorldCommand)=>Promise<WorldCommandResult>; worldState:()=>WorldState; transform:(open:boolean)=>void; personal:(places:PersonalPlaces|null)=>void; descend:()=>Promise<void>; orbit:()=>void; zoom:(factor:number)=>void; rotate:(dx:number,dy:number)=>void; select:(id:string|null)=>void; configure:(o:ViewOptions)=>void; storyInset:(pixels:number)=>void; view:(view:EarthView)=>void; region:(region:StudyRegion)=>void; dispose:()=>void };
 type Callbacks={discovery?:(ready:boolean)=>void;genesis?:(state:GenesisState)=>void;worldState?:(state:WorldState)=>void;transformation?:(state:TransformationState)=>void;personalSettled?:()=>void;stage:(s:Stage)=>void;ready:()=>void;error:(s:string,fatal?:boolean)=>void;coordinates:(lat:number,lon:number)=>void;interact:()=>void;arrival:(storyId:string|null)=>void;view?:(view:EarthView)=>void};
-type Cloud={points:THREE.Points;material:THREE.ShaderMaterial;count:number};
+type Cloud={points:THREE.Points|THREE.Mesh;material:THREE.ShaderMaterial;count:number};
 const R=Math.PI/180;
 export function geo(lon:number,lat:number,r=1){const a=lon*R,b=lat*R;return new THREE.Vector3(r*Math.cos(b)*Math.sin(a),r*Math.sin(b),r*Math.cos(b)*Math.cos(a));}
 const clamp=THREE.MathUtils.clamp;
@@ -235,20 +237,29 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const lanePosition=seaLanes.points.geometry.getAttribute('position') as THREE.BufferAttribute;
  const laneBrightness=seaLanes.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;
 
- // Fine lilac star filaments sit just over sampled bathymetry. Their controlled
- // exposure reveals the hidden network through the translucent ocean; no raised
- // surface proxy or blanket depth-test bypass is needed.
+ // Cable-only rounded geography; the seated stroke and signal lights share it.
  const cableSample=new Float64Array(3),cableStars:number[]=[],pulseStars:number[]=[];
  function seatNetwork(out:Float64Array){const r=Math.hypot(out[0],out[1],out[2]),h=sampleElevation(elevation,1440,720,Math.atan2(out[0],out[2])/R,Math.atan2(out[1],Math.hypot(out[0],out[2]))/R);const scale=networkRadius(h)/r;for(let j=0;j<3;j++)out[j]*=scale;}
- for(let i=0;i<cablePaths.length;i++){
-  for(let k=0;k<CABLE_SEGMENTS_PER_PATH;k++){sampleCable(cablePaths[i],k/(CABLE_SEGMENTS_PER_PATH-1),cableSample);seatNetwork(cableSample);cableStars.push(...cableSample,0,.48,(i*.61+k*.017)%6.28);}
-
+ const smoothCables=prepareSmoothCables(cablePaths,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat));
+ const seaOnsets=cableOnsets(cablePaths);
+ for(let i=0;fallback&&i<cablePaths.length;i++){
+  for(let k=0;k<CABLE_SEGMENTS_PER_PATH;k++){sampleSmoothCable(smoothCables[i],k/(CABLE_SEGMENTS_PER_PATH-1),cableSample);cableStars.push(...cableSample,0,.48,(i*.61+k*.017)%6.28);}
  }
  for(let i=0;i<CABLE_PULSE_SLOTS;i++)for(let k=0;k<4;k++)pulseStars.push(0,0,.98,0,k===0?1.35:.58,i*.61+k*.07);
  const hubStars:number[]=[];
- for(const hub of cableHubs){const [lat,lon]=hub.point;for(let k=0;k<Math.min(22,4+hub.degree);k++){const radius=.035+.018*Math.sqrt(k),angle=k*2.39996;const latK=lat+Math.sin(angle)*radius,lonK=lon+Math.cos(angle)*radius/Math.max(.3,Math.cos(lat*R));const v=geo(lonK,latK);cableSample.set(v.toArray());seatNetwork(cableSample);hubStars.push(...cableSample,.22+Math.min(.4,hub.degree*.02),.38+(k%4)*.10,k*.71+hub.degree);}}
+ for(const hub of cableHubs){const [lat,lon]=hub.point;cableSample.set(geo(lon,lat).toArray());seatNetwork(cableSample);hubStars.push(...cableSample,.55,.75,hub.degree);for(let k=0;k<Math.min(22,4+hub.degree);k++){const radius=.035+.018*Math.sqrt(k),angle=k*2.39996;const latK=lat+Math.sin(angle)*radius,lonK=lon+Math.cos(angle)*radius/Math.max(.3,Math.cos(lat*R));const v=geo(lonK,latK);cableSample.set(v.toArray());seatNetwork(cableSample);hubStars.push(...cableSample,.22+Math.min(.4,hub.degree*.02),.38+(k%4)*.10,k*.71+hub.degree);}}
  const seaHubs=cloud(new Float32Array(hubStars),'#AC98D0');seaHubs.points.userData.hubField=true;
- const seaFilaments=cloud(new Float32Array(cableStars),cableColor),seaPulses=cloud(new Float32Array(pulseStars),'#C5ABEE');
+ const seaFilaments:Cloud=cloud(new Float32Array(cableStars),cableColor),seaPulses=cloud(new Float32Array(pulseStars),'#C5ABEE');
+ if(!fallback){
+  const original=seaFilaments.points;earth.remove(original);original.geometry.dispose();geometries.splice(geometries.indexOf(original.geometry),1);
+  const g=cableFilamentGeometry(smoothCables,cablePaths,seaOnsets);geometries.push(g);
+  seaFilaments.material.vertexShader=cableFilamentVertex;seaFilaments.material.fragmentShader=cableFilamentFragment;
+  seaFilaments.material.uniforms.resolution={value:new THREE.Vector2(host.clientWidth,host.clientHeight)};
+  seaFilaments.material.uniforms.awakeningTime={value:0};seaFilaments.material.side=THREE.DoubleSide;
+  const mesh=new THREE.Mesh(g,seaFilaments.material);mesh.frustumCulled=false;earth.add(mesh);seaFilaments.points=mesh;seaFilaments.count=g.getAttribute('position').count;
+ }
+ host.dataset.cableStroke=fallback?'smooth-points':'continuous-ribbon';
+ host.dataset.cableCurveVertices=String(smoothCables.reduce((n,p)=>n+p.progress.length,0));
  for(const c of [seaFilaments,seaPulses,seaHubs]){
   c.points.userData.seaBackbone=c!==seaHubs;c.points.userData.network=true;c.points.userData.spatial=true;
   c.points.userData.shell='network';c.points.userData.rhythm=.17;c.points.userData.shimmer=.30;
@@ -257,7 +268,6 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   terrainCloud(c,4);
  }
  const cableBrightness=seaFilaments.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;
- const seaOnsets=cableOnsets(cablePaths);
  let lastCableReveal=-1,lastLaneTime=-Infinity,lastLaneAlpha=-1,lastLaneReveal=-1,lastLanesFull=0;
  function updateSea(seconds:number,visibility:number){
   const exposure=livingExposure(alt),enabled=layerFlags.ships?visibility:0;
@@ -292,11 +302,12 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   lastLaneTime=seconds;lastLaneAlpha=laneAlpha;lastLaneReveal=awakening.elapsed;lastLanesFull=lanesFull;}
   const alpha=awakening.elapsed>AWAKENING.cables.start?enabled*exposure.cables:0;
   seaFilaments.material.uniforms.opacity.value=alpha*1.45;seaPulses.material.uniforms.opacity.value=options.motion?alpha*1.7:0;seaHubs.material.uniforms.opacity.value=alpha*1.2*cableReveal(awakening.elapsed-AWAKENING.cables.start-2,1);
+  if(!fallback){seaFilaments.material.uniforms.awakeningTime.value=awakening.elapsed;seaFilaments.material.uniforms.resolution.value.set(host.clientWidth,host.clientHeight);}
   const a=seaPulses.points.geometry.getAttribute('position') as THREE.BufferAttribute,b=seaPulses.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;
   const revealChanged=lastCableReveal!==awakening.elapsed;let active=0,full=0;
   for(let i=0;i<cablePaths.length;i++){
    const age=awakening.elapsed-seaOnsets[i];if(age>0)active++;if(cableReveal(age,1)===1)full++;
-   if(revealChanged)for(let k=0;k<CABLE_SEGMENTS_PER_PATH;k++){
+   if(fallback&&revealChanged)for(let k=0;k<CABLE_SEGMENTS_PER_PATH;k++){
     // A sparse bright knot at branches, with quiet precise trunks between them.
     const endpoint=k<3||k>CABLE_SEGMENTS_PER_PATH-4;
     cableBrightness.setX(i*CABLE_SEGMENTS_PER_PATH+k,(endpoint?.85:.54)*cablePaths[i].intensity*cableReveal(age,k/(CABLE_SEGMENTS_PER_PATH-1)));
@@ -304,13 +315,13 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   }
   let journeys=0;
   for(let i=0;i<CABLE_PULSE_SLOTS;i++){
-   const journey=cableJourney(i,seconds),path=cablePaths[journey.index];
+   const journey=cableJourney(i,seconds),path=smoothCables[journey.index];
    const visible=options.motion?journey.light*cableReveal(awakening.elapsed-seaOnsets[journey.index]-1,1):0;
    if(visible>.01)journeys++;
-   for(let k=0;k<4;k++){const n=i*4+k;sampleCable(path,clamp(journey.progress+(i%2?1:-1)*k*.0025,0,1),cableSample);seatNetwork(cableSample);a.setXYZ(n,cableSample[0],cableSample[1],cableSample[2]);b.setX(n,visible*(k===0?1.35:.30*(1-k/4)));}
+   for(let k=0;k<4;k++){const n=i*4+k;sampleSmoothCable(path,clamp(journey.progress+(i%2?1:-1)*k*.0025,0,1),cableSample);a.setXYZ(n,cableSample[0],cableSample[1],cableSample[2]);b.setX(n,visible*(k===0?1.35:.30*(1-k/4)));}
   }
   host.dataset.cablePulseJourneys=String(journeys);host.dataset.cableHubs=String(cableHubs.length);
-  if(revealChanged)cableBrightness.needsUpdate=true;lastCableReveal=awakening.elapsed;
+  if(fallback&&revealChanged)cableBrightness.needsUpdate=true;lastCableReveal=awakening.elapsed;
   b.needsUpdate=true;if(alpha>=.001)a.needsUpdate=true;
   host.dataset.cablesAwake=String(active);host.dataset.cablesFull=String(full);host.dataset.seaLanesFull=String(lanesFull);
  }
