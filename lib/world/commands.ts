@@ -2,17 +2,20 @@ import { SPECIAL_TARGETS } from './special-destinations';
 import type { OpenWorldContext, PlaceResolution, ResolvedWorldTarget } from './open-types';
 /** Serializable boundary for YC's Live navigator. Rendering stays inside the engine. */
 export type ScaleTier = 'planet' | 'region' | 'city' | 'street';
-export type WorldLayer = 'satellites' | 'aircraft' | 'ships' | 'urban';
+export type WorldLayer = 'satellites' | 'aircraft' | 'ships' | 'cables' | 'urban';
+export type WorldPresentation = { focus: 'living' | 'night-lights'; pathways: boolean; travellers: boolean; keepActivity: boolean };
+export const DEFAULT_PRESENTATION: WorldPresentation = Object.freeze({ focus: 'living', pathways: true, travellers: true, keepActivity: false });
 export type WorldCommand =
   | { type: 'flyTo'; targetId: string }
   | { type: 'flyToPlace'; query: string; choice?: string }
   | { type: 'setScale'; tier: ScaleTier }
   | { type: 'focusLayer'; layer: WorldLayer; enabled?: boolean }
+  | { type: 'setPresentation'; presentation: Partial<WorldPresentation> }
   | { type: 'highlightTarget'; targetId: string }
   | { type: 'resetView' };
 export type GenesisPhase = 'core' | 'compression' | 'ignition' | 'ejection' | 'capture' | 'settlement' | 'complete';
 export type GenesisState = Readonly<{ phase: GenesisPhase; progress: number; busy: boolean }>;
-export type WorldState = Readonly<{ targetId: string | null; tier: ScaleTier; busy: boolean; genesis: GenesisState; layers: Readonly<Record<WorldLayer, boolean>>; resolvedTarget?:ResolvedWorldTarget; open?:OpenWorldContext; resolving?:boolean }>;
+export type WorldState = Readonly<{ targetId: string | null; tier: ScaleTier; busy: boolean; genesis: GenesisState; layers: Readonly<Record<WorldLayer, boolean>>; presentation?: WorldPresentation; resolvedTarget?:ResolvedWorldTarget; open?:OpenWorldContext; resolving?:boolean }>;
 export type WorldCommandResult = Readonly<{ ok: boolean; command: WorldCommand; reason?: string; resolution?:PlaceResolution }>;
 export type WorldTarget = Readonly<{ id: string; label: string; lat: number; lon: number; tier: ScaleTier; detail: string }>;
 export const WORLD_TARGETS: readonly WorldTarget[] = Object.freeze(([
@@ -28,6 +31,13 @@ export function validateWorldCommand(input: unknown): WorldCommand | null {
   if(c.type==='flyTo'||c.type==='highlightTarget') return typeof c.targetId==='string'&&WORLD_TARGETS.some(t=>t.id===c.targetId)?{type:c.type,targetId:c.targetId}:null;
   if(c.type==='resetView')return {type:'resetView'};
   if(c.type==='setScale'&&['planet','region','city','street'].includes(c.tier as string))return {type:'setScale',tier:c.tier as ScaleTier};
-  if(c.type==='focusLayer'&&['satellites','aircraft','ships','urban'].includes(c.layer as string)&&(c.enabled===undefined||typeof c.enabled==='boolean'))return {type:'focusLayer',layer:c.layer as WorldLayer,...(c.enabled===undefined?{}:{enabled:c.enabled})};
+  if(c.type==='focusLayer'&&['satellites','aircraft','ships','cables','urban'].includes(c.layer as string)&&(c.enabled===undefined||typeof c.enabled==='boolean'))return {type:'focusLayer',layer:c.layer as WorldLayer,...(c.enabled===undefined?{}:{enabled:c.enabled})};
+  if(c.type==='setPresentation'&&c.presentation&&typeof c.presentation==='object'&&!Array.isArray(c.presentation)){
+    const p=c.presentation as Record<string,unknown>,result:Partial<WorldPresentation>={};
+    if(Object.keys(p).some(key=>!['focus','pathways','travellers','keepActivity'].includes(key)))return null;
+    if(p.focus!==undefined){if(p.focus!=='living'&&p.focus!=='night-lights')return null;result.focus=p.focus;}
+    for(const key of ['pathways','travellers','keepActivity'] as const){if(p[key]!==undefined){if(typeof p[key]!=='boolean')return null;result[key]=p[key];}}
+    return Object.keys(result).length?{type:'setPresentation',presentation:result}:null;
+  }
   return null;
 }

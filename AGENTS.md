@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.12 calm Earth authority (16 September 2026)
+
+The user approved the calm-motion concept and authorized implementation with iterative refinement. Work in `people-choice/v0.10.12-calm-earth` from accepted v0.10.11 `e915b4d53891d97fdca01dd1e9938708eff4d946`. Scope: smooth flight clearance, quiet shared lanes and particles, sea/cable junction continuity, independent layer controls, staggered transitions and a sourced night-light focus. Publish only to the existing People's Choice Lab after meaningful functional and rendered verification. Population, road-density and footprint studies require separate sourced data; do not publish synthetic fields as measurements. Preserve all previous releases, canonical v0.10.8, the archive and Maker’s Mark.
+
 ## v0.10.11 cable refinement authority (16 September 2026)
 
 The user's latest instruction authorizes `people-choice/v0.10.11-smooth-cables`, from accepted v0.10.10 `80aa9c5a40a9b8a833c4d4c7621202fd04ea0d43`. Refine cable curvature and the established lilac material; preserve route provenance, history, clocks and unrelated systems. Publish only to the existing People's Choice Lab after QA. Canonical v0.10.8, archive and Maker's Mark remain untouched. Shipping-lane correction is the subsequent pass, after cable acceptance.

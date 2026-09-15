@@ -24,6 +24,8 @@ export type WorldSignal = Readonly<{
   arcRadians: number;
   motion: 'orbit' | 'shuttle';
   marinePath?: MarinePath;
+  /** A small number of illustrative waiting vessels; no historical anchorage claim. */
+  anchorProgress?: number;
   fromId?: string;
   toId?: string;
 }>;
@@ -95,7 +97,7 @@ export const satelliteSignals: readonly WorldSignal[] = Object.freeze([
 /** Geographic city anchors are the existing Natural Earth point catalogue.
  * These pairings illustrate movement; they do not assert an airline or service.
  */
-const aircraftCorridors: readonly WorldSignal[] = Object.freeze([
+export const aircraftCorridors: readonly WorldSignal[] = Object.freeze([
   flight('Singapore', 'Tokyo'), flight('Singapore', 'Sydney'), flight('Singapore', 'Dubai'),
   flight('Singapore', 'Bangkok'), flight('Singapore', 'Hong Kong'), flight('Jakarta', 'Manila'),
   flight('New Delhi', 'Bangkok'), flight('Tokyo', 'San Francisco'), flight('Seoul', 'Beijing'),
@@ -118,7 +120,7 @@ const aircraftCorridors: readonly WorldSignal[] = Object.freeze([
 function repeatCorridors(corridors: readonly WorldSignal[], count: number): readonly WorldSignal[] {
   return Object.freeze(Array.from({ length: count }, (_, copy) => corridors.map(signal => copy === 0 ? signal : Object.freeze({
     ...signal, id: `${signal.id}-light-${copy + 1}`, phase: (signal.phase + copy / count) % 1,
-    radius: signal.layer === 'aircraft' ? 1.025 + ((signal.phase + copy * .217) % 1) * .035 : signal.radius,
+    radius: signal.radius,
   }))).flat());
 }
 
@@ -140,9 +142,21 @@ for(let n=seaCorridors.length;n<176;n++) {
   for(let i=1;i<seaCorridors.length;i++)if(seaLanePaths[i].intensity/shipCopies[i]>seaLanePaths[best].intensity/shipCopies[best])best=i;
   shipCopies[best]++;
 }
-export const shipSignals:readonly WorldSignal[]=Object.freeze(seaCorridors.flatMap((signal,i)=>Array.from({length:shipCopies[i]},(_,copy)=>Object.freeze({...signal,id:copy?`${signal.id}-light-${copy+1}`:signal.id,phase:(signal.phase+copy/shipCopies[i])%1}))));
+const waitingShips:Readonly<Record<string,number>>=Object.freeze({'sea-sg-malacca-light-3':.01,'sea-gibraltar-sicily-light-2':.012});
+export const shipSignals:readonly WorldSignal[]=Object.freeze(seaCorridors.flatMap((signal,i)=>Array.from({length:shipCopies[i]},(_,copy)=>{
+  const id=copy?`${signal.id}-light-${copy+1}`:signal.id;
+  return Object.freeze({...signal,id,phase:(signal.phase+copy/shipCopies[i])%1,...(waitingShips[id]===undefined?{}:{anchorProgress:waitingShips[id]})});
+})));
 
 export const worldSignals: readonly WorldSignal[] = Object.freeze([...satelliteSignals, ...aircraftSignals, ...shipSignals]);
+
+export function signalProgress(signal: WorldSignal, timeSeconds: number, lagSeconds = 0) {
+  if(signal.anchorProgress!==undefined)return signal.anchorProgress;
+  const time=Number.isFinite(timeSeconds)?timeSeconds:0,lag=Number.isFinite(lagSeconds)?Math.max(0,lagSeconds):0;
+  const cycle=((time%signal.periodSeconds)-(lag%signal.periodSeconds))/signal.periodSeconds+signal.phase;
+  const phase=cycle-Math.floor(cycle);
+  return signal.motion==='orbit'?phase:.5-.5*Math.cos(TAU*phase);
+}
 
 /** Allocation-free sample into a caller-owned array / typed array. Pass a stable
  * animation clock so Pause holds heads AND trails. Positive lag samples history.
@@ -154,7 +168,7 @@ export function sampleSignal(signal: WorldSignal, timeSeconds: number, out: Sign
   const cycle = ((time % signal.periodSeconds) - (lag % signal.periodSeconds)) / signal.periodSeconds + signal.phase;
   const phase = cycle - Math.floor(cycle);
   if (signal.marinePath) {
-    sampleMarinePath(signal.marinePath, .5 - .5 * Math.cos(TAU * phase), out);
+    sampleMarinePath(signal.marinePath, signalProgress(signal,time,lag), out);
     const scale = signal.radius / signal.marinePath.radius;
     for (let axis = 0; axis < 3; axis++) out[axis] *= scale;
     return;

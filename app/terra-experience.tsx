@@ -16,6 +16,7 @@ import { PersonalConstellationForm } from './personal-constellation-form';
 import { validatePersonalPlaces } from '@/lib/personal/model';
 import type { PersonalPlaces, TransformationState } from '@/lib/terra/personal-contract';
 import { WorldNavigation } from './world-navigation';
+import { LayerControls } from './layer-controls';
 import { connectWorldNavigator, publishWorldState, sendWorldCommand } from '@/lib/world/bridge';
 import { WORLD_TARGETS, type GenesisState, type WorldState } from '@/lib/world/commands';
 import specialStyles from './special-destinations.module.css';
@@ -105,6 +106,7 @@ export default function TerraExperience(){
    <details className="open-provenance"><summary>{world?.open?.detailLoading?'Preparing local context…':world?.open?.detailState==='DETAILED'?'Sourced local roads':world?.open?.detailState==='SIMPLIFIED'?'Sourced major roads':'Geography & interpretive light'}</summary><p>{world?.open?.detailMessage}</p><p><a href={openTarget.sourceUrl} target="_blank" rel="noreferrer">{openTarget.source}</a>. {world?.open?.detailState!=='INTERPRETIVE'?<>Roads: <a href="https://openfreemap.org/" target="_blank" rel="noreferrer">OpenFreeMap</a>, © OpenMapTiles / <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a>.</>:null} City light is interpretive. No live tracking.</p></details>
   </aside>:null}
   <div className="view-tools" aria-label="View controls">
+   <LayerControls state={world} disabled={!ready||flying||transformation.busy||genesis.busy||astra}/>
    <button onClick={()=>location.reload()} aria-label="Restart journey" title="Restart journey"><RotateCcw size={17}/></button>
    <button disabled={!ready||flying||transformation.busy||genesis.busy} onClick={()=>engine.current?.zoom(.80)} aria-label="Zoom in" title="Zoom in"><Plus size={19}/></button><button disabled={!ready||flying||transformation.busy||genesis.busy} onClick={()=>engine.current?.zoom(1.25)} aria-label="Zoom out" title="Zoom out"><Minus size={19}/></button><span className="tool-divider"/>
    <button disabled={!ready} onClick={()=>configure({motion:!options.motion})} aria-label={options.motion?'Pause ambient motion':'Resume ambient motion'} title={options.motion?'Pause ambient motion':'Resume ambient motion'}>{options.motion?<Pause size={16}/>:<Play size={16}/>}</button>

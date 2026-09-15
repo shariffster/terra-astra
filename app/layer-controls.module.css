@@ -1,0 +1,39 @@
+.panel {
+  width: min(324px, calc(100vw - 72px));
+  max-height: min(620px, calc(100dvh - 32px));
+  overflow-y: auto;
+  padding: 22px;
+  border: 1px solid #526573;
+  border-radius: 4px;
+  background: #061019;
+  color: #e9d7b3;
+  box-shadow: none;
+  font: 14px/1.55 Arial, Helvetica, sans-serif;
+  scrollbar-width: thin;
+  scrollbar-color: #526573 #061019;
+  animation-duration: 180ms;
+}
+.heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+.panel h2 { margin: 0; font: 400 27px/1.2 Georgia, 'Times New Roman', serif; }
+.heading button { display: grid; place-items: center; width: 32px; height: 32px; margin-right: -6px; color: #adbdc6; background: transparent; border: 0; cursor: pointer; }
+.heading button:hover { color: #e9d7b3; }
+.focus { display: flex; width: 100%; gap: 0; border: 1px solid #526573; border-radius: 3px; }
+.focus button { flex: 1; min-width: 0; height: 40px; padding: 6px; color: #adbdc6; font: inherit; border-radius: 2px; background: transparent; }
+.focus button[data-state='on'] { background: #e9d7b31a; color: #e9d7b3; }
+.focus button:hover { background: #e9d7b312; color: #e8edf0; }
+.panel button:focus-visible { outline: 2px solid #e9d7b3; outline-offset: 3px; }
+.panel button:disabled { opacity: .45; cursor: default; }
+.note { margin: 12px 0 0; font-size: 13px; line-height: 1.55; color: #adbdc6; }
+.families, .material { border: 0; padding: 0; margin: 22px 0 0; min-width: 0; }
+.panel legend { padding: 0 0 7px; color: #adbdc6; font-size: 13px; }
+.row, .keep { display: flex; gap: 12px; align-items: center; justify-content: space-between; min-height: 39px; }
+.row label, .keep label { cursor: pointer; }
+.keep { margin-top: 12px; }
+.material { padding-top: 15px; border-top: 1px solid #52657366; }
+.panel [role='switch'] { flex-shrink: 0; background: #243541; border: 1px solid #78909f; }
+.panel [role='switch'][data-state='checked'] { background: #e9d7b3; border-color: #e9d7b3; }
+.panel [data-slot='switch-thumb'] { background: #d6e5e9; }
+.panel [data-state='checked'] > [data-slot='switch-thumb'] { background: #061019; }
+.message { color: #e9d7b3; margin-top: 12px; }
+@media (max-width: 700px) { .panel { padding: 18px; } .panel h2 { font-size: 25px; } .heading { margin-bottom: 14px; } .families, .material { margin-top: 16px; } }
+@media (prefers-reduced-motion: reduce) { .panel { animation: none; } }

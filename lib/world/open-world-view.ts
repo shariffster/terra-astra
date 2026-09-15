@@ -125,7 +125,7 @@ export function createOpenWorldView(factory:Factory) {
     if(tier==='city'||tier==='street')void prepareLocal(next.lat,next.lon,true);
   }
   function setTier(next:ScaleTier){tier=next;if(next==='planet'){windowRequest?.abort();majorRequest?.abort();majorTier=null;all().forEach(hide);return;}if(target?.mode!=='open')return;if(next==='region')windowRequest?.abort();void prepareMajor(next==='region'?'region':'city');if((next==='city'||next==='street')&&!window)void prepareLocal(target.lat,target.lon,true);}
-  function update(lat:number,lon:number,alt:number,now:number,visible:boolean,motion:boolean,urban:boolean) {
+  function update(lat:number,lon:number,alt:number,now:number,visible:boolean,motion:boolean,urban:boolean,nightFocus=0) {
     if(!target||!context)return;
     if(!visible||tier==='planet'){all().forEach(hide);return;}
     if(tier==='region'&&regionalFocus&&distanceKm(regionalFocus,{lat,lon})>target.contextRadiusKm*.55){const focus={...target,lat,lon};prepareRegion(focus,allPlaces);regionRecenters++;void prepareMajor('region',focus,true);notify();}
@@ -139,6 +139,10 @@ export function createOpenWorldView(factory:Factory) {
     const localExposure=urban?(tier==='street'?1.7:tier==='city'?.035:0):0;
     expose(local,localExposure*fade,localExposure*.14*fade,.9);
     expose(previous,localExposure*(1-fade),localExposure*.14*(1-fade),.9);
+    // The NASA lens must not mix its light pattern with population-weighted
+    // settlement markers or the interpretive metropolitan field.
+    for(const b of [region,metro,major,local,previous])if(b){b.stars.material.uniforms.opacity.value*=1-nightFocus;(b.lines.material as THREE.LineBasicMaterial).opacity*=1-nightFocus;}
+    for(const b of [terrainLand,terrainSea])if(b){b.stars.material.uniforms.opacity.value*=1-nightFocus*.78;(b.lines.material as THREE.LineBasicMaterial).opacity*=1-nightFocus;}
     if(previous&&fade===1){drop(previous);previous=undefined;notify();}
     if(now-lastNotice>1000){lastNotice=now;notify();}
   }

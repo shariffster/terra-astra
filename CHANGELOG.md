@@ -2,6 +2,16 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+## v0.10.12 — Calm Earth · 16 September 2026
+
+- Extend preserved v0.10.11 `e915b4d53891d97fdca01dd1e9938708eff4d946` in `people-choice/v0.10.12-calm-earth`; existing People's Choice Lab only.
+- Replace aircraft terrain-following lift with a precomputed route-wide clearance bound. Five lights share each of 40 visible cruise corridors; heads and 24-point historical trails use the same radius and clock. Preserve flight speed and the established warm-white material.
+- Round 101 shipping waypoint bends and align shared sea/cable hub tangents. Smooth cable depth through junctions without lowering it below the sampled floor. Ships and lanes share the prepared surface geometry; 116 cable identities and 86 maritime structures remain illustrative and water constrained.
+- Quiet resting pathway material while brighter travellers provide passing highlights. Preserve 84 satellites, 200 aircraft, 176 ships and 14 cable signal slots; two vessels wait quietly and a small number of minor routes remain unlit. Satellites retain no visible orbital lines.
+- Add independent family, pathway and traveller controls, including cables separate from ships. Interruptible seeded activation completes within six seconds; off fades finish within about one second. Pause holds positions and trails; reduced motion presents static accents. Visible transport fades feed the existing Sonic Earth activity normalization.
+- Add a sourced Night lights focus with a transport override and remembered choices. NASA 2016 attribution remains explicit; the study's synthetic population, road and footprint fields are not shipped.
+- See `docs/CALM-EARTH-V01012.md` for implementation, rendered review and limits. Publication identities are recorded separately; prior tags, Lab milestones, canonical v0.10.8 and the archive remain intact.
+
 ## v0.10.11 — Smooth subsea filaments · 16 September 2026
 
 - Extend preserved v0.10.10 `80aa9c5a40a9b8a833c4d4c7621202fd04ea0d43` in `people-choice/v0.10.11-smooth-cables`; People's Choice Lab only.

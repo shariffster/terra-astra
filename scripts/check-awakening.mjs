@@ -25,7 +25,7 @@ class Canvas {
 }
 globalThis.document = { hidden: false, createElement: () => new Canvas(), createElementNS: () => new Canvas(), addEventListener: (type,callback)=>{if(type==='visibilitychange')visibilityCallback=callback;}, removeEventListener: noop };
 globalThis.window = { addEventListener:()=>{},removeEventListener:()=>{}, devicePixelRatio: 1, innerWidth: 1363 };
-globalThis.matchMedia = () => ({ matches: false });
+let reducedMotion=false;globalThis.matchMedia = () => ({ matches: reducedMotion });
 globalThis.ResizeObserver = class { constructor(callback) { resizeCallback = callback; } observe() {} disconnect() {} };
 globalThis.Path2D = class { moveTo() {} lineTo() {} };
 globalThis.requestAnimationFrame = callback => { frame = callback; return 1; };
@@ -77,16 +77,17 @@ const partial=shells().find(o=>o.userData.shell==='satellites');assert.ok(Array.
 tick(3000);assert.deepEqual(stats(),[84,82,0,0]);assert.ok(stats()[0]>first);
 tick(2500);assert.ok(stats()[1]===200&&stats()[2]>0&&stats()[2]<176&&stats()[3]===0);
 tick(2000);assert.ok(stats()[3]>0&&stats()[3]<116);tick(2000);assert.deepEqual(stats(),[84,200,176,116]);tick(3000);assert.equal(host.dataset.cablesFull,'116');tick(2000);assert.equal(host.dataset.awakening,'complete');assert.equal(host.dataset.awakeningSeconds,'18.000');assert.equal(sea.material.uniforms.seaMotion.value,1);
-for(const shell of shells()){assert.equal(shell.geometry.drawRange.count,shell.geometry.getAttribute('position').count);const b=shell.geometry.getAttribute('brightness');for(let i=0;i<b.count;i+=9)assert.ok(Math.abs(b.getX(i)-({satellites:1.65,aircraft:1.75,ships:1.95}[shell.userData.shell]))<1e-6,'Family-specific head exposure');}
+for(const shell of shells()){assert.equal(shell.geometry.drawRange.count,shell.geometry.getAttribute('position').count);const b=shell.geometry.getAttribute('brightness');for(let i=0;i<b.count;i+=(shell.userData.shell==='aircraft'?24:9))assert.ok(Math.abs(b.getX(i)-({satellites:1.65,aircraft:1.75,ships:1.95}[shell.userData.shell]))<1e-6,'Family-specific head exposure');}
 assert.ok(AWAKENING.idleDegreesPerSecond/.65>=1.25&&AWAKENING.idleDegreesPerSecond/.65<=1.35);
 engine.replayGenesis();assert.equal(discoveries.at(-1),false);assert.ok(shells().every(o=>o.geometry.drawRange.count===0),'Replay clears shells synchronously');tick(10800);assert.equal(host.dataset.awakeningSeconds,'0.000');tick(2000);assert.deepEqual(stats(),[0,0,0,0]);
 // Hidden pages freeze this clock, rather than waking straight into all layers.
 document.hidden=true;visibilityCallback();assert.equal(frame,null);clock+=60000;document.hidden=false;visibilityCallback();tick(100);assert.equal(host.dataset.awakeningSeconds,'2.100');
 // Pointer-driven rotation remains responsive without resolving the sequence.
 const pose=rendered.camera.position.clone();engine.rotate(15,3);tick(100);assert.ok(rendered.camera.position.distanceTo(pose)>.01);assert.deepEqual(stats(),[0,0,0,0]);
-engine.configure({...opts,motion:false});tick();assert.equal(host.dataset.awakening,'complete');assert.deepEqual(stats(),[84,200,176,116]);for(const o of shells()){const b=o.geometry.getAttribute('brightness');for(let i=0;i<b.count;i++)if(i%9)assert.equal(b.getX(i),0);}
+engine.configure({...opts,motion:false});tick();assert.equal(host.dataset.awakening,'complete');assert.deepEqual(stats(),[84,200,176,116]);for(const o of shells()){const b=o.geometry.getAttribute('brightness'),stride=o.userData.shell==='aircraft'?24:9;assert.ok(Array.from(b.array).some((value,i)=>i%stride&&value>0),'Pause preserves an already-visible trail');}
+reducedMotion=true;engine.configure({...opts,motion:false});tick();for(const o of shells()){const b=o.geometry.getAttribute('brightness'),stride=o.userData.shell==='aircraft'?24:9;for(let i=0;i<b.count;i++)if(i%stride)assert.equal(b.getX(i),0,'Reduced motion keeps static heads');}
 tick();tick();const paused=renders;tick(1000);assert.equal(renders,paused,'Static state stops expensive rendering');
-engine.configure(opts);engine.replayGenesis();tick(10800);
+reducedMotion=false;engine.configure(opts);engine.replayGenesis();tick(10800);
 const early=engine.command({type:'flyTo',targetId:'challenger-deep'});for(let i=0;i<8;i++)await Promise.resolve();assert.equal(stages.at(-1),'ascending','Early destination immediately owns camera');assert.equal(Number(host.dataset.worldCommandQueueMs),0);tick(1200);assert.equal(host.dataset.awakening,'complete');tick(5600);await Promise.resolve();assert.equal((await early).ok,true);
 // A replay invalidates both an active flight and old queued commands.
 const active=engine.command({type:'resetView'}),queued=engine.command({type:'flyTo',targetId:'challenger-deep'});for(let i=0;i<8;i++)await Promise.resolve();tick(100);engine.replayGenesis();assert.equal((await active).ok,false);assert.equal((await queued).ok,false);tick(10800);assert.equal(engine.worldState().targetId,null);assert.equal(host.dataset.awakeningSeconds,'0.000');

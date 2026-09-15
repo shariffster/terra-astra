@@ -55,6 +55,7 @@ export function catalogueTargetIdInQuestion(question: string): 'singapore' | 'ne
 function requestedLayer(text: string): WorldLayer | null {
   if (/\b(?:satellites?|orbital objects?)\b/.test(text)) return 'satellites';
   if (/\b(?:aircraft|airplanes?|aeroplanes?|planes?|flights?)\b/.test(text)) return 'aircraft';
+  if (/\b(?:undersea|subsea|submarine) cables?\b/.test(text)) return 'cables';
   if (/\b(?:ships?|vessels?)\b/.test(text)) return 'ships';
   if (/\b(?:urban|traffic|city activity|street activity)\b/.test(text)) return 'urban';
   return null;
@@ -73,6 +74,7 @@ function layerContext(layer: WorldLayer, hasPlaceLanguage: boolean): string {
     satellites: 'The orbital layer shows objects moving around Earth.',
     aircraft: 'The aircraft layer shows air movements across Earth.',
     ships: 'The shipping layer shows movements across the oceans.',
+    cables: 'The cable layer shows undersea connections and passing signals.',
     urban: 'The city layer reveals activity along the streets.',
   };
   const limitation = hasPlaceLanguage && layer !== 'urban'

@@ -1,7 +1,21 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.11';
+export const currentVersion = '0.10.12';
 
 export const releases = [
+  {
+    version: '0.10.12',
+    date: '2026-09-16',
+    dateLabel: '16 September 2026',
+    title: 'Quiet pathways, passing light',
+    milestone: 'Calm Earth · People’s Choice Lab',
+    changes: [
+      'Flights follow steady cruise corridors above the sculpted terrain. Their quiet pathways, brighter heads and short trails stay together through every turn.',
+      'Shipping lanes curve through their ocean waypoints. Sea and cable branches gather smoothly at shared hubs, with restrained resting light and brighter passing travellers.',
+      'Choose flights, ships, cables and satellites independently, or separate pathways from travellers. Activity returns in staggered groups over a few seconds; satellites retain no visible tracks.',
+      'Night lights brings the sourced 2016 NASA pattern forward while transport gently recedes. Keep activity if desired, or return to Living Earth with previous choices intact.',
+    ],
+    review: 'Routes, cruise heights, waiting vessels and activity remain illustrative, not live tracking or navigation guidance. Two narrow straits and the surface canals remain schematic. Night-light brightness is not population. Population, road-density and human-footprint lenses await suitable sourced data. Earlier releases and canonical v0.10.8 are preserved.',
+  },
   {
     version: '0.10.11',
     date: '2026-09-16',

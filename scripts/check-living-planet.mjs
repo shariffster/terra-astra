@@ -29,4 +29,4 @@ for(const path of seaLanePaths)for(let i=0;i<SEA_LANE_PARTICLES;i++){
  assert.ok(light>=0&&light<=.42&&Array.from(a).every(Number.isFinite));
  assert.ok(Math.abs(Math.hypot(...a)-path.radius)<1e-12,'Marine flow remains surface seated');
 }
-console.log('PASS living planet: 84 shared lane/vessel structures, bounded deterministic flow, seafloor < cable < surface in all depth modes, planet/region exposure and complete local fade.');
+console.log('PASS living planet: 86 shared lane/vessel structures, bounded deterministic flow, seafloor < cable < surface in all depth modes, planet/region exposure and complete local fade.');
