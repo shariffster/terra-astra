@@ -57,6 +57,6 @@ for(const kind of ['pathways','travellers','focus']){
  gates.set(false,10,true);assert.ok(gates.values.every(x=>x===0));gates.set(true,10,true);assert.ok(gates.values.every(x=>x===1));
 }
 assert.deepEqual(validateWorldCommand({type:'setPresentation',presentation:{focus:'night-lights',pathways:false}}),{type:'setPresentation',presentation:{focus:'night-lights',pathways:false}});
-for(const p of [{focus:'population'},{pathways:'false'},{camera:2},[],{}])assert.equal(validateWorldCommand({type:'setPresentation',presentation:p}),null);
+for(const p of [{focus:'unknown'},{pathways:'false'},{camera:2},[],{}])assert.equal(validateWorldCommand({type:'setPresentation',presentation:p}),null);
 assert.equal(validateWorldCommand({type:'focusLayer',layer:'cables',enabled:false}).layer,'cables');
 console.log(JSON.stringify({result:'PASS',flightCorridors:paths.length,flightSamples,minClearance,maxCruise,seaRoutes:sea.length,seaSamples,tangentJoins:joins,roundedSeaCorners:sea.reduce((n,p)=>n+p.cornerCount,0),transitionChecks:'interruption, return, reduced motion, bounded completion'}));

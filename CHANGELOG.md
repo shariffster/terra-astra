@@ -2,6 +2,17 @@
 
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
+
+## v0.10.13 — Living composition · 16 September 2026
+
+- Extend exact v0.10.12 `41b46ba184c2efb6d0acee1a34982423d5b96e47` in `people-choice/v0.10.13-composition`. Publish only to the existing People's Choice Lab; preserve earlier releases, canonical v0.10.8, archive and Maker's Mark.
+- Replace the centred light dialog and separate layer panel with one unobstructed Light / Layers / Saved surface. Add precise numeric inputs, granular light/colour/strand/traveller controls, responsive live framing and clear lens state.
+- Add validated, versioned browser-local last-view and named compositions with export/import, copy/paste and removal undo. Invalid or unavailable imports preserve the current view; blocked storage offers file export.
+- Add 60,000 population and 72,000 footprint source samples from GPWv4 Revision 11 (2020 estimates, CC BY 4.0) and the original Venter et al. Human Footprint (2009, CC0). These are historical artistic particle fields, with dates and provenance. No urban population circles or opaque raster overlays.
+- Broaden marine bend fillets and hub tangents; retain seabed clearance through smoother depth envelopes. Add bounded, water-constrained visual strands within the same 116 cable and 86 sea corridors. Regional branches recede at distance, and additional detail remains within existing colour families.
+- Improve selected-place label priority, adaptive regional Horizon framing and restrained Cutaway light. Add a Connections lens and a regional study action. Preserve flight geometry, family identities, staggered activation, pause/reduced motion and the existing sound system.
+- See `docs/COMPOSITION-V01013.md` for source transformations, verification and limits. Publication identities are recorded separately after successful native deployment.
+
 ## v0.10.12 — Calm Earth · 16 September 2026
 
 - Extend preserved v0.10.11 `e915b4d53891d97fdca01dd1e9938708eff4d946` in `people-choice/v0.10.12-calm-earth`; existing People's Choice Lab only.

@@ -1,7 +1,21 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.12';
+export const currentVersion = '0.10.13';
 
 export const releases = [
+  {
+    version: '0.10.13',
+    date: '2026-09-16',
+    dateLabel: '16 September 2026',
+    title: 'Earth, to your liking',
+    milestone: 'Living composition · People’s Choice Lab',
+    changes: [
+      'Tune light and layers beside a fully visible Earth. Precise sliders and editable values control glow, shimmer, night lights, colour, pathway richness and passing activity.',
+      'Save named compositions in this browser, restore the last view, or export, import and copy exact settings to carry them elsewhere.',
+      'Historical population and human-footprint grids become restrained blue and violet particles beneath the white-gold foundation. Bring either field forward, study night lights or follow illustrated connections.',
+      'Broader marine bends and shared approaches gather fine strands into calmer branches. Coastal depth transitions soften, distant routes recede, and regional labels and Horizon framing become clearer.',
+    ],
+    review: 'Population uses GPWv4 2020 estimates; human footprint uses Venter et al. 2009. Both are artistically sampled, not current measurements or quantitative colour scales. Routes remain illustrative. Saved preferences stay in this browser unless exported. Earlier releases, canonical v0.10.8 and the archive are preserved. Phone viewport checks do not replace physical-device review.',
+  },
   {
     version: '0.10.12',
     date: '2026-09-16',

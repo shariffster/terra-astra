@@ -49,12 +49,12 @@ const engine = await createEarth(host, { querySelector: () => null }, {
 const tick=(ms=60)=>{clock+=ms;const next=frame;frame=null;assert.ok(next);next(clock);};
 
 engine.skipGenesis();
-const baseOptions={glow:1.15,shimmer:1.1,depth:true,threads:.55,density:.85,borders:false,motion:false};engine.configure(baseOptions);tick();
+const baseOptions={glow:1.15,shimmer:1.1,depth:true,threads:.55,density:.85,borders:false,motion:false,travellerVolume:1,airLight:1,seaLight:1,cableLight:1,orbitLight:1};engine.configure(baseOptions);tick();
 const objects=()=>{const result=[];rendered.scene.traverse(o=>{if(o instanceof THREE.Points)result.push(o);});return result;};
 assert.deepEqual(objects().filter(o=>o.userData.backgroundDepth).map(o=>o.userData.backgroundDepth).sort((a,b)=>a-b),[8,30],'Two faint physical background depths');assert.equal(engine.worldState().layers.ships,true,'Sea movement starts enabled');assert.ok(objects().some(o=>o.userData.seaBackbone),'Existing engine carries illustrated sea pulses');
 const shells=()=>objects().filter(o=>['satellites','aircraft'].includes(o.userData.shell));
 assert.equal(shells().length,2,'One orbital and one atmosphere shell');
-// Integration contract: dense visual populations remain unit acoustic activity.
+// Integration contract: at full traveller density, populations remain unit acoustic activity.
 const acoustic=engine.audioState();
 assert.deepEqual([acoustic.activity.satellites,acoustic.activity.aircraft,acoustic.activity.ships,acoustic.activity.network],[1,1,1,1]);
 assert.deepEqual(acoustic.world,engine.worldState());

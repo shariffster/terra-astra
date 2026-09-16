@@ -1,0 +1,42 @@
+{
+  "schema": "terra-astra-composition",
+  "version": 1,
+  "name": "Imported QA",
+  "light": {
+    "glow": 1.61,
+    "shimmer": 0,
+    "depth": true,
+    "threads": 0.55,
+    "density": 0.85,
+    "borders": false,
+    "motion": false,
+    "nightLights": 1.15,
+    "warmth": 0.65,
+    "oceanLight": 0.8,
+    "pathLight": 1,
+    "pathVolume": 0.85,
+    "travellerLight": 1,
+    "travellerVolume": 0.85,
+    "airLight": 0.9,
+    "seaLight": 1,
+    "cableLight": 0.85,
+    "orbitLight": 1,
+    "population": 0.4,
+    "footprint": 0.28,
+    "fieldDensity": 0.75,
+    "colour": 0.6
+  },
+  "presentation": {
+    "focus": "footprint",
+    "pathways": true,
+    "travellers": true,
+    "keepActivity": false
+  },
+  "layers": {
+    "satellites": true,
+    "aircraft": true,
+    "ships": false,
+    "cables": true,
+    "urban": true
+  }
+}

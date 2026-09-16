@@ -1,0 +1,45 @@
+{
+  "grid": [
+    2160,
+    1080
+  ],
+  "sampling": "Area-weighted seeded sampling; cell jitter, logarithmic population weights, positive footprint index weights; ETOPO ocean rejection. Density and brightness are artistic, not quantitative legends.",
+  "fields": {
+    "population": {
+      "particles": 60000,
+      "year": 2020,
+      "sha256": "0b26981e2f00ec76681481d04f4527c85da5cf409c7008fa9c9b1673839959fd",
+      "source": "https://data.naturalcapitalalliance.stanford.edu/download/global/ciesin-nasa-gpw-grdi/ciesen_nasa_gpw_v4_population_density_2020.tif",
+      "citation": "CIESIN (2018), GPWv4 Population Density Revision 11, 2020 estimates, NASA SEDAC. doi:10.7927/H49C6VHW",
+      "license": "CC BY 4.0",
+      "rawRange": [
+        0.0,
+        65281.140625
+      ],
+      "referenceCells": {
+        "Tokyo": 12736.991,
+        "Nile": 511.65,
+        "Sahara": 0.067,
+        "Amazon": 0.013
+      }
+    },
+    "footprint": {
+      "particles": 72000,
+      "year": 2009,
+      "sha256": "b5f033081adca29edfa181a7410a0feca0d8081d1a7c4a0c08d9f9c1fda47f16",
+      "source": "https://hii-v2-downloads.wcshumanfootprint.org/data/HFP2009.zip",
+      "citation": "Venter et al. (2016), Global terrestrial Human Footprint maps for 1993 and 2009. doi:10.5061/dryad.052q5",
+      "license": "CC0 (original Dryad dataset)",
+      "rawRange": [
+        0.0,
+        50.0
+      ],
+      "referenceCells": {
+        "Tokyo": 41.896,
+        "Nile": 20.631,
+        "Sahara": 1.456,
+        "Amazon": 1.0
+      }
+    }
+  }
+}

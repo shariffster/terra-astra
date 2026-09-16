@@ -3,7 +3,7 @@ import type { OpenWorldContext, PlaceResolution, ResolvedWorldTarget } from './o
 /** Serializable boundary for YC's Live navigator. Rendering stays inside the engine. */
 export type ScaleTier = 'planet' | 'region' | 'city' | 'street';
 export type WorldLayer = 'satellites' | 'aircraft' | 'ships' | 'cables' | 'urban';
-export type WorldPresentation = { focus: 'living' | 'night-lights'; pathways: boolean; travellers: boolean; keepActivity: boolean };
+export type WorldPresentation = { focus: 'living' | 'night-lights' | 'population' | 'footprint' | 'connections'; pathways: boolean; travellers: boolean; keepActivity: boolean };
 export const DEFAULT_PRESENTATION: WorldPresentation = Object.freeze({ focus: 'living', pathways: true, travellers: true, keepActivity: false });
 export type WorldCommand =
   | { type: 'flyTo'; targetId: string }
@@ -15,7 +15,7 @@ export type WorldCommand =
   | { type: 'resetView' };
 export type GenesisPhase = 'core' | 'compression' | 'ignition' | 'ejection' | 'capture' | 'settlement' | 'complete';
 export type GenesisState = Readonly<{ phase: GenesisPhase; progress: number; busy: boolean }>;
-export type WorldState = Readonly<{ targetId: string | null; tier: ScaleTier; busy: boolean; genesis: GenesisState; layers: Readonly<Record<WorldLayer, boolean>>; presentation?: WorldPresentation; resolvedTarget?:ResolvedWorldTarget; open?:OpenWorldContext; resolving?:boolean }>;
+export type WorldState = Readonly<{ targetId: string | null; tier: ScaleTier; busy: boolean; genesis: GenesisState; layers: Readonly<Record<WorldLayer, boolean>>; presentation?: WorldPresentation; humanFields?: 'ready' | 'unavailable'; resolvedTarget?:ResolvedWorldTarget; open?:OpenWorldContext; resolving?:boolean }>;
 export type WorldCommandResult = Readonly<{ ok: boolean; command: WorldCommand; reason?: string; resolution?:PlaceResolution }>;
 export type WorldTarget = Readonly<{ id: string; label: string; lat: number; lon: number; tier: ScaleTier; detail: string }>;
 export const WORLD_TARGETS: readonly WorldTarget[] = Object.freeze(([
@@ -35,7 +35,7 @@ export function validateWorldCommand(input: unknown): WorldCommand | null {
   if(c.type==='setPresentation'&&c.presentation&&typeof c.presentation==='object'&&!Array.isArray(c.presentation)){
     const p=c.presentation as Record<string,unknown>,result:Partial<WorldPresentation>={};
     if(Object.keys(p).some(key=>!['focus','pathways','travellers','keepActivity'].includes(key)))return null;
-    if(p.focus!==undefined){if(p.focus!=='living'&&p.focus!=='night-lights')return null;result.focus=p.focus;}
+    if(p.focus!==undefined){if(!['living','night-lights','population','footprint','connections'].includes(p.focus as string))return null;result.focus=p.focus as WorldPresentation['focus'];}
     for(const key of ['pathways','travellers','keepActivity'] as const){if(p[key]!==undefined){if(typeof p[key]!=='boolean')return null;result[key]=p[key];}}
     return Object.keys(result).length?{type:'setPresentation',presentation:result}:null;
   }

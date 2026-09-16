@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.13 composition authority (16 September 2026)
+
+The user authorizes the approved composition refinements, sourced geographic particle richness, unobstructed precise live controls and saved shareable settings. Work only in `people-choice/v0.10.13-composition` from exact v0.10.12 `41b46ba184c2efb6d0acee1a34982423d5b96e47`. Preserve white-gold stars and NASA night lights; exclude urban population circles. Publish a verified new version to the existing People’s Choice Lab only. Keep all prior releases, canonical v0.10.8, archive and Maker’s Mark unchanged. Reference experiments remain read-only inspiration.
+
 ## v0.10.12 calm Earth authority (16 September 2026)
 
 The user approved the calm-motion concept and authorized implementation with iterative refinement. Work in `people-choice/v0.10.12-calm-earth` from accepted v0.10.11 `e915b4d53891d97fdca01dd1e9938708eff4d946`. Scope: smooth flight clearance, quiet shared lanes and particles, sea/cable junction continuity, independent layer controls, staggered transitions and a sourced night-light focus. Publish only to the existing People's Choice Lab after meaningful functional and rendered verification. Population, road-density and footprint studies require separate sourced data; do not publish synthetic fields as measurements. Preserve all previous releases, canonical v0.10.8, the archive and Maker’s Mark.

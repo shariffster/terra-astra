@@ -294,3 +294,13 @@ html{color-scheme:dark}.story-sheet,.about-dialog,.tuning-dialog{scrollbar-width
 .geography-credit-short{display:none}
 @media(max-width:700px){.credits:has(.open-data-credit){font-size:11px}.credits:has(.open-data-credit) .geography-credit-long{display:none}.credits:has(.open-data-credit) .geography-credit-short{display:inline}.credits:has(.open-data-credit) .credit-links{max-width:none;justify-content:flex-start;gap:2px 14px}.experience:has(.open-world-context) .view-tools{top:auto;bottom:270px}}
 @media(max-width:700px){.experience:has(.open-data-credit) .journey-location{min-width:0;flex:1}.experience:has(.open-data-credit) .journey-location>div{min-width:0;flex:1}.experience:has(.open-data-credit) .journey-location .location-label{max-width:100%}.experience:has(.open-data-credit) .journey-bar>.journey-button{flex-shrink:0;max-width:60%;min-width:0}.experience:has(.open-data-credit) .journey-bar>.journey-button span{min-width:0;overflow:hidden;text-overflow:ellipsis}.experience:has(.open-data-credit) .journey-bar>.journey-button svg{flex-shrink:0}}
+
+/* Composition controls leave the live globe unobstructed; no backdrop. */
+.composing-earth .opening,.composing-earth .open-world-context,.composing-earth .terra-invitation,.composing-earth .journey-location{visibility:hidden;pointer-events:none}
+.active-earth-lens{position:absolute;top:84px;right:32px;background:#061019cc;border:1px solid #526573;color:#e9d7b3;border-radius:3px;padding:7px 11px;font:12px/1.4 Arial,sans-serif;z-index:15;cursor:pointer}
+.open-selected .marker-label{color:#f2dfb8;font-size:14px;background:#03070baa;padding:4px 7px;border-radius:3px}.open-selected{z-index:5}
+@media(max-width:700px){.composing-earth .journey-bar,.composing-earth .credits,.composing-earth .scale-navigation{visibility:hidden}.composing-earth .view-tools{top:105px!important;bottom:auto!important}.composing-earth .active-earth-lens{top:75px;right:18px}.active-earth-lens{top:80px;right:18px;font-size:11px}.open-selected .marker-label{font-size:12px}}
+
+.composing-earth [data-astra-panel]:not([data-live=true]){visibility:hidden;pointer-events:none}
+.composing-earth [data-astra-panel][data-live=true]{left:auto;right:100px;top:90px;bottom:auto}
+.connection-study{font-size:13px;margin-bottom:14px}

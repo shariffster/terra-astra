@@ -64,7 +64,7 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
     let constrainedCorners=0;
     for(let i=1;i<nodes.length-1;i++) {
       const a=nodes[i-1], b=nodes[i], c=nodes[i+1], incoming=angle(a,b), outgoing=angle(b,c);
-      let trim=Math.min(incoming*.28,outgoing*.28,.055), accepted: CableCurvePiece|undefined;
+      let trim=Math.min(incoming*.46,outgoing*.46,.16), accepted: CableCurvePiece|undefined;
       for(let attempt=0;attempt<18;attempt++) {
         const piece={a:arc(a,b,1-trim/incoming),control:b,b:arc(b,c,trim/outgoing)};
         if(Array.from({length:257},(_,k)=>water(sampleCablePiece(piece,k/256),elevation,!!surfaceRadius)).every(Boolean)) { accepted=piece; if(attempt)constrainedCorners++; break; }
@@ -83,7 +83,7 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
       const piece=end?pieces[pieces.length-1]:pieces[0],hub=end?piece.b:piece.a,other=end?piece.a:piece.b;
       const axis=hubAxes.get(JSON.stringify(path.waypoints[end?path.waypoints.length-1:0]));if(!axis)continue;
       const span=angle(hub,other),direction=norm(other.map((v,i)=>v-hub[i]*dot(hub,other)) as V),sign=dot(axis,direction)<0?-1:1;
-      let trim=Math.min(span*.42,.022),connector:CableCurvePiece|undefined;
+      let trim=Math.min(span*.72,.105),connector:CableCurvePiece|undefined;
       for(let attempt=0;attempt<18&&trim>1e-8;attempt++){
         const q=arc(hub,other,trim/span),c1=norm(hub.map((v,i)=>v+axis[i]*sign*trim/3) as V),c2=arc(hub,other,trim/span*2/3);
         const candidate:CableCurvePiece={a:hub,b:q,controls:[c1,c2]};
@@ -127,7 +127,7 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
     // coarse-grid cliffs. Every contributing bound includes the current floor,
     // so this can lift a strand gently but never bury it or cross the sea surface.
     // This is a visual depth envelope, not a measured cable burial depth.
-    const step=Math.min(.032,length/6),bins=Math.ceil(length/step)+4,bounds=new Float64Array(bins);
+    const step=Math.min(.055,length/6),bins=Math.ceil(length/step)+4,bounds=new Float64Array(bins);
     for(let j=0;j<bins;j++) {
       const centre=(j-1)*step;
       let high=0;
@@ -139,16 +139,16 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
       const cell=Math.floor(v/step),t=v/step-cell,t2=t*t,t3=t2*t;
       const weights=[(1-t)**3/6,(3*t3-6*t2+4)/6,(-3*t3+3*t2+3*t+1)/6,t3/6];
       const envelope=weights.reduce((n,w,j)=>n+w*bounds[Math.min(bins-1,cell+j)],0);
-      const edge=Math.min(1,v/step,(length-v)/step),blend=edge*edge*(3-2*edge);
-      const radius=radii[i]+Math.max(0,envelope-radii[i])*blend;
-      positions.set(points[i].map(x=>x*radius),i*3);
+      // Keep the smooth envelope through the endpoints as well. Blending back
+      // to raw terrain here reintroduced cliff-shaped dives near coastal hubs.
+      positions.set(points[i].map(x=>x*envelope),i*3);
     });
     return {id:path.id,positions,progress,distances,length,pieces,cornerCount:corners.size,constrainedCorners,offset};
   });
   if(!surfaceRadius){
     // Shared depth and zero radial slope at a junction remove vertical V joins.
     // Bounds only lift a path: the result stays above its sampled floor.
-    const reach=.018,heights=new Map<string,number>();
+    const reach=.045,heights=new Map<string,number>();
     prepared.forEach((p,i)=>{for(const end of [0,1]){const key=JSON.stringify(paths[i].waypoints[end?paths[i].waypoints.length-1:0]);let high=heights.get(key)??0;for(let k=0;k<p.distances.length;k++)if((end?p.length-p.distances[k]:p.distances[k])<=Math.min(reach,p.length/3))high=Math.max(high,Math.hypot(...p.positions.subarray(k*3,k*3+3)));heights.set(key,high);}});
     prepared.forEach((p,i)=>{for(let k=0;k<p.distances.length;k++){
       const radius=Math.hypot(...p.positions.subarray(k*3,k*3+3));let target=radius;
@@ -167,4 +167,45 @@ export function sampleSmoothCable(path: SmoothCable, progress: number, out: Outp
   while(lo+1<hi){const mid=(lo+hi)>>>1;if(path.distances[mid]<distance)lo=mid;else hi=mid;}
   const t=(distance-path.distances[lo])/Math.max(1e-12,path.distances[hi]-path.distances[lo]);
   for(let j=0;j<3;j++)out[j]=path.positions[lo*3+j]+(path.positions[hi*3+j]-path.positions[lo*3+j])*t;
+}
+
+/** Additional visual strands follow the existing corridors; they are not new
+ * cables. Their lateral offset and derivative vanish at the shared hubs.
+ * Reject offsets on land using the same water mask as the parent geometry. */
+export function marineStrands(paths: readonly SmoothCable[], elevation: Elevation, surface = false) {
+ const result: {positions:Float32Array;progress:Float32Array;sourceIndex:number;strand:number}[]=[];
+ paths.forEach((path,sourceIndex)=>{
+  result.push({...path,sourceIndex,strand:0});
+  if(path.length<.08)return;
+  const count=path.progress.length,units=new Float64Array(count*3),normals=new Float64Array(count*3),radii=new Float64Array(count),tapers=new Float64Array(count);
+  // Prepare each tangent once. Offset retries only sample the water constraint;
+  // they do not repeatedly allocate vectors or rebuild the same cross products.
+  for(let k=0;k<count;k++){
+   const i=k*3,p=path.positions,r=Math.hypot(p[i],p[i+1],p[i+2]);radii[k]=r;
+   const x=p[i]/r,y=p[i+1]/r,z=p[i+2]/r;units.set([x,y,z],i);
+   const a=Math.max(0,k-1)*3,b=Math.min(count-1,k+1)*3;
+   const tx=p[b]-p[a],ty=p[b+1]-p[a+1],tz=p[b+2]-p[a+2];
+   const nx=y*tz-z*ty,ny=z*tx-x*tz,nz=x*ty-y*tx,n=Math.max(1e-12,Math.hypot(nx,ny,nz));
+   normals.set([nx/n,ny/n,nz/n],i);tapers[k]=Math.sin(Math.PI*path.progress[k])**2;
+  }
+  for(const strand of [1,2,3,4]){
+   let offset=(strand%2?1:-1)*Math.ceil(strand/2)*.00125;
+   const candidate=new Float32Array(path.positions.length);
+   const form=()=>{
+    for(let k=0;k<count;k++){
+     const i=k*3,t=offset*tapers[k],x=units[i]+normals[i]*t,y=units[i+1]+normals[i+1]*t,z=units[i+2]+normals[i+2]*t,n=Math.hypot(x,y,z);
+     const q:V=[x/n,y/n,z/n];if(!water(q,elevation,surface))return false;
+     const [lon,lat]=coordinates(q);if(!surface&&networkRadius(elevation(lon,lat))>radii[k]+.000002)return false;
+     candidate.set([q[0]*radii[k],q[1]*radii[k],q[2]*radii[k]],i);
+    }
+    return true;
+   };
+   let accepted=false;
+   for(let retry=0;retry<=10&&Math.abs(offset)>.00008;retry++){
+    if(form()){accepted=true;break;}offset*=.5;
+   }
+   if(accepted)result.push({positions:candidate,progress:path.progress,sourceIndex,strand});
+  }
+ });
+ return result;
 }
