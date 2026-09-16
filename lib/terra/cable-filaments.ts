@@ -65,7 +65,8 @@ void main(){
   float strandGate=smoothstep(routeStrand*.18,routeStrand*.18+.20,richness);
   float grazing=mix(.25,1.0,smoothstep(.03,.6,dot(normalize(world),normalize(cameraPosition-world))));
   float hierarchy=routeStrand<.5?1.0:.34;
-  vLight=route.z*mix(routeImportance,1.0,regionMix)*strandGate*hierarchy*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
+  float junction=pathKind>1.5?1.0:mix(.48,1.0,smoothstep(0.0,.035,min(route.x,1.0-route.x)));
+  vLight=route.z*mix(routeImportance,1.0,regionMix)*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
 }`;
 export const cableFilamentFragment=`
 uniform vec3 tint;uniform float opacity;uniform float glow;uniform float regionMix;uniform float pathKind;

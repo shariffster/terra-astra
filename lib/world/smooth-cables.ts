@@ -5,7 +5,7 @@ import { networkRadius } from '../terra/living-material';
 type V = [number, number, number];
 type Output = { [index: number]: number };
 type Elevation = (lon: number, lat: number) => number;
-export type CableCurvePiece = { a: V; b: V; control?: V; controls?: [V,V] };
+export type CableCurvePiece = { a: V; b: V; control?: V; controls?: V[] };
 export type SmoothCable = {
   id: string; positions: Float32Array; progress: Float32Array;
   distances: Float64Array; length: number; pieces: CableCurvePiece[];
@@ -24,7 +24,7 @@ function arc(a: V, b: V, t: number): V {
   return a.map((v,i) => v*x+b[i]*y) as V;
 }
 export function sampleCablePiece(piece: CableCurvePiece, t: number): V {
-  if(piece.controls){const u=1-t;return norm(piece.a.map((v,i)=>u*u*u*v+3*u*u*t*piece.controls![0][i]+3*u*t*t*piece.controls![1][i]+t*t*t*piece.b[i]) as V);}
+  if(piece.controls){let points=[piece.a,...piece.controls,piece.b];while(points.length>1)points=points.slice(0,-1).map((p,i)=>mix(p,points[i+1],t));return norm(points[0]);}
   return piece.control ? norm(mix(mix(piece.a,piece.control,t),mix(piece.control,piece.b,t),t)) : arc(piece.a,piece.b,t);
 }
 const coordinates = (p: V) => [Math.atan2(p[0],p[2])/R, Math.atan2(p[1],Math.hypot(p[0],p[2]))/R];
@@ -83,13 +83,17 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
       const piece=end?pieces[pieces.length-1]:pieces[0],hub=end?piece.b:piece.a,other=end?piece.a:piece.b;
       const axis=hubAxes.get(JSON.stringify(path.waypoints[end?path.waypoints.length-1:0]));if(!axis)continue;
       const span=angle(hub,other),direction=norm(other.map((v,i)=>v-hub[i]*dot(hub,other)) as V),sign=dot(axis,direction)<0?-1:1;
-      let trim=Math.min(span*.72,.105),connector:CableCurvePiece|undefined;
+      let trim=Math.min(span*.82,.23),connector:CableCurvePiece|undefined;
       for(let attempt=0;attempt<18&&trim>1e-8;attempt++){
-        const q=arc(hub,other,trim/span),c1=norm(hub.map((v,i)=>v+axis[i]*sign*trim/3) as V),c2=arc(hub,other,trim/span*2/3);
-        const candidate:CableCurvePiece={a:hub,b:q,controls:[c1,c2]};
+        // Two controls follow the common axis before separating. Matching the
+        // first two and last two controls to each great-circle plane removes
+        // the abrupt curvature change of the old cubic starburst.
+        const q=arc(hub,other,trim/span);
+        const along=(distance:number)=>norm(hub.map((v,i)=>v*Math.cos(distance)+axis[i]*sign*Math.sin(distance)) as V);
+        const candidate:CableCurvePiece={a:hub,b:q,controls:[along(trim*.20),along(trim*.40),arc(hub,other,trim/span*.60),arc(hub,other,trim/span*.80)]};
         if(Array.from({length:129},(_,k)=>water(sampleCablePiece(candidate,k/128),elevation,!!surfaceRadius)).every(Boolean)){connector=candidate;break;}trim*=.5;
       }
-      if(connector){if(end){piece.b=connector.b;pieces.push({a:connector.b,b:connector.a,controls:[connector.controls![1],connector.controls![0]]});}else{piece.a=connector.b;pieces.unshift(connector);}}
+      if(connector){if(end){piece.b=connector.b;pieces.push({a:connector.b,b:connector.a,controls:[...connector.controls!].reverse()});}else{piece.a=connector.b;pieces.unshift(connector);}}
     }
     const samples: V[]=[];
     for(const piece of pieces) {

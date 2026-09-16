@@ -1,7 +1,22 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.13';
+export const currentVersion = '0.10.14';
 
 export const releases = [
+  {
+    version: '0.10.14',
+    date: '2026-09-16',
+    dateLabel: '16 September 2026',
+    title: 'Earth, among the stars',
+    milestone: 'Cosmic setting · People’s Choice Lab',
+    changes: [
+      'A sparse, steady distant sky places the white-gold Earth within a wider cosmos. Adjust its brightness independently, or return it to black.',
+      'Earth moves towards the centre when the opening narrative recedes, and makes room when composition controls open. Automatic orbiting rests while you tune.',
+      'Quiet, Balanced and Rich provide three starting arrangements of light and activity density. Hold to compare light with the settings from when you opened the panel; release to return to your edits.',
+      'Longer, curvature-matched marine approaches gather strands before they separate. Quieter junctions and stronger middle-brightness geographic texture refine the balance.',
+      'A saved-state indicator distinguishes the current composition from named saves. Earlier composition exports remain compatible.',
+    ],
+    review: 'The distant stars are illustrative, not an astronomical catalogue. Comparison previews light and density; it preserves the current camera, geographic lens and family switches. Named settings remain browser-local. Historical source dates, illustrative routes, prior releases, canonical v0.10.8 and the archive are preserved.',
+  },
   {
     version: '0.10.13',
     date: '2026-09-16',

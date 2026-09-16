@@ -3,10 +3,17 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {registerHooks} from 'node:module';
 registerHooks({resolve(s,c,n){return n(c.parentURL?.includes('/lib/')&&s.startsWith('.')&&!s.endsWith('.ts')?s+'.ts':s,c)}});
-const {composition,parseComposition,validateComposition,DEFAULT_LIGHT,LIGHT_RANGES}=await import('../lib/terra/composition.ts');
+const {composition,parseComposition,validateComposition,DEFAULT_LIGHT,LIGHT_RANGES,COMPOSITION_PRESETS,sameComposition}=await import('../lib/terra/composition.ts');
 const {DEFAULT_PRESENTATION,validateWorldCommand}=await import('../lib/world/commands.ts');
 const original=composition('My Earth',DEFAULT_LIGHT);
 assert.deepEqual(parseComposition(JSON.stringify(original)),original);
+const legacy=JSON.parse(JSON.stringify(original));delete legacy.light.skyLight;
+assert.equal(validateComposition(legacy).light.skyLight,DEFAULT_LIGHT.skyLight,'Previous exports gain the sky default');
+for(const light of Object.values(COMPOSITION_PRESETS))assert.ok(validateComposition(composition('Preset',light)));
+assert.ok(COMPOSITION_PRESETS.Quiet.pathVolume<COMPOSITION_PRESETS.Balanced.pathVolume&&COMPOSITION_PRESETS.Balanced.pathVolume<COMPOSITION_PRESETS.Rich.pathVolume);
+assert.ok(sameComposition(original,{...original,name:'Different name'}));
+assert.ok(!sameComposition(original,{...original,light:{...original.light,skyLight:0}}));
+
 for(const focus of ['living','night-lights','population','footprint','connections'])assert.ok(validateComposition({...original,presentation:{...DEFAULT_PRESENTATION,focus}}));
 for(const [key,[min,max]] of Object.entries(LIGHT_RANGES))for(const value of [null,'1',NaN,Infinity,min-.01,max+.01])assert.equal(validateComposition({...original,light:{...original.light,[key]:value}}),null);
 for(const input of ['{bad}', '{}','null','[]',' '.repeat(33000)])assert.equal(parseComposition(input),null);

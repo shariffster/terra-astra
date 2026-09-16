@@ -51,7 +51,17 @@ const tick=(ms=60)=>{clock+=ms;const next=frame;frame=null;assert.ok(next);next(
 engine.skipGenesis();
 const baseOptions={glow:1.15,shimmer:1.1,depth:true,threads:.55,density:.85,borders:false,motion:false,travellerVolume:1,airLight:1,seaLight:1,cableLight:1,orbitLight:1};engine.configure(baseOptions);tick();
 const objects=()=>{const result=[];rendered.scene.traverse(o=>{if(o instanceof THREE.Points)result.push(o);});return result;};
-assert.deepEqual(objects().filter(o=>o.userData.backgroundDepth).map(o=>o.userData.backgroundDepth).sort((a,b)=>a-b),[8,30],'Two faint physical background depths');assert.equal(engine.worldState().layers.ships,true,'Sea movement starts enabled');assert.ok(objects().some(o=>o.userData.seaBackbone),'Existing engine carries illustrated sea pulses');
+assert.deepEqual(objects().filter(o=>o.userData.backgroundDepth).map(o=>o.userData.backgroundDepth).sort((a,b)=>a-b),[36,42,48],'Three distant background shells');assert.equal(engine.worldState().layers.ships,true,'Sea movement starts enabled');assert.ok(objects().some(o=>o.userData.seaBackbone),'Existing engine carries illustrated sea pulses');
+const sky=()=>objects().filter(o=>o.userData.backgroundDepth);
+assert.equal(sky().reduce((n,o)=>n+o.geometry.getAttribute('position').count,0),4420,'Bounded distant field');
+assert.ok(sky().every(o=>o.material.uniforms.sparkle.value===0),'Distant stars remain steady');
+engine.narrativePanel(false);tick();assert.equal(rendered.camera.view.offsetX,0,'Earth recentres when the narrative leaves');
+engine.compositionPanel(true);tick();assert.ok(rendered.camera.view.offsetX<0,'Controls reserve left space');
+const comparisonCamera=rendered.camera.position.clone(),comparisonWorld=engine.worldState();
+const {DEFAULT_LIGHT}=await import('../lib/terra/composition.ts');engine.compareLight({...DEFAULT_LIGHT,motion:false,skyLight:0});tick();
+assert.ok(sky().every(o=>o.material.uniforms.opacity.value===0),'Comparison can restore a black sky');
+assert.deepEqual(engine.worldState(),comparisonWorld,'Light comparison never changes world choices');assert.deepEqual(rendered.camera.position,comparisonCamera,'Comparison preserves the camera');
+engine.compareLight(null);tick();assert.ok(sky().every(o=>o.material.uniforms.opacity.value>0),'Comparison release restores configured sky');engine.compositionPanel(false);engine.narrativePanel(true);tick();
 const shells=()=>objects().filter(o=>['satellites','aircraft'].includes(o.userData.shell));
 assert.equal(shells().length,2,'One orbital and one atmosphere shell');
 // Integration contract: at full traveller density, populations remain unit acoustic activity.

@@ -3,6 +3,16 @@
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
 
+## v0.10.14 — Earth, among the stars · 16 September 2026
+
+- Extend exact v0.10.13 `50e6f5cc6499b531854a43f236fae851968c9641` in `people-choice/v0.10.14-cosmic-setting`; People's Choice Lab only.
+- Add a seeded three-depth background of 4,420 small steady stars, mostly pearl with occasional warmer points. Independent distant-starlight intensity is saved/exported; missing values in earlier v1 exports migrate to the default. No new astronomical data claim.
+- Reframe Earth towards centre when the narrative is absent, retaining authored city/personal framing and responsive panel space. Hold idle orbit while composition controls are open.
+- Add Quiet/Balanced/Rich light presets, a reversible pointer/keyboard light comparison, and a named-save match indicator. Comparison does not change stored settings, lens, layer switches or camera. Blur, visibility change, cancellation and panel closure restore current light.
+- Replace cubic marine hub approaches with longer quintic curves whose first and last control pairs align with their adjoining great-circle planes. Preserve water checks, endpoints, depth envelopes, route identities, pauses and activity clocks. Attenuate additive junction overlap and hub points.
+- Lift the default population/footprint midtone contribution modestly while preserving white-gold night-light dominance. Existing saved preferences retain their exact values.
+- See `docs/COSMIC-SETTING-V01014.md` for verification and limitations; native publication receipts are recorded separately.
+
 ## v0.10.13 — Living composition · 16 September 2026
 
 - Extend exact v0.10.12 `41b46ba184c2efb6d0acee1a34982423d5b96e47` in `people-choice/v0.10.13-composition`. Publish only to the existing People's Choice Lab; preserve earlier releases, canonical v0.10.8, archive and Maker's Mark.
