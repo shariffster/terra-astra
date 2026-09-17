@@ -12,6 +12,15 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Restore satellite head size and brightness; add seeded, restrained distant-star shimmer with an independent saved control, static reduced-motion start and frozen pause.
 - See `docs/FLOW-HIERARCHY-V01017.md` for verification and limits. Earlier versions, canonical v0.10.8, the archive and Maker’s Mark are preserved.
 
+### Same-version follow-up — Individual families · 17 September 2026
+
+- At the user's explicit request, retain v0.10.17, the current branch and existing Site. Preserve the original annotated tag and saved milestone; this follow-up is a new ordinary source commit and native saved revision.
+- Separate pathways from travellers/pulses for all four families. Add full paths, local forward/fading-rear windows and tails-only, plus optional complete satellite orbits. Paths off hides every line and tail while retaining independently enabled heads.
+- Add 10–600 lights per family, route-even or illustrative connectivity/intensity-weighted allocation, light/tail/softness controls and independent local reach. The existing overall density multiplies each family's budget, capped at 600; only visible-side lights are on screen.
+- Keep the full network independent from moving populations. All travellers sample their visible prepared routes; rounded or tighter water-constrained marine bends and shared approaches can be tuned live. Softness changes tail edges without blurring the moving heads.
+- Add the user's proposed quieter mix as a one-click option. Integrate every setting into last-view restore, named saves, compare, import/export and legacy composition migration. Existing saved family and global switches remain respected.
+- See `docs/TRANSPORT-CONTROLS-V01017.md` for controls, data meaning, verification and limits.
+
 ## v0.10.16 — A wider web of light · 17 September 2026
 
 - Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.

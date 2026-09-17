@@ -39,7 +39,7 @@ function water(p: V, elevation: Elevation, surface = false) {
  * Shared cubic hub approaches align geographic tangents; cables also share a
  * bounded depth at each hub. A surface radius selects the shipping treatment.
  * These remain illustrations; rounding is not a new geographic data source. */
-export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elevation, surfaceRadius?: number): SmoothCable[] {
+export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elevation, surfaceRadius?: number, shape={bundle:1,roundness:1}): SmoothCable[] {
   const nodesFor=(path:CablePath):V[]=>path.waypoints.map(([lat,lon])=>[Math.cos(lat*R)*Math.sin(lon*R),Math.sin(lat*R),Math.cos(lat*R)*Math.cos(lon*R)]);
   const hubLinks=new Map<string,{normal:V;directions:{vector:V;weight:number;route:string;span:number}[]}>();
   paths.forEach(path=>{const nodes=nodesFor(path);for(const end of [0,nodes.length-1]){
@@ -58,9 +58,9 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
       if(bundle){bundle.links.push(link);bundle.axis=norm(bundle.links.reduce((sum,d)=>sum.map((v,j)=>v+d.vector[j]*d.weight) as V,[0,0,0] as V));}
       else bundles.push({axis:link.vector,links:[link]});
     }
-    for(const bundle of bundles){if(bundle.links.length<2)continue;
+    for(const bundle of bundles){if(bundle.links.length<2||shape.bundle<=0)continue;
       const reach=Math.min(.30,...bundle.links.map(d=>d.span*.48));
-      for(const link of bundle.links)hubAxes.set(link.route,{axis:bundle.axis,reach});
+      for(const link of bundle.links)hubAxes.set(link.route,{axis:norm(mix(link.vector,bundle.axis,shape.bundle)),reach:reach*shape.bundle});
     }
   }
   const groups = new Map<string, number[]>();
@@ -71,7 +71,7 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
     let constrainedCorners=0;
     for(let i=1;i<nodes.length-1;i++) {
       const a=nodes[i-1], b=nodes[i], c=nodes[i+1], incoming=angle(a,b), outgoing=angle(b,c);
-      let trim=Math.min(incoming*.46,outgoing*.46,.16), accepted: CableCurvePiece|undefined;
+      let trim=Math.min(incoming*.46,outgoing*.46,.16)*(.02+.98*shape.roundness), accepted: CableCurvePiece|undefined;
       for(let attempt=0;attempt<18;attempt++) {
         const piece={a:arc(a,b,1-trim/incoming),control:b,b:arc(b,c,trim/outgoing)};
         if(Array.from({length:257},(_,k)=>water(sampleCablePiece(piece,k/256),elevation,!!surfaceRadius)).every(Boolean)) { accepted=piece; if(attempt)constrainedCorners++; break; }

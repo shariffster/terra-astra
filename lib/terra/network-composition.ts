@@ -39,7 +39,7 @@ export function networkImportance(paths:readonly Path[],sources:readonly Source[
  * is artistic edge bundling, not flown geometry. Endpoints and endpoint tangents
  * stay fixed; a bounded spherical displacement gathers only compatible pairs.
  * Original moving aircraft corridors are deliberately outside this function. */
-export function gatherAirCorridors<T extends FlightPath>(paths:readonly T[],elevation:(lon:number,lat:number)=>number):T[] {
+export function gatherAirCorridors<T extends FlightPath>(paths:readonly T[],elevation:(lon:number,lat:number)=>number,amount=1,roundness=1):T[] {
  const result=paths.map(p=>({...p,positions:p.positions.slice()}));
  for(const group of corridorGroups(paths).values()){
   if(group.length<3)continue;
@@ -50,7 +50,8 @@ export function gatherAirCorridors<T extends FlightPath>(paths:readonly T[],elev
    for(let k=0;k<p.progress.length;k++){
     const t=p.progress[k],original=unit(Array.from(paths[index].positions.subarray(k*3,k*3+3)) as Point),centre=arc(a,b,reverse?1-t:t);
     const displacement=Math.acos(Math.max(-1,Math.min(1,dot(original,centre))));
-    const blend=.88*smooth(t/.24)*smooth((1-t)/.24)*Math.min(1,.045/Math.max(.000001,displacement));
+    const taper=(x:number)=>smooth(x)*roundness+Math.max(0,Math.min(1,x))*(1-roundness);
+    const blend=.88*amount*taper(t/.24)*taper((1-t)/.24)*Math.min(1,.045/Math.max(.000001,displacement));
     const q=arc(original,centre,blend);p.positions.set(q.map(x=>x*p.radius),k*3);
     const lon=Math.atan2(q[0],q[2])*180/Math.PI,lat=Math.asin(Math.max(-1,Math.min(1,q[1])))*180/Math.PI;
     relief=Math.max(relief,reliefRadius(Math.max(0,elevation(lon,lat))+160)-1);

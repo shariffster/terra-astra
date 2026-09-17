@@ -1,3 +1,4 @@
+import { cloneTransport, validateTransport, sameTransport, type TransportOptions } from './transport';
 import { DEFAULT_PRESENTATION, validateWorldCommand, type WorldPresentation, type WorldLayer } from '../world/commands';
 
 export const LIGHT_RANGES = {
@@ -8,9 +9,9 @@ export const LIGHT_RANGES = {
  population: [0, 1.5, .01], footprint: [0, 1.5, .01], fieldDensity: [.1, 1, .01], colour: [0, 1, .01],
 } as const;
 export type LightNumber = keyof typeof LIGHT_RANGES;
-export type LightOptions = Record<LightNumber, number> & { depth: boolean; borders: boolean; motion: boolean };
+export type LightOptions = Record<LightNumber, number> & { depth: boolean; borders: boolean; motion: boolean; transport: TransportOptions };
 export const DEFAULT_LIGHT: LightOptions = Object.freeze({
- skyLight: .7, skyShimmer: .75, skyDust: 0, glow: 1.15, shimmer: 1.1, depth: true, threads: .55, density: .85, borders: false, motion: true,
+ transport: cloneTransport(), skyLight: .7, skyShimmer: .75, skyDust: 0, glow: 1.15, shimmer: 1.1, depth: true, threads: .55, density: .85, borders: false, motion: true,
  nightLights: 1.15, warmth: .65, oceanLight: .8, pathLight: 1, pathVolume: .85, travellerLight: 1, travellerVolume: .85,
  airLight: .9, seaLight: 1, cableLight: .85, orbitLight: 1, population: .55, footprint: .38, fieldDensity: .75, colour: .6,
 });
@@ -19,7 +20,7 @@ export const COMPOSITION_STORAGE = 'terra-astra:composition:v1';
 export const SAVED_COMPOSITIONS = 'terra-astra:saved-compositions:v1';
 export const DEFAULT_LAYERS: Readonly<Record<WorldLayer,boolean>> = Object.freeze({ satellites: true, aircraft: true, ships: true, cables: true, urban: true });
 export function composition(name: string, light: LightOptions, presentation = DEFAULT_PRESENTATION, layers: Readonly<Record<WorldLayer,boolean>> = DEFAULT_LAYERS): Composition {
- return { schema: 'terra-astra-composition', version: 1, name: name.trim().slice(0, 60) || 'My Earth', light: {...light}, presentation: {...presentation}, layers: {...layers} };
+ return { schema: 'terra-astra-composition', version: 1, name: name.trim().slice(0, 60) || 'My Earth', light: {...light,transport:cloneTransport(light.transport)}, presentation: {...presentation}, layers: {...layers} };
 }
 export function validateComposition(value: unknown): Composition | null {
  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -33,6 +34,7 @@ export function validateComposition(value: unknown): Composition | null {
   clean[key] = Math.round(v * 100) / 100;
  }
  for(const key of ['motion','borders','depth'] as const) { if(typeof light[key] !== 'boolean') return null; clean[key] = light[key]; }
+ const transport=validateTransport(light.transport);if(!transport)return null;clean.transport=transport;
  const presentation = validateWorldCommand({type:'setPresentation',presentation:c.presentation});
  if(presentation?.type !== 'setPresentation' || Object.keys(presentation.presentation).length !== Object.keys(DEFAULT_PRESENTATION).length) return null;
  const safeLayers = {...DEFAULT_LAYERS};
@@ -48,7 +50,7 @@ export const COMPOSITION_PRESETS: Record<'Quiet'|'Balanced'|'Rich', LightOptions
  Rich: {...DEFAULT_LIGHT, glow: 1.24, shimmer: 1.05, density: .94, nightLights: 1.24, population: .85, footprint: .62, fieldDensity: .95, colour: .62, pathLight: 1.08, pathVolume: 1, travellerVolume: .9, skyLight: .9},
 };
 export function sameComposition(a: Composition, b: Composition) {
- return (Object.keys(DEFAULT_LIGHT) as (keyof LightOptions)[]).every(k=>a.light[k]===b.light[k]) &&
+ return (Object.keys(DEFAULT_LIGHT) as (keyof LightOptions)[]).every(k=>k==='transport'?sameTransport(a.light.transport,b.light.transport):a.light[k]===b.light[k]) &&
  Object.keys(DEFAULT_PRESENTATION).every(k=>a.presentation[k as keyof WorldPresentation]===b.presentation[k as keyof WorldPresentation]) &&
  (Object.keys(DEFAULT_LAYERS) as WorldLayer[]).every(k=>a.layers[k]===b.layers[k]);
 }

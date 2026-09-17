@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.17 family controls follow-up authority (17 September 2026)
+
+The user explicitly requests extending this same version and Site. Continue on the current `people-choice/v0.10.17-flow-hierarchy` branch from `2389a625fce25c49f95ad0799173ae7efbd7f6b3`; keep the version badge and existing Site identity. Add independent per-family paths/travellers, path styles, orbit paths, counts, illustrative distribution and line/shape tuning. Preserve the original v0.10.17 tag and native milestone; record this follow-up in a new ordinary commit and saved Site revision without moving the tag or creating another semantic release. This explicit same-version instruction supersedes the general version-per-release rule below for this follow-up only. Lab publication remains authorized; canonical, archive and Maker's Mark stay unchanged.
+
 ## v0.10.17 flow hierarchy authority (17 September 2026)
 
 The user authorizes route hierarchy, compatible branching, geographic land structure and tighter controls, followed by restoring satellite presence and adding restrained distant-star shimmer. Work in `people-choice/v0.10.17-flow-hierarchy` from exact v0.10.16 `2ed8a38dddcc4164e31b6de097c04c22142236c6`. Preserve source records, airport endpoints, water constraints, white-gold identity and smooth motion. Validate comparable Pacific, Atlantic and Asia views. Publish only to the existing People’s Choice Lab; preserve earlier releases, canonical, archive and Maker’s Mark.

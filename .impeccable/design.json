@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-14T10:10:26.779253Z",
+  "generatedAt": "2026-09-17T12:42:01.890514Z",
   "title": "Design System: Terra Astra",
   "extensions": {
     "colorMeta": {
@@ -223,6 +223,11 @@
         "name": "generic-window-overlap",
         "value": "850ms",
         "purpose": "Run G renderer source-road window blend, implementation-documented; reduced motion reveals the endpoint. This is not a global UI timing token."
+      },
+      {
+        "name": "composition-panel-entrance",
+        "value": ".22s ease-out",
+        "purpose": "Existing composition panel entrance from 8px left with an opacity reveal; removed for reduced motion. Scoped to this panel."
       }
     ],
     "breakpoints": [
@@ -237,6 +242,10 @@
       {
         "name": "run-g-short-phone-height-at-phone-width",
         "value": "700px"
+      },
+      {
+        "name": "composition-narrow-desktop",
+        "value": "1000px"
       }
     ]
   },
@@ -305,11 +314,18 @@
       "description": "Run G Region context only: a settlement name and sourced distance form a compact destination row. The text list hides on phones.",
       "html": "<div class=\"ds-nearby\"><button>Ōtsu<span>11 km</span></button><button>Ōsaka<span>44 km</span></button></div>",
       "css": ".ds-nearby{display:flex;flex-direction:column;gap:0;margin-bottom:18px;max-width:235px}.ds-nearby button{background:transparent;border:0;border-bottom:1px solid #c6b79526;color:#d5d4c5;display:flex;gap:12px;justify-content:space-between;text-align:left;padding:10px 0;font:14px/1.3 Arial,sans-serif;min-height:38px;cursor:pointer}.ds-nearby button span{font-size:12px;color:#a9b9c4;white-space:nowrap}.ds-nearby button:hover{color:#fff0cc}.ds-nearby button:focus-visible{outline:2px solid #dfcda5;outline-offset:3px}@media(max-width:700px){.ds-nearby{display:none}}"
+    },
+    {
+      "name": "Individual transport family",
+      "kind": "custom",
+      "description": "v0.10.17 same-version extension: native family disclosure in the nonmodal composition panel. This excerpt shows the count/distribution hierarchy and recoverable legacy family intensity; runtime controls also include separate path/traveller switches, styles and route tuning.",
+      "html": "<section class=\"ds-transport-panel\"><details class=\"ds-transport-family\" open><summary><span>Flights</span><small>200 lights · Full pathway</small></summary><div class=\"ds-transport-heading\"><label for=\"ds-transport-count\">Traveller count</label><input id=\"ds-transport-count\" aria-label=\"Flights traveller count value\" type=\"number\" min=\"10\" max=\"600\" step=\"1\" value=\"200\"/></div><input class=\"ds-transport-range\" aria-label=\"Flights traveller count\" type=\"range\" min=\"10\" max=\"600\" value=\"200\" style=\"--ds-fill:32.2%\"/><p>Worldwide budget, before overall density and progressive arrival. The far side of Earth remains hidden.</p><label class=\"ds-transport-select-label\" for=\"ds-transport-distribution\">Distribution</label><select id=\"ds-transport-distribution\"><option>Even across routes</option><option selected>Busier hubs · illustrative</option></select><p>Hub weighting uses network connections and authored intensity, not measured or live traffic.</p><details class=\"ds-transport-fine\" open><summary>Light &amp; trail</summary><div class=\"ds-transport-heading\"><label for=\"ds-transport-light\">Flights family intensity</label><span><input id=\"ds-transport-light\" type=\"number\" min=\"0\" max=\"2\" step=\"0.01\" value=\"0.9\"/> ×</span></div><input class=\"ds-transport-range\" aria-label=\"Flights family intensity\" type=\"range\" min=\"0\" max=\"2\" step=\"0.01\" value=\"0.9\" style=\"--ds-fill:45%\"/><p>Overall light for this family, including earlier saved settings.</p></details></details></section>",
+      "css": ".ds-transport-panel{max-width:338px;padding:18px;color:#e9d7b3;background:#061019f7;border:1px solid #526573;border-radius:4px;font:14px/1.5 Arial,Helvetica,sans-serif}.ds-transport-family{border-top:1px solid #52657366;padding-top:10px}.ds-transport-family>summary{cursor:pointer;min-height:44px;padding:5px 0;margin-left:14px}.ds-transport-family small{display:block;color:#adbdc6;font-size:12px;line-height:1.5;margin-top:3px}.ds-transport-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 5px}.ds-transport-heading>span{white-space:nowrap;color:#adbdc6;font-size:12px}.ds-transport-panel input[type=number]{width:65px;padding:5px 4px;min-height:30px;text-align:right;font:13px Arial,Helvetica,sans-serif;font-variant-numeric:tabular-nums;border:1px solid #526573;border-radius:3px;background:#0b1721;color:#e8edf0;caret-color:#e9d7b3}.ds-transport-range{appearance:none;width:100%;height:24px;padding:0;border:0;background:transparent;cursor:pointer;accent-color:#e9d7b3}.ds-transport-range::-webkit-slider-runnable-track{height:3px;background:linear-gradient(to right,#c5b793 var(--ds-fill),#344b59 var(--ds-fill));border-radius:2px}.ds-transport-range::-webkit-slider-thumb{appearance:none;background:#e9d7b3;width:13px;height:13px;border-radius:50%;margin-top:-5px;box-shadow:0 0 0 4px #e9d7b310}.ds-transport-range::-moz-range-track{height:3px;background:linear-gradient(to right,#c5b793 var(--ds-fill),#344b59 var(--ds-fill))}.ds-transport-range::-moz-range-thumb{background:#e9d7b3;width:13px;height:13px;border:0;border-radius:50%}.ds-transport-panel p{font-size:12px;line-height:1.55;color:#adbdc6;margin:8px 0 0}.ds-transport-select-label{display:block;margin:12px 0 8px;color:#adbdc6;font-size:13px}.ds-transport-panel select{width:100%;min-height:38px;padding:9px;margin-bottom:14px;border:1px solid #526573;border-radius:3px;background:#0b1721;color:#e8edf0;font:inherit}.ds-transport-fine{margin:16px 0 8px;padding-top:4px;border-top:1px solid #52657366}.ds-transport-fine>summary{cursor:pointer;color:#adbdc6;font-size:14px;padding:7px 0}.ds-transport-panel :focus-visible{outline:2px solid #e9d7b3;outline-offset:3px}.ds-transport-panel :disabled{opacity:.55;cursor:default}@media(max-width:700px){.ds-transport-panel input[type=number],.ds-transport-panel select{font-size:16px}.ds-transport-range{height:29px}}"
     }
   ],
   "narrative": {
     "northStar": "Earth, constellated",
-    "overview": "Earth, constellated: a dark spatial experience in which geographic particles remain the main composition. Cool light describes the planet; warmer stars and fine connections carry human meaning. Generous darkness, restrained controls, and expressive serif phrases let the object lead.\n\nThis records the built system, not a proposed redesign. Ground truth is `app/globals.css`, `app/personal-constellation-form.module.css`, `app/terra-experience.tsx`, and the rendering code in `lib/terra/`. The desktop Astra, form, ending, and phone-width Astra/ending captures in `../demo-tooling/qa/` support the composition descriptions; their release badges are historical capture state.\n\nRun G preserves this incumbent world. Its generic named-place journey and current phone adaptations are scoped in [the Open Earth surface brief](.impeccable/surfaces/app-terra-experience-tsx.md). Earlier capture measurements below remain historical observations; the brief records the current cascade without replacing the personal or authored compositions. Source behavior and attribution remain in [the Run G implementation record](docs/PEOPLES-CHOICE-RUN-G.md).",
+    "overview": "Earth, constellated: a dark spatial experience in which geographic particles remain the main composition. Cool light describes the planet; warmer stars and fine connections carry human meaning. Generous darkness, restrained controls, and expressive serif phrases let the object lead.\n\nThis records the built system, not a proposed redesign. Ground truth is `app/globals.css`, `app/personal-constellation-form.module.css`, `app/terra-experience.tsx`, and the rendering code in `lib/terra/`. The desktop Astra, form, ending, and phone-width Astra/ending captures in `../demo-tooling/qa/` support the composition descriptions; their release badges are historical capture state.\n\nRun G preserves this incumbent world. Its generic named-place journey and current phone adaptations are scoped in [the Open Earth surface brief](.impeccable/surfaces/app-terra-experience-tsx.md). Earlier capture measurements below remain historical observations; the brief records the current cascade without replacing the personal or authored compositions. Source behavior and attribution remain in [the Run G implementation record](docs/PEOPLES-CHOICE-RUN-G.md).\n\nThe same-version v0.10.17 transport-controls extension retains the white-gold Earth and the existing Light / Layers / Saved panel. Its family disclosures, numeric tuning and responsive behavior are recorded in [the composition-controls surface brief](.impeccable/surfaces/app-composition-controls-tsx.md); behavior and verification limits are in [the transport-controls implementation record](docs/TRANSPORT-CONTROLS-V01017.md). This scoped documentation preserves the earlier design record.",
     "keyCharacteristics": [],
     "rules": [],
     "dos": [

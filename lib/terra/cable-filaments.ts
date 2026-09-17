@@ -41,6 +41,7 @@ export function cableFilamentGeometry(paths: readonly (Pick<SmoothCable,'positio
 export const cableFilamentVertex=`
 attribute vec3 previous;attribute vec3 next;attribute float side;attribute vec3 route;attribute float routeIndex;attribute float routeRelief;attribute float routeStrand;attribute float routeImportance;attribute float routeThreshold;attribute float routeExposure;
 uniform vec2 resolution;uniform float awakeningTime;uniform float motion;uniform float time;
+attribute float localLight;uniform float localPath;uniform float lineSoftness;
 uniform float pathKind;uniform sampler2D routeGate;uniform vec2 routeSize;uniform float drawDuration;uniform float fadeDuration;uniform float richness;
 uniform float regionMix;uniform vec3 regionFocus;uniform float regionOuter;uniform float regionInner;
 varying float vAcross;varying float vLight;varying float vImportance;
@@ -78,16 +79,34 @@ void main(){
   float screenDetail=smoothstep(380.0,1000.0,resolution.x);
   float screenHierarchy=mix(.38+.62*smoothstep(.25,1.4,routeImportance),1.0,screenDetail);
   float junction=mix(.28,1.0,smoothstep(0.0,pathKind>1.5?.09:.07,min(route.x,1.0-route.x)));
+  if(localPath>.5){vLight=localLight*front*(pathKind<.5?spatialVisibility(world):1.0)*focus;return;}
   vLight=screenHierarchy*route.z*routeExposure*mix(routeImportance,sqrt(routeImportance),regionMix)*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
 }`;
 export const cableFilamentFragment=`
-uniform vec3 tint;uniform float opacity;uniform float glow;uniform float regionMix;uniform float pathKind;
+uniform vec3 tint;uniform float opacity;uniform float glow;uniform float regionMix;uniform float pathKind;uniform float lineSoftness;
 varying float vAcross;varying float vLight;varying float vImportance;
 void main(){
-  float distance=abs(vAcross),aa=max(.35,fwidth(vAcross));
+  float distance=abs(vAcross),aa=max(mix(.18,.95,lineSoftness),fwidth(vAcross));
   float radius=(pathKind>1.5?mix(.13,.27,regionMix):mix(.19,.34,regionMix))*mix(.70,1.25,vImportance);
   float core=1.0-smoothstep(radius-aa*.5,radius+aa*.5,distance);
-  float halo=exp(-distance*distance*1.9)*.055*glow;
+  float halo=exp(-distance*distance*mix(3.5,1.0,lineSoftness))*mix(.01,.16,lineSoftness)*glow;
   float fade=1.0-smoothstep(1.65,2.2,distance);
   gl_FragColor=vec4(mix(tint,vec3(1.0),core*.10),(core*.60+halo)*fade*vLight*opacity);
 }`;
+
+/** Fixed-capacity strips for moving forward/rear windows: one draw call per
+ * family. Positions and endpoint neighbours are updated together. */
+export function movingPathGeometry(capacity:number,samples:number){
+ const g=new THREE.BufferGeometry(),count=capacity*samples*2;
+ for(const [name,size] of [['position',3],['previous',3],['next',3],['side',1],['route',3],['routeIndex',1],['routeRelief',1],['routeStrand',1],['routeImportance',1],['routeThreshold',1],['routeExposure',1],['localLight',1]] as const){
+  const a=new Float32Array(count*size);if(name==='routeImportance'||name==='routeExposure')a.fill(1);g.setAttribute(name,new THREE.BufferAttribute(a,size));
+ }
+ const sides=g.getAttribute('side');const indices=new Uint32Array(capacity*(samples-1)*6);let j=0;
+ for(let i=0;i<capacity;i++)for(let k=0;k<samples;k++){const n=(i*samples+k)*2;sides.setX(n,-1);sides.setX(n+1,1);if(k<samples-1){indices.set([n,n+1,n+2,n+1,n+3,n+2],j);j+=6;}}
+ g.setIndex(new THREE.BufferAttribute(indices,1));return g;
+}
+export function writeMovingPath(g:THREE.BufferGeometry,index:number,xyz:Float32Array,light:Float32Array){
+ const count=light.length,p=g.getAttribute('position'),a=g.getAttribute('previous'),b=g.getAttribute('next'),l=g.getAttribute('localLight');
+ for(let k=0;k<count;k++)for(let side=0;side<2;side++){const n=(index*count+k)*2+side,prev=Math.max(0,k-1)*3,next=Math.min(count-1,k+1)*3;
+ p.setXYZ(n,xyz[k*3],xyz[k*3+1],xyz[k*3+2]);a.setXYZ(n,xyz[prev],xyz[prev+1],xyz[prev+2]);b.setXYZ(n,xyz[next],xyz[next+1],xyz[next+2]);l.setX(n,light[k]);}
+}

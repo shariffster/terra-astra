@@ -53,6 +53,8 @@ This records the built system, not a proposed redesign. Ground truth is `app/glo
 
 Run G preserves this incumbent world. Its generic named-place journey and current phone adaptations are scoped in [the Open Earth surface brief](.impeccable/surfaces/app-terra-experience-tsx.md). Earlier capture measurements below remain historical observations; the brief records the current cascade without replacing the personal or authored compositions. Source behavior and attribution remain in [the Run G implementation record](docs/PEOPLES-CHOICE-RUN-G.md).
 
+The same-version v0.10.17 transport-controls extension retains the white-gold Earth and the existing Light / Layers / Saved panel. Its family disclosures, numeric tuning and responsive behavior are recorded in [the composition-controls surface brief](.impeccable/surfaces/app-composition-controls-tsx.md); behavior and verification limits are in [the transport-controls implementation record](docs/TRANSPORT-CONTROLS-V01017.md). This scoped documentation preserves the earlier design record.
+
 ## Colors
 
 **Primary — human light.** Human ink colors actions and personal content; display emphasis warms italic phrases. Personal stars and their threads are brighter focal accents. The night-light layer also carries warmth, so warmth is not an exclusive indicator of a selected place.
@@ -94,6 +96,8 @@ Actions and inputs are nearly rectangular with subtly softened corners; story an
 - **View rail and stage bar:** small functional icons and quiet orientation text frame the canvas. Preserve accessible names, visible focus, and existing disabled states during movement.
 
 - **Open Earth extension:** name search, generic place context and source disclosure use the existing material and type pairing. Their Region/City/Street composition and responsive exceptions belong to the Open Earth surface brief, not to global component rules.
+
+- **Individual transport families (v0.10.17 follow-up):** native expandable rows within Layers separate Flights, Ships, Undersea cables and Satellites. Each exposes independent pathways and travellers, a path-style selector, count and distribution; nested Light & trail and Route shape disclosures keep fine tuning out of the initial scan. Paired numeric fields and sliders use the existing warm focus outline, dark input surface, thin dividers and quiet explanatory text. The established nonmodal panel remains left on desktop and below Earth on phones. Family behavior, illustrative labels and reset boundaries are surface-specific.
 
 ## Do's and Don'ts
 

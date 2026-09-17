@@ -13,8 +13,10 @@ export const releases = [
       'Compatible marine approaches share their direction before separating. Ships and cable pulses continue to follow the prepared paths.',
       'Geographic light gains broader neighbourhoods and quieter gaps. The white-gold cities remain the foundation, with more compact live controls alongside Earth.',
       'Satellites regain their earlier size and brightness. A minority of distant stars shimmer gently on independent phases; tune Distant star shimmer separately or set it to zero.',
+      'Same-version follow-up: independently choose paths and travellers for each family. Try full routes, short forward and fading rear guides, or tails only; optional satellite orbits are available.',
+      'Tune 10–600 lights per family, distribution, tail length, softness and route gathering. Save the result, or start with the quieter mix.',
     ],
-    review: 'Network counts and source records are unchanged. Bundling and light hierarchy are artistic, not traffic measurements or flown tracks. Air data remains historical and marine paths illustrative. The sky is imagined; pause freezes its shimmer. Earlier settings remain compatible. Browser checks do not imply physical-device or subjective audio acceptance.',
+    review: 'Source network counts and records are unchanged; moving populations are now adjustable. Hub weighting estimates activity from connectivity and authored intensity, not measured traffic. Bundling and light hierarchy are artistic, not traffic measurements or flown tracks. Air data remains historical and marine paths illustrative. The sky is imagined; pause freezes its shimmer. Earlier settings remain compatible. Browser checks do not imply physical-device or subjective audio acceptance.',
   },
   {
     version: '0.10.16',

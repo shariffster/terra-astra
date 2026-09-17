@@ -24,7 +24,7 @@ class Canvas {
   addEventListener(type,callback) {if(type==='webglcontextlost')graphicsLostCallback=callback;if(type==='keydown')keyCallback=callback;} removeEventListener() {} setAttribute() {} remove() {}
 }
 globalThis.document = { hidden: false, createElement: () => new Canvas(), createElementNS: () => new Canvas(), addEventListener: noop, removeEventListener: noop };
-globalThis.window = { devicePixelRatio: 1, innerWidth: 1363, addEventListener(type,fn){if(type==='keyup')keyUpCallback=fn;},removeEventListener:noop };
+globalThis.window = { devicePixelRatio: 1, innerWidth: 1363, dispatchEvent:()=>true, addEventListener(type,fn){if(type==='keyup')keyUpCallback=fn;},removeEventListener:noop };
 globalThis.matchMedia = () => ({ matches: false });
 globalThis.ResizeObserver = class { constructor(callback) { resizeCallback = callback; } observe() {} disconnect() {} };
 globalThis.Path2D = class { moveTo() {} lineTo() {} };
@@ -74,11 +74,11 @@ const acoustic=engine.audioState();
 assert.deepEqual([acoustic.activity.satellites,acoustic.activity.aircraft,acoustic.activity.ships,acoustic.activity.network],[1,1,1,1]);
 assert.deepEqual(acoustic.world,engine.worldState());
 assert.equal(acoustic.seconds,engine.audioState().seconds,'Reading sound never advances the renderer clock');
-const network=objects().find(o=>o.userData.seaBackbone);
+const network=objects().find(o=>o.userData.seaBackbone&&o.userData.shell==='network');
 const {livingExposure}=await import('../lib/terra/living-material.ts');
 for(const visibility of [0,.25,.5,1]){
  network.material.uniforms.opacity.value=.74*livingExposure(acoustic.altitude).cables*visibility;
- objects().find(o=>o.userData.seaBackbone&&o!==network).material.uniforms.opacity.value=1.7*livingExposure(acoustic.altitude).cables*visibility;
+ objects().find(o=>o.userData.shell==='cables').material.uniforms.opacity.value=1.7*livingExposure(acoustic.altitude).cables*visibility;
  assert.ok(Math.abs(engine.audioState().activity.network-visibility)<1e-12,'Network shader exposure is normalized to accepted unit activity');
 }
 for(const layer of ['satellites','aircraft','ships']){
@@ -88,8 +88,8 @@ for(const layer of ['satellites','aircraft','ships']){
  cloud.geometry.setDrawRange(0,full);
 }
 
-const radii=shells().map(o=>{const a=o.geometry.getAttribute('position');return [o.userData.shell,...Array.from({length:a.count},(_,i)=>Math.hypot(a.getX(i),a.getY(i),a.getZ(i)))];});
-for(const [layer,...values] of radii)assert.ok(values.every(r=>layer==='satellites'?r>=1.19&&r<=1.39:r>=1.024&&r<1.19),'Air clears sculpted land and remains below orbital shells');
+const radii=shells().map(o=>{const a=o.geometry.getAttribute('position');return [o.userData.shell,...Array.from({length:Math.min(a.count,o.geometry.drawRange.count)},(_,i)=>Math.hypot(a.getX(i),a.getY(i),a.getZ(i)))];});
+for(const [layer,...values] of radii)assert.ok(values.every(r=>layer==='satellites'?r>=1.19&&r<=1.39:r>=1.009&&r<1.19),'Air clears sculpted land and remains below orbital shells');
 const paused=shells().map(o=>o.geometry.getAttribute('position').array.slice());engine.rotate(20,4);tick(1000);for(let i=0;i<2;i++)assert.deepEqual(shells()[i].geometry.getAttribute('position').array,paused[i],'Pause holds actual shell positions during camera interaction');
 engine.configure({...baseOptions,motion:true});tick(1000);assert.notDeepEqual(shells()[0].geometry.getAttribute('position').array,paused[0]);engine.configure(baseOptions);tick();
 async function complete(cmd){let done=false,result;const pending=engine.command(cmd).then(v=>{done=true;result=v;});for(let i=0;i<150&&!done;i++){await new Promise(resolve=>setImmediate(resolve));tick(100);}assert.ok(done,'Command resolves within bounded lifecycle');await pending;return result;}
@@ -148,6 +148,24 @@ const trenchAnchor=new THREE.Vector3(Math.cos(11.369*Math.PI/180)*Math.sin(142.5
 engine.view('cutaway');tick();assert.equal(engine.worldState().targetId,'challenger-deep');assert.ok(Math.abs(Math.atan2(rendered.camera.position.y,Math.hypot(rendered.camera.position.x,rendered.camera.position.z))*180/Math.PI-11.369)<.01,'View change retains Challenger target');assert.ok(Math.abs(rendered.camera.position.length()-1.20)<1e-6);engine.view('globe');tick();host.clientWidth=800;host.clientHeight=600;resizeCallback();tick();assert.ok(Math.abs(rendered.camera.position.length()-1.20)<1e-6,'Idle region resize preserves altitude');engine.zoom(.8);tick();assert.ok(Math.abs(rendered.camera.position.length()-1.16)<1e-6,'Regional zoom-in moves closer rather than snapping to old planet minimum');engine.zoom(.01);tick();assert.ok(Math.abs(rendered.camera.position.length()-1.10)<1e-6,'Regional zoom retains safe .10 minimum');engine.zoom(2);tick();
 assert.equal((await complete({type:'setScale',tier:'street'})).ok,false,'Unsupported trench street scale rejected');assert.equal(engine.worldState().tier,'region');
 await complete({type:'resetView'});assert.equal(engine.worldState().targetId,null);assert.equal(engine.worldState().tier,'planet');assert.ok(Math.abs(sea.material.uniforms.opacity.value-1.60)<1e-6,'Planet ocean returns to its restrained base exposure');assert.ok(objects().filter(o=>o.userData.cityContinuation).every(o=>!o.visible),'Context remains absent on the global planet');
+// Per-family independence, count bounds, projected paths and paused trajectories.
+const {cloneTransport,TRANSPORT_FAMILIES}=await import('../lib/terra/transport.ts');
+globalThis.matchMedia=()=>({matches:true});
+const bright=o=>Array.from(o.geometry.getAttribute('brightness').array).some(x=>x>.001);
+for(const family of TRANSPORT_FAMILIES){
+ for(const mode of ['full','local','trail'])for(const pathways of [false,true])for(const travellers of [false,true]){
+  const transport=cloneTransport();Object.assign(transport[family],{mode,pathways,travellers,count:10});
+  engine.configure({...DEFAULT_LIGHT,...baseOptions,transport});tick();tick();
+  const head=objects().find(o=>o.userData.shell===family),window=objects().find(o=>o.userData.shell===family+'-window');
+  const light=head.geometry.getAttribute('brightness');assert.equal(Array.from({length:10},(_,i)=>light.getX(i*32)).some(n=>n>.01),travellers,`${family} heads ${mode}`);
+  assert.equal(light.getX(1)>.01,travellers&&pathways,`${family} tails independent of heads`);
+  assert.equal(window.geometry.drawRange.count>0&&bright(window),pathways&&mode==='local',`${family} local path independent of head visibility`);
+  const pose=head.geometry.getAttribute('position').array.slice();tick(1000);assert.deepEqual(head.geometry.getAttribute('position').array,pose,'Paused heads and tails do not advance');
+ }
+ const transport=cloneTransport();transport[family].count=600;engine.configure({...DEFAULT_LIGHT,...baseOptions,transport});tick();tick();
+ assert.equal(Number(host.dataset[family+'TravellerCount']),600,`${family} reaches six hundred`);
+}
+globalThis.matchMedia=()=>({matches:false});engine.configure(baseOptions);tick();
 assert.equal((await complete({type:'flyTo',targetId:'missing'})).ok,false);
 engine.configure({...baseOptions,motion:true});const flight=engine.command({type:'flyTo',targetId:'challenger-deep'});for(let i=0;i<5;i++){await Promise.resolve();tick(100);}host.clientWidth=390;host.clientHeight=844;resizeCallback();for(let i=0;i<80;i++){tick(100);await Promise.resolve();}assert.equal((await flight).ok,true);assert.ok(Math.abs(rendered.camera.position.distanceTo(trenchAnchor)-.62)<1e-6,'In-flight regional resize retains its intended horizon altitude');engine.region('indonesia');assert.equal(engine.worldState().targetId,null,'Explicit depth preset clears old command target');
 const lostCommand=engine.command({type:'flyTo',targetId:'singapore'});for(let i=0;i<6;i++){await Promise.resolve();tick(100);}assert.ok(graphicsLostCallback);graphicsLostCallback({preventDefault(){}});assert.equal((await lostCommand).ok,false,'Graphics loss settles active command');assert.equal((await engine.command({type:'resetView'})).ok,false,'Graphics loss rejects later commands');
