@@ -55,13 +55,17 @@ assert.deepEqual(objects().filter(o=>o.userData.backgroundDepth).map(o=>o.userDa
 const sky=()=>objects().filter(o=>o.userData.backgroundDepth);
 assert.equal(sky().reduce((n,o)=>n+o.geometry.getAttribute('position').count,0),4420,'Bounded distant field');
 assert.ok(sky().every(o=>o.material.uniforms.sparkle.value===0),'Distant stars remain steady');
+const dust=()=>objects().filter(o=>o.userData.stellarDust);
+assert.equal(dust().reduce((n,o)=>n+o.geometry.getAttribute('position').count,0),7200,'Bounded optional dust');
+assert.ok(dust().every(o=>o.material.uniforms.opacity.value===0),'Dust starts off');
 engine.narrativePanel(false);tick();assert.equal(rendered.camera.view.offsetX,0,'Earth recentres when the narrative leaves');
 engine.compositionPanel(true);tick();assert.ok(rendered.camera.view.offsetX<0,'Controls reserve left space');
 const comparisonCamera=rendered.camera.position.clone(),comparisonWorld=engine.worldState();
-const {DEFAULT_LIGHT}=await import('../lib/terra/composition.ts');engine.compareLight({...DEFAULT_LIGHT,motion:false,skyLight:0});tick();
-assert.ok(sky().every(o=>o.material.uniforms.opacity.value===0),'Comparison can restore a black sky');
+const {DEFAULT_LIGHT}=await import('../lib/terra/composition.ts');engine.compareLight({...DEFAULT_LIGHT,motion:false,skyLight:0,skyDust:.6});tick();
+assert.ok(sky().every(o=>o.material.uniforms.opacity.value===0),'Comparison can remove stars independently');
+assert.ok(dust().every(o=>o.material.uniforms.opacity.value>0),'Dust can show without stars');
 assert.deepEqual(engine.worldState(),comparisonWorld,'Light comparison never changes world choices');assert.deepEqual(rendered.camera.position,comparisonCamera,'Comparison preserves the camera');
-engine.compareLight(null);tick();assert.ok(sky().every(o=>o.material.uniforms.opacity.value>0),'Comparison release restores configured sky');engine.compositionPanel(false);engine.narrativePanel(true);tick();
+engine.compareLight(null);tick();assert.ok(sky().every(o=>o.material.uniforms.opacity.value>0),'Comparison release restores configured sky');assert.ok(dust().every(o=>o.material.uniforms.opacity.value===0),'Comparison restores dust setting');engine.compositionPanel(false);engine.narrativePanel(true);tick();
 const shells=()=>objects().filter(o=>['satellites','aircraft'].includes(o.userData.shell));
 assert.equal(shells().length,2,'One orbital and one atmosphere shell');
 // Integration contract: at full traveller density, populations remain unit acoustic activity.

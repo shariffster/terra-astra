@@ -7,8 +7,9 @@ const {composition,parseComposition,validateComposition,DEFAULT_LIGHT,LIGHT_RANG
 const {DEFAULT_PRESENTATION,validateWorldCommand}=await import('../lib/world/commands.ts');
 const original=composition('My Earth',DEFAULT_LIGHT);
 assert.deepEqual(parseComposition(JSON.stringify(original)),original);
-const legacy=JSON.parse(JSON.stringify(original));delete legacy.light.skyLight;
+const legacy=JSON.parse(JSON.stringify(original));delete legacy.light.skyLight;delete legacy.light.skyDust;
 assert.equal(validateComposition(legacy).light.skyLight,DEFAULT_LIGHT.skyLight,'Previous exports gain the sky default');
+assert.equal(validateComposition(legacy).light.skyDust,0,'Previous exports keep dust off');
 for(const light of Object.values(COMPOSITION_PRESETS))assert.ok(validateComposition(composition('Preset',light)));
 assert.ok(COMPOSITION_PRESETS.Quiet.pathVolume<COMPOSITION_PRESETS.Balanced.pathVolume&&COMPOSITION_PRESETS.Balanced.pathVolume<COMPOSITION_PRESETS.Rich.pathVolume);
 assert.ok(sameComposition(original,{...original,name:'Different name'}));

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { distantSky, skyVertex, skyFragment, dustFragment } from './distant-sky';
 import { resolvePlace, resolverDiagnostics } from '../world/place-resolver';
 import { cameraAltitude, type ResolvedWorldTarget, type OpenWorldContext } from '../world/open-types';
 import { createOpenWorldView } from '../world/open-world-view';
@@ -119,15 +120,20 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const sphereG=new THREE.SphereGeometry(1,96,64);geometries.push(sphereG);const sphereM=new THREE.MeshBasicMaterial({color:0x020609});materials.push(sphereM);const sphere=new THREE.Mesh(sphereG,sphereM);earth.add(sphere);
  // A very restrained atmospheric edge; its surface fades away during descent.
  const edgeG=new THREE.SphereGeometry(1.001,80,48);geometries.push(edgeG);const edgeM=new THREE.ShaderMaterial({uniforms:{opacity:{value:1}},vertexShader:`varying vec3 n;varying vec3 v;void main(){vec4 p=modelViewMatrix*vec4(position,1.0);n=normalize(normalMatrix*normal);v=normalize(-p.xyz);gl_Position=projectionMatrix*p;}`,fragmentShader:`varying vec3 n;varying vec3 v;uniform float opacity;void main(){float f=pow(1.0-max(0.0,dot(normalize(n),normalize(v))),5.0);gl_FragColor=vec4(.20,.40,.51,f*.13*opacity);}`,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});materials.push(edgeM);earth.add(new THREE.Mesh(edgeG,edgeM));
- // Three distant shells share the existing draw lifecycle. Tiny steady points
- // carry depth; occasional warmer stars remain quieter than terrestrial light.
- let seed=901;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+ // Bounded background clouds share disposal and pause/recovery with Earth's scene.
  const backgroundLayers:Cloud[]=[];
- for(const [count,radius,tint,brightness,size] of [[4200,48,'#c3ccd7',.48,.72],[150,42,'#d4c8ad',.62,.95],[70,36,'#bec9d8',.72,1.15]] as const){
-  const data:number[]=[];for(let i=0;i<count;i++){const v=geo(random()*360-180,Math.asin(random()*2-1)/R,radius);data.push(...v.toArray(),brightness*(.45+random()*.55),size*(.55+random()*.45),random()*6.28);}
-  const c=cloud(new Float32Array(data),tint);c.material.fragmentShader=`uniform vec3 tint;uniform float opacity;varying float vB;void main(){float r=length(gl_PointCoord-.5);if(r>.5)discard;float core=exp(-r*r*62.0),halo=exp(-r*r*16.0)*.045;gl_FragColor=vec4(tint,(core+halo)*vB*opacity);}`;earth.remove(c.points);scene.add(c.points);c.points.userData.backgroundDepth=radius;c.points.userData.shimmer=0;backgroundLayers.push(c);
+ const sky=distantSky();
+ for(const layer of [...sky.stars,...sky.dust]){
+  const dust=!('radius' in layer),savedOffset=particleOffset,c=cloud(layer.data,layer.tint);
+  if(dust)particleOffset=savedOffset; // Sky dust must not reseed Earth's Genesis particles.
+  c.material.vertexShader=skyVertex;c.material.fragmentShader=dust?dustFragment:skyFragment;
+  c.material.uniforms.skyRadius={value:1};c.material.uniforms.soft.value=dust?1:0;
+  earth.remove(c.points);scene.add(c.points);
+  if('radius' in layer)c.points.userData.backgroundDepth=layer.radius;
+  c.points.userData.stellarDust=dust;c.points.userData.shimmer=0;backgroundLayers.push(c);
  }
- host.dataset.distantStars='4420';
+ host.dataset.distantStars=String(sky.stars.reduce((n,c)=>n+c.data.length/6,0));
+ host.dataset.stellarDust=String(sky.dust.reduce((n,c)=>n+c.data.length/6,0));
  let reliefLand:Cloud,reliefOcean:Cloud,body:Cloud,interior:Cloud,haze:Cloud,halo:Cloud;
  let populationField:Cloud|null=null,footprintField:Cloud|null=null;
  let land:Cloud,coast:Cloud,lights:Cloud,coastLines:THREE.LineSegments,borders:THREE.LineSegments;
@@ -552,7 +558,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  let spread=0;if(remembering&&remembered){const places=remembered.places.map(p=>geo(p.lon,p.lat,1.00003).project(camera));for(let i=0;i<places.length;i++)for(let j=i+1;j<places.length;j++)spread=Math.max(spread,Math.hypot((places[i].x-places[j].x)*w/2,(places[i].y-places[j].y)*h/2));}
  const memory=memoryLight(spread,settledAt===null?null:(now-settledAt)/1000,options.motion);
  land.material.uniforms.tint.value.set('#c8ced1').lerp(new THREE.Color('#cbb78f'),displayedLight.warmth);
- land.material.uniforms.opacity.value=global*.65*(1-depth*.8);coast.material.uniforms.opacity.value=global*.44*(1-depth*.2);lights.material.uniforms.opacity.value=displayedLight.nightLights*global*1.12*(1-depth*.40);lights.material.uniforms.sizeScale.value=1-depth*.42;coast.material.uniforms.sizeScale.value=.82-depth*.16;(coastLines.material as THREE.LineBasicMaterial).opacity=global*options.threads*.10*(1-depth)*(1-opened);(borders.material as THREE.LineBasicMaterial).opacity=options.borders?global*.15*(1-cut)*(1-opened):0;edgeM.uniforms.opacity.value=global*(1-depth)*(1-opened)*born.settled;(coastLines.material as THREE.LineBasicMaterial).opacity*=born.settled;(borders.material as THREE.LineBasicMaterial).opacity*=born.settled;for(const c of backgroundLayers)c.material.uniforms.opacity.value=born.settled*displayedLight.skyLight*(.2+.8*global);
+ land.material.uniforms.opacity.value=global*.65*(1-depth*.8);coast.material.uniforms.opacity.value=global*.44*(1-depth*.2);lights.material.uniforms.opacity.value=displayedLight.nightLights*global*1.12*(1-depth*.40);lights.material.uniforms.sizeScale.value=1-depth*.42;coast.material.uniforms.sizeScale.value=.82-depth*.16;(coastLines.material as THREE.LineBasicMaterial).opacity=global*options.threads*.10*(1-depth)*(1-opened);(borders.material as THREE.LineBasicMaterial).opacity=options.borders?global*.15*(1-cut)*(1-opened):0;edgeM.uniforms.opacity.value=global*(1-depth)*(1-opened)*born.settled;(coastLines.material as THREE.LineBasicMaterial).opacity*=born.settled;(borders.material as THREE.LineBasicMaterial).opacity*=born.settled;for(const c of backgroundLayers){c.material.uniforms.opacity.value=born.settled*(c.points.userData.stellarDust?displayedLight.skyDust:displayedLight.skyLight)*(.2+.8*global);c.material.uniforms.skyRadius.value=1-opened;}
  const quality=mobile?.45:.8;const singaporeVisibility=targetId===null||targetId==='singapore'?1:0,newYorkVisibility=targetId==='new-york'?1:0;
  openViews.update(lat,wrap(lon),alt,now,genesisProgress>=1&&openProgress===0&&!flight,options.motion,layerFlags.urban,focusTransition.values[0]);
  updateSignals(time,born.settled*(1-opened));updateSea(time,born.settled*(1-opened));updateWater(time,born.settled*(1-opened));updateUrban(time,levels.city*cityDim);

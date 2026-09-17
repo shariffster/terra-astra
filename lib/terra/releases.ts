@@ -1,7 +1,20 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.14';
+export const currentVersion = '0.10.15';
 
 export const releases = [
+  {
+    version: '0.10.15',
+    date: '2026-09-17',
+    dateLabel: '17 September 2026',
+    title: 'A little more universe',
+    milestone: 'Visible starlight · People’s Choice Lab',
+    changes: [
+      'Distant stars have clearer, softly rounded cores at the default setting. Steady pearl, warm-white and blue-white points provide a quiet setting around Earth.',
+      'Optional blue-violet stellar dust adds loose, uneven clusters with plenty of black space. It starts off; tune it independently under Light → Surrounding space.',
+      'Starlight and dust join your saved and exported compositions. Earlier settings keep their starlight level and begin with dust off. Set both to zero for a black sky.',
+    ],
+    review: 'The sky is imagined, not an astronomical catalogue. Dust is optional and the white-gold Earth remains the visual centre. Earlier releases, geographic data, routes, sound, canonical v0.10.8 and the archive are preserved. Browser viewport review does not replace physical-device acceptance.',
+  },
   {
     version: '0.10.14',
     date: '2026-09-16',

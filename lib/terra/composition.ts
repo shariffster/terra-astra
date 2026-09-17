@@ -1,7 +1,7 @@
 import { DEFAULT_PRESENTATION, validateWorldCommand, type WorldPresentation, type WorldLayer } from '../world/commands';
 
 export const LIGHT_RANGES = {
- skyLight: [0, 1.5, .01], glow: [.25, 2, .01], shimmer: [0, 2, .01], threads: [0, 1.4, .01], density: [.2, 1, .01],
+ skyLight: [0, 1.5, .01], skyDust: [0, 1, .01], glow: [.25, 2, .01], shimmer: [0, 2, .01], threads: [0, 1.4, .01], density: [.2, 1, .01],
  nightLights: [0, 2, .01], warmth: [0, 1, .01], oceanLight: [0, 2, .01],
  pathLight: [0, 2, .01], pathVolume: [0, 1, .01], travellerLight: [0, 2, .01], travellerVolume: [0, 1, .01],
  airLight: [0, 2, .01], seaLight: [0, 2, .01], cableLight: [0, 2, .01], orbitLight: [0, 2, .01],
@@ -10,7 +10,7 @@ export const LIGHT_RANGES = {
 export type LightNumber = keyof typeof LIGHT_RANGES;
 export type LightOptions = Record<LightNumber, number> & { depth: boolean; borders: boolean; motion: boolean };
 export const DEFAULT_LIGHT: LightOptions = Object.freeze({
- skyLight: .7, glow: 1.15, shimmer: 1.1, depth: true, threads: .55, density: .85, borders: false, motion: true,
+ skyLight: .7, skyDust: 0, glow: 1.15, shimmer: 1.1, depth: true, threads: .55, density: .85, borders: false, motion: true,
  nightLights: 1.15, warmth: .65, oceanLight: .8, pathLight: 1, pathVolume: .85, travellerLight: 1, travellerVolume: .85,
  airLight: .9, seaLight: 1, cableLight: .85, orbitLight: 1, population: .55, footprint: .38, fieldDensity: .75, colour: .6,
 });
@@ -28,7 +28,7 @@ export function validateComposition(value: unknown): Composition | null {
  if(!c.light || typeof c.light !== 'object' || !c.layers || typeof c.layers !== 'object') return null;
  const light = c.light as Record<string, unknown>, layers = c.layers as Record<string, unknown>, clean = {...DEFAULT_LIGHT};
  for(const key of Object.keys(LIGHT_RANGES) as LightNumber[]) {
-  const v = key === 'skyLight' && light[key] === undefined ? DEFAULT_LIGHT.skyLight : light[key], [min,max] = LIGHT_RANGES[key];
+  const v = (key === 'skyLight' || key === 'skyDust') && light[key] === undefined ? DEFAULT_LIGHT[key] : light[key], [min,max] = LIGHT_RANGES[key];
   if(typeof v !== 'number' || !Number.isFinite(v) || v < min || v > max) return null;
   clean[key] = Math.round(v * 100) / 100;
  }

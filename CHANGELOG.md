@@ -3,6 +3,15 @@
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
 
+## v0.10.15 — A little more universe · 17 September 2026
+
+- Extend exact v0.10.14 `1a0bfab8c9066e01367538273b4253919e914366` in `people-choice/v0.10.15-visible-sky`; People's Choice Lab only.
+- Correct the imperceptible distant stars with a separate steady shader, broader readable cores and bounded pearl, warm-white and blue-white shells. Explicit Earth occlusion keeps the setting behind the globe. Preserve 4,420 stars and the default 0.7 starlight control.
+- Add 7,200 seeded soft dust particles in two muted blue-violet families. Uneven patches avoid a continuous galaxy band. Dust starts off and has its own 0–1 control; both controls live under Surrounding space.
+- Preserve earlier v1 composition imports through a missing-dust default of zero. Save, compare, export and restore both settings. Keep new dust from changing Earth's Genesis particle identities.
+- Update the reduced-detail Canvas sky to retain readable stars instead of subsampling most away.
+- See `docs/VISIBLE-SKY-V01015.md` for rendered checks and limits. Saved version and deployment status are recorded separately.
+
 ## v0.10.14 — Earth, among the stars · 16 September 2026
 
 - Extend exact v0.10.13 `50e6f5cc6499b531854a43f236fae851968c9641` in `people-choice/v0.10.14-cosmic-setting`; People's Choice Lab only.

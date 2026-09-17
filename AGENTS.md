@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.15 visible sky authority (17 September 2026)
+
+The user authorizes correcting the imperceptible distant starlight and exploring a restrained surrounding atmosphere while Earth remains the focal point. Work in `people-choice/v0.10.15-visible-sky` from exact v0.10.14 `1a0bfab8c9066e01367538273b4253919e914366`. Make default stars visibly readable; add independently adjustable optional stellar dust. Preserve Earth, geography, routes, motion and sound. Publish only the existing People's Choice Lab after rendered verification; retain all earlier releases, canonical v0.10.8, archive and Maker's Mark.
+
 ## v0.10.14 cosmic setting authority (16 September 2026)
 
 The user approved the next composition pass and a sparse cosmic setting, with an approximately 45-minute delivery window. Work in `people-choice/v0.10.14-cosmic-setting` from exact v0.10.13 `50e6f5cc6499b531854a43f236fae851968c9641`. Refine branching, adaptive framing, three restrained light presets and reversible light comparison. Preserve the white-gold Earth, historical sources, routes and all earlier releases. Publish only the existing People's Choice Lab; canonical v0.10.8, archive and Maker's Mark remain unchanged.
