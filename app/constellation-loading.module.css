@@ -1,0 +1,15 @@
+.loading.loading{position:absolute;inset:0;transform:none;display:grid;place-items:center;background:#03080c;z-index:7;opacity:1;transition:opacity .4s ease;white-space:normal;pointer-events:none}
+.loading[data-ready=true]{opacity:0}
+.content{text-align:center;padding:24px;transform:translateY(-3vh)}
+.constellation{display:block;width:250px;height:auto;margin:0 auto 8px;overflow:visible}
+.threads{stroke:#d9c49f;stroke-width:.5;opacity:.22}
+.star{animation:gather ease-in-out infinite;transform-origin:center}
+.pearl{fill:#e4e8e9}
+.gold{fill:#e5cfaa}
+.halo{fill:#e5cfaa;opacity:.055}
+.name{font:normal clamp(32px,4vw,42px)/1.15 Georgia,serif;color:#e8d8b9;margin:0;letter-spacing:.015em}
+.subtitle{font-size:13px;letter-spacing:.1em;color:#acb9bf;margin:12px 0 0}
+.status{font-size:12px;line-height:1.6;color:#899ca8;margin:38px 0 0}
+@keyframes gather{0%,100%{opacity:.32;transform:scale(.97)}50%{opacity:1;transform:scale(1)}}
+@media(max-width:600px){.constellation{width:210px}.content{transform:translateY(-2vh)}}
+@media(prefers-reduced-motion:reduce){.star{animation:none;opacity:.8}.loading.loading{transition:none}}

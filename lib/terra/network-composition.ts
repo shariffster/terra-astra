@@ -24,13 +24,21 @@ function corridorGroups(paths:readonly Path[]) {
 /** Visual hierarchy reflects corridor structure, never measured traffic volume.
  * Each geographic pair has a lead and quieter companions, with regional detail
  * subordinate to crossings. No source record is removed or duplicated. */
-export function networkImportance(paths:readonly Path[],sources:readonly Source[]):number[] {
+export function networkImportance(paths:readonly Path[],sources:readonly Source[],marine=false):number[] {
  const values=paths.map(()=>.25);
  for(const group of corridorGroups(paths).values()){
   group.sort((a,b)=>sources[b.index].intensity-sources[a.index].intensity||paths[a.index].id.localeCompare(paths[b.index].id));
   group.forEach(({index},rank)=>{const regional=sources[index].tier==='regional';
    const lead=group.length>=3?1.65:group.length===2?.95:.48;
-   values[index]=(rank===0?lead:rank<3?.72:.26)*(regional?.60:1);
+   if(marine){
+    // A unique long connection is still an important ocean crossing. Regional
+    // labels include several major straits, so endpoint duplication and source
+    // tier alone cannot decide whether the connecting strand remains visible.
+    let length=0;const p=paths[index];
+    for(let k=3;k<p.positions.length;k+=3)length+=Math.hypot(p.positions[k]-p.positions[k-3],p.positions[k+1]-p.positions[k-2],p.positions[k+2]-p.positions[k-1]);
+    const sustained=.48+.78*smooth((length-.12)/.65);
+    values[index]=rank===0?Math.max(sustained,group.length>=3?1.5:0):rank<3?.65:.25;
+   }else values[index]=(rank===0?lead:rank<3?.72:.26)*(regional?.60:1);
   });
  }return values;
 }

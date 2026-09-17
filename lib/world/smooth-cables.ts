@@ -1,11 +1,12 @@
 import type { CablePath } from './cables';
 import { schematicPassage, schematicCanal } from './ocean-geography';
 import { networkRadius } from '../terra/living-material';
+import { marineCorridorWaypoints } from './marine-corridors';
 
 type V = [number, number, number];
 type Output = { [index: number]: number };
 type Elevation = (lon: number, lat: number) => number;
-export type CableCurvePiece = { a: V; b: V; control?: V; controls?: V[]; corridor?: boolean };
+export type CableCurvePiece = { a: V; b: V; control?: V; controls?: V[]; corridor?: boolean; sourceLeg?: [V,V] };
 export type SmoothCable = {
   id: string; positions: Float32Array; progress: Float32Array;
   distances: Float64Array; length: number; pieces: CableCurvePiece[];
@@ -40,10 +41,17 @@ function water(p: V, elevation: Elevation, surface = false) {
  * bounded depth at each hub. A surface radius selects the shipping treatment.
  * These remain illustrations; rounding is not a new geographic data source. */
 export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elevation, surfaceRadius?: number, shape={bundle:1,roundness:1},samplingScale=1): SmoothCable[] {
-  const nodesFor=(path:CablePath):V[]=>path.waypoints.map(([lat,lon])=>[Math.cos(lat*R)*Math.sin(lon*R),Math.sin(lat*R),Math.cos(lat*R)*Math.cos(lon*R)]);
+  const toNodes=(points:readonly (readonly [number,number])[]):V[]=>points.map(([lat,lon])=>[Math.cos(lat*R)*Math.sin(lon*R),Math.sin(lat*R),Math.cos(lat*R)*Math.cos(lon*R)]);
+  const displayNodes=new Map(paths.map(path=>{
+    const waypoints=marineCorridorWaypoints(path.waypoints),candidate=toNodes(waypoints);
+    // Reject a display spine if a different supplied water mask disallows it.
+    const allowed=waypoints===path.waypoints||candidate.every((b,i)=>{if(!i)return true;const count=Math.max(2,Math.ceil(angle(candidate[i-1],b)/.00025));for(let k=0;k<=count;k++)if(!water(arc(candidate[i-1],b,k/count),elevation,!!surfaceRadius))return false;return true;});
+    return [path.id,allowed?candidate:toNodes(path.waypoints)] as const;
+  }));
+  const nodesFor=(path:CablePath)=>displayNodes.get(path.id)!;
   const hubLinks=new Map<string,{normal:V;directions:{vector:V;weight:number;route:string;span:number}[]}>();
   paths.forEach(path=>{const nodes=nodesFor(path);for(const end of [0,nodes.length-1]){
-    const p=nodes[end],q=nodes[end===0?1:end-1],key=JSON.stringify(path.waypoints[end]);
+    const p=nodes[end],q=nodes[end===0?1:end-1],key=JSON.stringify(path.waypoints[end===0?0:path.waypoints.length-1]);
     const vector=norm(q.map((v,i)=>v-p[i]*dot(p,q)) as V);
     const hub=hubLinks.get(key)??{normal:p,directions:[]};hub.directions.push({vector,weight:path.intensity,route:path.id+':'+(end===0?0:1),span:angle(p,q)});hubLinks.set(key,hub);
   }});
@@ -106,7 +114,7 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
     }
     const pieces: CableCurvePiece[]=[];
     for(let i=0;i<nodes.length-1;i++) {
-      pieces.push({a:corners.get(i)?.b??nodes[i],b:corners.get(i+1)?.a??nodes[i+1]});
+      pieces.push({a:corners.get(i)?.b??nodes[i],b:corners.get(i+1)?.a??nodes[i+1],sourceLeg:[nodes[i],nodes[i+1]]});
       const corner=corners.get(i+1); if(corner)pieces.push(corner);
     }
     for(const end of [0,1]){
@@ -125,7 +133,7 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
       }
       if(connector){if(end){piece.b=connector.b;pieces.push({a:connector.b,b:connector.a,controls:[...connector.controls!].reverse()});}else{piece.a=connector.b;pieces.unshift(connector);}}
     }
-    for(let i=0;i<pieces.length;i++){const p=pieces[i];if(!p.controls&&!p.control)pieces[i]=gatherLeg(p,p.a,p.b);}
+    for(let i=0;i<pieces.length;i++){const p=pieces[i];if(!p.controls&&!p.control)pieces[i]=gatherLeg(p,...(p.sourceLeg??[p.a,p.b]));}
     const samples: V[]=[],gatheringValues:number[]=[];
     for(const piece of pieces) {
       const count=piece.corridor?Math.max(32,Math.ceil(angle(piece.a,piece.b)/(.001*samplingScale))):piece.controls?Math.max(32,Math.ceil(angle(piece.a,piece.b)/(.0005*samplingScale))):piece.control?Math.max(32,Math.ceil((angle(piece.a,piece.control)+angle(piece.control,piece.b))/(.0007*samplingScale))):Math.max(2,Math.ceil(angle(piece.a,piece.b)/(.001*samplingScale)));

@@ -301,9 +301,10 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const suspendedData=createOceanVolume(volumeSource),suspended=cloud(suspendedData,'#718C93');
  const smoothCurrents=prepareCurrentPaths((lon,lat)=>sampleElevation(elevation,1440,720,lon,lat));
  const currentData=new Float32Array(currentPaths.length*CURRENT_PARTICLES*6),waterSample=new Float64Array(3);
- for(let i=0;i<currentPaths.length;i++)for(let k=0;k<CURRENT_PARTICLES;k++){const light=sampleCurrent(i,k,0,elevation,waterSample,smoothCurrents);currentData.set([...waterSample,light,.58+(k%3)*.14,i*.73+k*.618],(i*CURRENT_PARTICLES+k)*6);}
- const currents=cloud(currentData,'#5E999E');
+ for(let i=0;i<currentPaths.length;i++)for(let k=0;k<CURRENT_PARTICLES;k++){const light=sampleCurrent(i,k,0,elevation,waterSample,smoothCurrents);currentData.set([...waterSample,light,1.45,i*.73+k*.618],(i*CURRENT_PARTICLES+k)*6);}
+ const currents=cloud(currentData,'#72979A');currents.material.uniforms.soft.value=1;currents.points.userData.soft=true;
  for(const c of [suspended,currents]){c.points.userData.spatial=true;c.points.userData.oceanVolume=true;c.points.userData.rhythm=.13;c.points.userData.shimmer=.18;c.points.userData.sampleBudget=5000;c.material.uniforms.spatial.value=1;terrainCloud(c,6);}
+ currents.points.userData.shimmer=0;
  const suspendedPosition=suspended.points.geometry.getAttribute('position') as THREE.BufferAttribute;
  const currentPosition=currents.points.geometry.getAttribute('position') as THREE.BufferAttribute;
  const currentBrightness=currents.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;
@@ -332,14 +333,14 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  type PathGeometry=Pick<ReturnType<typeof prepareSmoothCables>[number],'positions'|'progress'>;
  function ribbon(c:Cloud,paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,kind:number,gates:ActivityTransitions){
   const original=c.points;earth.remove(original);original.geometry.dispose();geometries.splice(geometries.indexOf(original.geometry),1);
-  const bases=paths.filter(p=>!('strand' in p)||!p.strand) as (PathGeometry&{id:string})[];const importance=networkImportance(bases,sources);const g=cableFilamentGeometry(paths,sources.map((s,i)=>({...s,importance:importance[i]})),onsets);geometries.push(g);
+  const bases=paths.filter(p=>!('strand' in p)||!p.strand) as (PathGeometry&{id:string})[];const importance=networkImportance(bases,sources,kind<1.5);const g=cableFilamentGeometry(paths,sources.map((s,i)=>({...s,importance:importance[i]})),onsets);geometries.push(g);
   const columns=Math.min(1024,gates.values.length),rows=Math.ceil(gates.values.length/columns),bytes=new Uint8Array(columns*rows*4).fill(255),texture=new THREE.DataTexture(bytes,columns,rows,THREE.RGBAFormat);texture.needsUpdate=true;texture.minFilter=texture.magFilter=THREE.NearestFilter;gateTextures.push({texture,gates,bytes});
   c.material.vertexShader=cableFilamentVertex;c.material.fragmentShader=cableFilamentFragment;c.material.side=THREE.DoubleSide;Object.assign(c.material.defaultAttributeValues,{localLight:[1]});
   Object.assign(c.material.uniforms,{localPath:{value:0},lineSoftness:{value:.55},resolution:{value:new THREE.Vector2(host.clientWidth,host.clientHeight)},awakeningTime:{value:0},pathKind:{value:kind},routeGate:{value:texture},routeSize:{value:new THREE.Vector2(columns,rows)},richness:{value:DEFAULT_LIGHT.pathVolume},drawDuration:{value:kind===0?AWAKENING.cables.draw:2.2},fadeDuration:{value:kind===0?AWAKENING.cables.fade:1.1}});
   const mesh=new THREE.Mesh(g,c.material);mesh.userData={...original.userData};mesh.frustumCulled=false;earth.add(mesh);c.points=mesh;c.count=g.getAttribute('position').count;
  }
  function pathway(paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,tint:string,kind:number,gates:ActivityTransitions){
-  const data:number[]=[],routeIndices:number[]=[],progress:number[]=[];const importance=networkImportance(paths as (PathGeometry&{id:string})[],sources);
+  const data:number[]=[],routeIndices:number[]=[],progress:number[]=[];const importance=networkImportance(paths as (PathGeometry&{id:string})[],sources,kind<1.5);
   if(fallback)paths.forEach((p,i)=>{const count=Math.min(256,p.progress.length);for(let k=0;k<count;k++){const n=Math.round(k*(p.progress.length-1)/(count-1));data.push(...p.positions.subarray(n*3,n*3+3),0,.62,i*.73);routeIndices.push(i);progress.push(p.progress[n]);}});
   const c=cloud(new Float32Array(data),tint);c.material.uniforms.regional.value=1;c.material.uniforms.shell.value=1;
   c.points.userData.shell=kind===2?'air-lanes':'sea-lanes';c.points.userData.rhythm=.15;c.points.userData.shimmer=0;c.points.userData.fallbackExposure=.65;
@@ -430,7 +431,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  function replaceGeometry(c:Cloud,g:THREE.BufferGeometry){const old=c.points.geometry;c.points.geometry=g;geometries.splice(geometries.indexOf(old),1);old.dispose();geometries.push(g);c.count=g.getAttribute('position').count;}
  function rebuildPath(view:ReturnType<typeof pathway>,paths:readonly TravellerPath[],surface=false){
   if(fallback){for(let k=0;k<view.routeIndices.length;k++){sampleTravellerPath(paths[view.routeIndices[k]],view.progress[k],signalOutput);view.base!.set(signalOutput,k*3);}const p=view.cloud.points.geometry.getAttribute('position') as THREE.BufferAttribute;p.array.set(view.base!);p.needsUpdate=true;return;}
-  const importance=networkImportance(paths,view.sources),sources=view.sources.map((p,i)=>({...p,importance:importance[i]}));
+  const importance=networkImportance(paths,view.sources,view.kind<1.5),sources=view.sources.map((p,i)=>({...p,importance:importance[i]}));
   replaceGeometry(view.cloud,cableFilamentGeometry(surface?marineStrands(paths as typeof smoothShipping,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),true):paths,sources,view.onsets));
  }
  function scheduleShape(){
@@ -445,7 +446,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
      if(f==='aircraft'){historicalFlights=gatherAirCorridors(historicalSource,height,cfg.bundle,cfg.roundness);flightPaths=[...flightPaths.slice(0,aircraftCorridors.length),...historicalFlights];rebuildPath(airLanes,flightPaths);}
      else if(f==='ships'){smoothShipping=prepareSmoothCables(allSeaPaths,height,1.002,shape);rebuildPath(seaLaneView,smoothShipping,true);}
      else{smoothCables=prepareSmoothCables(allCablePaths,height,undefined,shape);if(fallback){const p=seaFilaments.points.geometry.getAttribute('position');for(let i=0;i<smoothCables.length;i++)for(let k=0;k<CABLE_SEGMENTS_PER_PATH;k++){sampleSmoothCable(smoothCables[i],k/(CABLE_SEGMENTS_PER_PATH-1),cableSample);p.setXYZ(i*CABLE_SEGMENTS_PER_PATH+k,...Array.from(cableSample) as [number,number,number]);}p.needsUpdate=true;}
-      else{const importance=networkImportance(smoothCables,allCablePaths);replaceGeometry(seaFilaments,cableFilamentGeometry(marineStrands(smoothCables,height),allCablePaths.map((p,i)=>({...p,importance:importance[i],threshold:i<cablePaths.length?0:.12+.64*((i-cablePaths.length)/Math.max(1,allCablePaths.length-cablePaths.length))})),seaOnsets));}}
+      else{const importance=networkImportance(smoothCables,allCablePaths,true);replaceGeometry(seaFilaments,cableFilamentGeometry(marineStrands(smoothCables,height),allCablePaths.map((p,i)=>({...p,importance:importance[i],threshold:i<cablePaths.length?0:.12+.64*((i-cablePaths.length)/Math.max(1,allCablePaths.length-cablePaths.length))})),seaOnsets));}}
     }
     shapeSignature=next;host.dataset.routeShape='ready';window.dispatchEvent?.(new CustomEvent('terra-route-shape',{detail:'ready'}));stillFrames=0;
    }catch(error){host.dataset.routeShape='error';window.dispatchEvent?.(new CustomEvent('terra-route-shape',{detail:'error'}));console.error('Route shaping could not finish',error);}

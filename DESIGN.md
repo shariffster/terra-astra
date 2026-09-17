@@ -89,6 +89,9 @@ Actions and inputs are nearly rectangular with subtly softened corners; story an
 
 ## Components
 
+- **Marine corridors:** sustained long connections sit above quieter companion strands while Earth's pearl-and-gold geography remains dominant. Muted teal shipping and lilac cables share smooth, water-constrained approaches; soft, discontinuous current strokes remain distinct from travelling lights. Geometry, illustrative scope and evidence belong to the [corridors and first-light surface brief](.impeccable/surfaces/app-constellation-loading-tsx.md).
+- **First light:** a small pearl-and-gold constellation, fine warm threads and the existing serif name occupy generous darkness while Earth prepares. Plain status text carries the loading state. Readiness starts the handover immediately; reduced motion presents a settled constellation and removes the fade. Composition and timing remain surface-specific.
+
 - **Journey actions:** warm text, a thin warm border, faint tinted fill, and a directional icon. Hover strengthens fill and border; keyboard focus has a visible warm outline. Secondary actions are quiet text buttons.
 - **Three-place chooser:** a serif heading followed by three labeled searchable selections. Inputs have dark fills, clear outlines, and a stronger warm focus treatment. Results pair a place name with smaller regional context; errors are readable warm text. Primary submission spans the form width; reset is secondary.
 - **Personal constellation:** three numbered places with their meanings, matched to warm stars and connecting threads. Change, clear, and return actions stay visible in the narrative area. Closing copy recalls the submitted places beside the reformed globe.

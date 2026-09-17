@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.17 corridor and loading refinement authority (18 September 2026)
+
+Continue the same branch, semantic version and Lab Site from `d42bbbbed1fa1c56a7b6245c413272015f0ce9e8`. The user authorizes smoother shared Indian Ocean–Singapore and North Atlantic corridors, sustained marine hierarchy, distinct current strokes, and an on-brand loading state. Preserve original route records/endpoints, water constraints, restored satellites, source provenance, Genesis timing, original tag and all earlier milestones. Publish only the existing Lab after checks; canonical, archive and Maker’s Mark remain untouched.
+
 ## v0.10.17 family controls follow-up authority (17 September 2026)
 
 The user explicitly requests extending this same version and Site. Continue on the current `people-choice/v0.10.17-flow-hierarchy` branch from `2389a625fce25c49f95ad0799173ae7efbd7f6b3`; keep the version badge and existing Site identity. Add independent per-family paths/travellers, path styles, orbit paths, counts, illustrative distribution and line/shape tuning. Preserve the original v0.10.17 tag and native milestone; record this follow-up in a new ordinary commit and saved Site revision without moving the tag or creating another semantic release. This explicit same-version instruction supersedes the general version-per-release rule below for this follow-up only. Lab publication remains authorized; canonical, archive and Maker's Mark stay unchanged.

@@ -80,7 +80,10 @@ void main(){
   float screenHierarchy=mix(.38+.62*smoothstep(.25,1.4,routeImportance),1.0,screenDetail);
   float junction=mix(.68,1.0,smoothstep(0.0,pathKind>1.5?.09:.07,min(route.x,1.0-route.x)));
   if(localPath>.5){vLight=localLight*front*(pathKind<.5?spatialVisibility(world):1.0)*focus;return;}
-  vLight=screenHierarchy*route.z*routeExposure*mix(routeImportance,sqrt(routeImportance),regionMix)*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
+  // Let a selected marine backbone retain its core through convergences. The
+  // fine companions still share the full density budget, avoiding blown knots.
+  float exposure=pathKind<1.5&&routeStrand<.5?max(routeExposure,.42*smoothstep(.6,1.35,routeImportance)):routeExposure;
+  vLight=screenHierarchy*route.z*exposure*mix(routeImportance,sqrt(routeImportance),regionMix)*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
 }`;
 export const cableFilamentFragment=`
 uniform vec3 tint;uniform float opacity;uniform float glow;uniform float regionMix;uniform float pathKind;uniform float lineSoftness;

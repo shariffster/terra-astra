@@ -30,6 +30,16 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Add optional shoreline light swells and separate current light/speed controls. Smooth the existing eight illustrative current paths near the surface; no tides, waves or measured ocean velocities are claimed.
 - See `docs/STRANDS-MOTION-V01017.md` for checks, control ranges and geographic limits.
 
+### Same-version follow-up — Ocean approaches and first light · 18 September 2026
+
+- Continue from `d42bbbbed1fa1c56a7b6245c413272015f0ce9e8` on the same branch and Lab. Preserve the v0.10.17 tag and original saved milestone.
+- Seven display spines refine 34 existing marine paths through the Malacca–Sri Lanka–Arabian Sea, west India, North Atlantic and Iberian approaches. Preserve every source record, route identity and endpoint. Validate replacements against the incumbent water mask; source geometry remains the fallback.
+- Preserve original leg keys while trimming curves so compatible open-water grouping actually reaches the intended segments. Give long marine crossings a sustained visual hierarchy independent of endpoint duplication; retain a bounded core through luminous convergences.
+- Recast the existing eight illustrative currents as four broad, soft, discontinuous strokes each. Preserve the 1,536-point budget, current speed/light controls, pause and deterministic clock.
+- Replace empty loading copy with inline pearl/gold geometry and incumbent serif typography. Fade on actual readiness, preserve Genesis timing, and disable decorative animation for reduced motion. No external asset or artificial progress percentage.
+- Direct satellite visibility comparison confirmed that cyan streaks belong to satellites while distant stars are already round pearl points; preserve both appearances.
+- Verification and limits: `docs/CORRIDORS-FIRST-LIGHT-V01017.md`.
+
 ## v0.10.16 — A wider web of light · 17 September 2026
 
 - Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.

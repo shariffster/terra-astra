@@ -23,6 +23,7 @@ import specialStyles from './special-destinations.module.css';
 import GlobeVoice from '@/components/terra-voice/GlobeVoice';
 import { useSonicEarth } from '@/components/terra-sound/use-sonic-earth';
 import SoundControl from '@/components/terra-sound/SoundControl';
+import { ConstellationLoading } from './constellation-loading';
 
 const initialOptions = DEFAULT_LIGHT;
 const formatCoordinate=(n:number,a:string,b:string)=>`${Math.abs(n).toFixed(2)}° ${n>=0?a:b}`;
@@ -109,7 +110,7 @@ export default function TerraExperience(){
    {world?.open?.nearby.map(p=><button hidden key={p.id} data-star={'open-'+p.id} className="map-star open-settlement" onClick={()=>void sendWorldCommand({type:'flyToPlace',query:p.label})}><span className="marker-label">{p.label}</span></button>)}
    {[0,1,2].map(i=><div hidden key={`personal-${i}`} data-star={`personal-${i}`} className="map-star place-marker personal-marker"><span className="marker-label">{personalPlaces?.[i]?.label.split(',')[0]}</span></div>)}
   </div>
-  {!ready&&!error?<p className="loading-message" role="status">Gathering the constellations<span className="loading-dots">…</span></p>:null}
+  {!error?<ConstellationLoading ready={ready}/>:null}
   {error?<div className="error-message" role="alert"><p>{error}</p><button onClick={()=>ready&&!fatalError?setError(''):location.reload()}>{fatalError?'Restart journey':ready?'Dismiss':'Try again'}</button></div>:null}
   <section className="opening" aria-live="polite" aria-hidden={!!openTarget||astra||personalReturned||settling||exploring||view!=='globe'}>
    <p className="eyebrow" hidden={stage==='orbit'||inCity&&isMakkah}>{stage==='orbit'?'A LIVING CELESTIAL EARTH':stage==='city'?'A CITY, ALIVE':!approaching?'PART OF SOMETHING LARGER':'A LITTLE CLOSER'}</p>

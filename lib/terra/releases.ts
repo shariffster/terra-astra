@@ -18,6 +18,8 @@ export const releases = [
       'Shared strands follow smoother marine bends and gather along compatible ocean corridors. Brighter convergence points remain part of the composition.',
       'Set each family’s travel speed and optional brightness pulse independently. Solo a family, restore its companions, or compare against a named saved light.',
       'Shore & water adds slow shoreline light swells and independent current brightness and speed. The eight current paths remain illustrative.',
+      'Indian Ocean and North Atlantic display corridors share smoother offshore approaches, with sustained light across long crossings and quieter branches. Ocean currents drift as soft, discontinuous strokes.',
+      'A small pearl-and-gold constellation welcomes you while Earth loads, then yields to the existing birth sequence as soon as it is ready.',
     ],
     review: 'Source network counts and records are unchanged; moving populations are now adjustable. Hub weighting estimates activity from connectivity and authored intensity, not measured traffic. Bundling and light hierarchy are artistic, not traffic measurements or flown tracks. Air data remains historical and marine paths illustrative. The sky is imagined; pause freezes its shimmer. Earlier settings remain compatible. Browser checks do not imply physical-device or subjective audio acceptance.',
   },
