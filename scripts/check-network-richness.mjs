@@ -13,7 +13,13 @@ const read=name=>JSON.parse(readFileSync(new URL('../public/data/networks/'+name
 const air=read('air-connections'),marine=read('marine-branches');
 assert.equal(new Set(air.map(r=>r.slice(0,2).sort().join('/'))).size,air.length);
 const buffer=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.url)),grid=new Int16Array(buffer.buffer,buffer.byteOffset,buffer.byteLength/2),elevation=(lon,lat)=>sampleElevation(grid,1440,720,lon,lat);
-const flights=atlasFlights(air);let clearance=Infinity,waterSamples=0;
+const {gatherAirCorridors,networkImportance}=await import('../lib/terra/network-composition.ts');
+const originalFlights=atlasFlights(air),flights=gatherAirCorridors(originalFlights,elevation);
+let gathered=0,maxDisplacement=0;
+for(const [i,p] of flights.entries()){let moved=false;for(let k=0;k<p.positions.length;k+=3){const delta=Math.hypot(...p.positions.subarray(k,k+3).map((v,j)=>v-originalFlights[i].positions[k+j]))/p.radius;maxDisplacement=Math.max(maxDisplacement,delta);if(delta>.001)moved=true;if(k===0||k===p.positions.length-3)assert.ok(delta<1e-6,'Historical airport endpoints stay fixed');assert.ok(delta<.04,'Gathering remains within its geographic bound');}if(moved)gathered++;}
+assert.ok(gathered>400,'A material share of the atlas gathers into corridors');
+const hierarchy=networkImportance(flights,flights);assert.ok(hierarchy.filter(x=>x<.3).length>500&&hierarchy.filter(x=>x>.8).length>50,'Quiet context and leading connections coexist');
+let clearance=Infinity,waterSamples=0;
 for(const p of flights){assert.ok(p.positions.every(Number.isFinite));assert.equal(p.progress[0],0);assert.equal(p.progress.at(-1),1);
  for(let k=0;k<p.progress.length;k++){const [x,y,z]=p.positions.subarray(k*3,k*3+3),r=Math.hypot(x,y,z);assert.ok(Math.abs(r-p.radius)<1e-6);const h=elevation(Math.atan2(x,z)*180/Math.PI,Math.atan2(y,Math.hypot(x,z))*180/Math.PI),delta=p.radius+p.relief-(reliefRadius(Math.max(0,h)));clearance=Math.min(clearance,delta);assert.ok(delta>.02);}
 }
@@ -28,4 +34,4 @@ for(const [w,h,right,top] of [[1440,1000,364,92],[1180,860,356,92],[1024,768,364
  const f=compositionFraming(w,h,{left:12,right,top,bottom:h-14},distance);const radius=h/(2*Math.tan(21*Math.PI/180))*1.09/Math.sqrt(distance**2-1.09**2)*f.zoom,cx=w/2-f.x,cy=h/2-f.y;
  assert.ok(cx-radius>=f.left-1e-6&&cx+radius<=f.right+1e-6&&cy-radius>=f.top-1e-6&&cy+radius<=f.bottom+1e-6,`Panel framing at ${w}x${h}`);
 }
-console.log(JSON.stringify({result:'PASS',historicalAir:flights.length,addedSea:marine.sea.length,addedCables:marine.cables.length,minimumAirClearance:clearance,waterSamples,framing:'7 widths x 3 distances',routeGates:'beyond 128, finite overlap attenuation'}));
+console.log(JSON.stringify({result:'PASS',historicalAir:flights.length,addedSea:marine.sea.length,addedCables:marine.cables.length,minimumAirClearance:clearance,gathered,maxDisplacement,waterSamples,framing:'7 widths x 3 distances',routeGates:'beyond 128, finite overlap attenuation'}));

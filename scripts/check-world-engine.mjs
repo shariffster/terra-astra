@@ -54,7 +54,8 @@ const objects=()=>{const result=[];rendered.scene.traverse(o=>{if(o instanceof T
 assert.deepEqual(objects().filter(o=>o.userData.backgroundDepth).map(o=>o.userData.backgroundDepth).sort((a,b)=>a-b),[36,42,48],'Three distant background shells');assert.equal(engine.worldState().layers.ships,true,'Sea movement starts enabled');assert.ok(objects().some(o=>o.userData.seaBackbone),'Existing engine carries illustrated sea pulses');
 const sky=()=>objects().filter(o=>o.userData.backgroundDepth);
 assert.equal(sky().reduce((n,o)=>n+o.geometry.getAttribute('position').count,0),4420,'Bounded distant field');
-assert.ok(sky().every(o=>o.material.uniforms.sparkle.value===0),'Distant stars remain steady');
+assert.ok(sky().every(o=>o.material.uniforms.sparkle.value===.75),'Distant stars receive their own restrained shimmer');
+const pausedSkyTime=sky()[0].material.uniforms.time.value;tick(1000);assert.equal(sky()[0].material.uniforms.time.value,pausedSkyTime,'Pause freezes the sky clock');
 const dust=()=>objects().filter(o=>o.userData.stellarDust);
 assert.equal(dust().reduce((n,o)=>n+o.geometry.getAttribute('position').count,0),9600,'Bounded optional dust');
 assert.ok(dust().every(o=>o.material.uniforms.opacity.value===0),'Dust starts off');

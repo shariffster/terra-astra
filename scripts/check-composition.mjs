@@ -7,9 +7,12 @@ const {composition,parseComposition,validateComposition,DEFAULT_LIGHT,LIGHT_RANG
 const {DEFAULT_PRESENTATION,validateWorldCommand}=await import('../lib/world/commands.ts');
 const original=composition('My Earth',DEFAULT_LIGHT);
 assert.deepEqual(parseComposition(JSON.stringify(original)),original);
-const legacy=JSON.parse(JSON.stringify(original));delete legacy.light.skyLight;delete legacy.light.skyDust;
+const legacy=JSON.parse(JSON.stringify(original));delete legacy.light.skyLight;delete legacy.light.skyDust;delete legacy.light.skyShimmer;
 assert.equal(validateComposition(legacy).light.skyLight,DEFAULT_LIGHT.skyLight,'Previous exports gain the sky default');
 assert.equal(validateComposition(legacy).light.skyDust,0,'Previous exports keep dust off');
+assert.equal(validateComposition(legacy).light.skyShimmer,DEFAULT_LIGHT.skyShimmer,'Previous exports gain the restrained shimmer default');
+const {skyScintillation}=await import('../lib/terra/distant-sky.ts');
+for(const phase of [0,2,4.9,5.2,6.1])for(let t=0;t<60;t+=.1){const s=skyScintillation(t,phase,2);assert.ok(s.brightness>=.72&&s.brightness<=2.4);assert.ok(s.size>=1&&s.size<=1.32);assert.equal(skyScintillation(t,phase,0).brightness,1);if(phase<=4.9)assert.equal(s.brightness,1);assert.deepEqual(s,skyScintillation(t,phase,2),'Frozen time gives a frozen sky');}
 for(const light of Object.values(COMPOSITION_PRESETS))assert.ok(validateComposition(composition('Preset',light)));
 assert.ok(COMPOSITION_PRESETS.Quiet.pathVolume<COMPOSITION_PRESETS.Balanced.pathVolume&&COMPOSITION_PRESETS.Balanced.pathVolume<COMPOSITION_PRESETS.Rich.pathVolume);
 assert.ok(sameComposition(original,{...original,name:'Different name'}));
@@ -21,6 +24,7 @@ for(const input of ['{bad}', '{}','null','[]',' '.repeat(33000)])assert.equal(pa
 for(const value of [{...original,version:2},{...original,presentation:{focus:'living'}},{...original,layers:{ships:'yes'}},{...original,name:'x'.repeat(61)}])assert.equal(validateComposition(value),null);
 assert.equal(validateWorldCommand({type:'setPresentation',presentation:{focus:'made-up'}}),null);
 const cleaned=validateComposition({...original,light:{...original.light,unexpected:'ignored'},unexpected:'ignored'});assert.deepEqual(cleaned,original);
+const {structureLandLight}=await import('../lib/terra/land-light.ts');
 const manifest=JSON.parse(readFileSync(new URL('../public/data/human-fields-manifest.json',import.meta.url)));
 const gridBuffer=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.url));const grid=new Int16Array(gridBuffer.buffer,gridBuffer.byteOffset,gridBuffer.byteLength/2);
 const {sampleElevation}=await import('../lib/terra/spatial.ts');
@@ -29,6 +33,9 @@ for(const [name,field] of Object.entries(manifest.fields)){
  const data=new Float32Array(buffer.buffer,buffer.byteOffset,buffer.byteLength/4);assert.equal(data.length,field.particles*6);assert.ok(data.every(Number.isFinite));
  for(let i=0;i<data.length;i+=6){const [x,y,z,b,size]=data.subarray(i,i+5),r=Math.hypot(x,y,z),lon=Math.atan2(x,z)*180/Math.PI,lat=Math.atan2(y,Math.hypot(x,z))*180/Math.PI;assert.ok(r>=1&&r<1.09);assert.ok(b>0&&b<=.85);assert.ok(size>.4&&size<1);assert.ok(sampleElevation(grid,1440,720,lon,lat)>-.1,'Geographic fields are land constrained');}
  assert.ok(field.referenceCells.Tokyo>field.referenceCells.Sahara*10);
+ const structured=structureLandLight(data.slice());assert.ok(structured.every(Number.isFinite));
+ for(let i=0;i<data.length;i++)if(i%6!==3)assert.equal(structured[i],data[i],'Land structure preserves sourced positions, sizes and seeds');
+ assert.ok(structured.some((v,i)=>i%6===3&&v<data[i]*.5),'Quiet geographic gaps survive the remapping');
 }
 const {cablePaths}=await import('../lib/world/cables.ts');const {seaLanePaths}=await import('../lib/world/sea-lanes.ts');
 const {prepareSmoothCables,marineStrands}=await import('../lib/world/smooth-cables.ts');const {schematicPassage,schematicCanal}=await import('../lib/world/ocean-geography.ts');

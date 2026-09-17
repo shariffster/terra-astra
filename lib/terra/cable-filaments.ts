@@ -7,7 +7,7 @@ import { spatialVertexGLSL } from './spatial';
 
 /** One indexed ribbon batch. Width is in screen pixels: a subpixel lilac core
  * with a restrained two-pixel falloff, independent of camera distance. */
-export function cableFilamentGeometry(paths: readonly (Pick<SmoothCable,'positions'|'progress'>&{relief?:number;sourceIndex?:number;strand?:number})[], sources: readonly (Pick<CablePath,'intensity'>&{tier?:string;threshold?:number})[], onsets: Float32Array) {
+export function cableFilamentGeometry(paths: readonly (Pick<SmoothCable,'positions'|'progress'>&{relief?:number;sourceIndex?:number;strand?:number})[], sources: readonly (Pick<CablePath,'intensity'>&{tier?:string;threshold?:number;importance?:number})[], onsets: Float32Array) {
   const count=paths.reduce((n,p)=>n+p.progress.length,0),g=new THREE.BufferGeometry();
   // Count distinct strands through coarse cells, not sample vertices. Trilinear
   // interpolation prevents grid bands; crowded approaches share a light budget.
@@ -29,7 +29,7 @@ export function cableFilamentGeometry(paths: readonly (Pick<SmoothCable,'positio
       positions.set(path.positions.subarray(k*3,k*3+3),v*3);
       const p=Math.max(0,k-1)*3,q=Math.min(n-1,k+1)*3;
       previous.set(path.positions.subarray(p,p+3),v*3);next.set(path.positions.subarray(q,q+3),v*3);
-      threshold[v]=sources[path.sourceIndex??i].threshold??0;side[v]=s===0?-1:1;routeIndex[v]=path.sourceIndex??i;routeStrand[v]=path.strand??0;routeImportance[v]=sources[path.sourceIndex??i].tier==='regional'?.70:1;routeRelief[v]=path.relief??0;route.set([path.progress[k],onsets[path.sourceIndex??i],sources[path.sourceIndex??i].intensity],v*3);
+      threshold[v]=sources[path.sourceIndex??i].threshold??0;side[v]=s===0?-1:1;routeIndex[v]=path.sourceIndex??i;routeStrand[v]=path.strand??0;routeImportance[v]=sources[path.sourceIndex??i].importance??(sources[path.sourceIndex??i].tier==='regional'?.70:1);routeRelief[v]=path.relief??0;route.set([path.progress[k],onsets[path.sourceIndex??i],sources[path.sourceIndex??i].intensity],v*3);
       if(s===0&&k<n-1){const a=v;indices.push(a,a+1,a+2,a+1,a+3,a+2);}
     }
     base+=n;
@@ -43,7 +43,7 @@ attribute vec3 previous;attribute vec3 next;attribute float side;attribute vec3 
 uniform vec2 resolution;uniform float awakeningTime;uniform float motion;uniform float time;
 uniform float pathKind;uniform sampler2D routeGate;uniform vec2 routeSize;uniform float drawDuration;uniform float fadeDuration;uniform float richness;
 uniform float regionMix;uniform vec3 regionFocus;uniform float regionOuter;uniform float regionInner;
-varying float vAcross;varying float vLight;
+varying float vAcross;varying float vLight;varying float vImportance;
 const float phase=0.0;
 ${transformationGLSL}
 ${terrainVertexGLSL}
@@ -66,7 +66,7 @@ void main(){
   tangent/=max(.00001,length(tangent));
   vec2 normal=vec2(-tangent.y,tangent.x);
   p.xy+=normal*side*2.2*2.0/resolution*p.w;
-  gl_Position=p;vAcross=side*2.2;
+  gl_Position=p;vAcross=side*2.2;vImportance=routeImportance;
   float front=pathKind<.5?smoothstep(-.02,.08,dot(normalize(world),normalize(cameraPosition-world))):surfaceVisibility(world);
   float age=awakeningTime-route.y;
   float reveal=smoothstep(0.0,1.0,(age-route.x*drawDuration)/fadeDuration);
@@ -74,16 +74,18 @@ void main(){
   float focus=mix(1.0,.12+.88*smoothstep(regionOuter,regionInner,dot(normalize(world),regionFocus)),regionMix);
   float strandGate=smoothstep(max(routeThreshold,routeStrand*.16),max(routeThreshold,routeStrand*.16)+.16,richness);
   float grazing=mix(.24,1.0,smoothstep(.03,.6,dot(normalize(world),normalize(cameraPosition-world))));
-  float hierarchy=routeStrand<.5?1.0:.38;
+  float hierarchy=routeStrand<.5?1.0:.28;
+  float screenDetail=smoothstep(380.0,1000.0,resolution.x);
+  float screenHierarchy=mix(.38+.62*smoothstep(.25,1.4,routeImportance),1.0,screenDetail);
   float junction=mix(.28,1.0,smoothstep(0.0,pathKind>1.5?.09:.07,min(route.x,1.0-route.x)));
-  vLight=route.z*routeExposure*mix(routeImportance,1.0,regionMix)*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
+  vLight=screenHierarchy*route.z*routeExposure*mix(routeImportance,sqrt(routeImportance),regionMix)*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
 }`;
 export const cableFilamentFragment=`
 uniform vec3 tint;uniform float opacity;uniform float glow;uniform float regionMix;uniform float pathKind;
-varying float vAcross;varying float vLight;
+varying float vAcross;varying float vLight;varying float vImportance;
 void main(){
   float distance=abs(vAcross),aa=max(.35,fwidth(vAcross));
-  float radius=pathKind>1.5?mix(.20,.30,regionMix):mix(.25,.38,regionMix);
+  float radius=(pathKind>1.5?mix(.13,.27,regionMix):mix(.19,.34,regionMix))*mix(.70,1.25,vImportance);
   float core=1.0-smoothstep(radius-aa*.5,radius+aa*.5,distance);
   float halo=exp(-distance*distance*1.9)*.055*glow;
   float fade=1.0-smoothstep(1.65,2.2,distance);

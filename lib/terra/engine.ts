@@ -1,3 +1,5 @@
+import { gatherAirCorridors, networkImportance } from './network-composition';
+import { structureLandLight } from './land-light';
 import * as THREE from 'three';
 import { loadConnectionAtlas, atlasFlights, atlasMarine } from '../world/connection-atlas';
 import { compositionFraming, type PanelBounds } from './composition-framing';
@@ -171,7 +173,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const humanData=await humanRequest;atlas=await atlasRequest;
  host.dataset.networkAtlas=atlas?'ready':'unavailable';
  if(signal.aborted){destroy();throw new DOMException('Aborted','AbortError');}
- if(humanData){for(const data of humanData)for(let i=3;i<data.length;i+=6){const strength=Math.max(0,Math.min(1,(data[i]-.22)/.62));data[i]=.035+.90*Math.pow(strength,1.30);}
+ if(humanData){for(const data of humanData)structureLandLight(data);
  populationField=spatialCloud(humanData[0],'#8eabc6');footprintField=spatialCloud(humanData[1],'#9786ae');for(const c of [populationField,footprintField]){terrainCloud(c,1);c.points.userData.humanField=true;c.points.userData.shimmer=.06;c.material.uniforms.opacity.value=0;}}
  host.dataset.humanFields=humanData?'ready':'unavailable';
  scene.userData.spatial={depth:1,cut:0,cutNormal,cutFacing};
@@ -205,7 +207,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  async function ensureNewYork(){if(newYorkReady)return;if(newYorkLoading)return newYorkLoading;newYorkLoading=(async()=>{const requestedAt=performance.now();host.dataset.detailNewYorkStatus='fetching';const [stars,streets]=await Promise.all(['new-york-stars','new-york-streets'].map(name=>load(name)));const fetchedAt=performance.now();host.dataset.detailNewYorkFetchMs=(fetchedAt-requestedAt).toFixed(1);host.dataset.detailNewYorkStatus='preparing';if(disposed||graphicsLost||signal.aborted)return;const order=Array.from({length:stars.length/6},(_,i)=>i).sort((a,b)=>(Math.imul(a+1,2654435761)>>>0)-(Math.imul(b+1,2654435761)>>>0)),sorted=new Float32Array(stars.length);order.forEach((i,j)=>sorted.set(stars.subarray(i*6,i*6+6),j*6));newYorkStars=cloud(sorted,'#d5c5a5',newYorkFeather);newYorkStreets=lines(streets,'#c1a780',newYorkFeather);newYorkStars.points.userData.fallbackExposure=2.4;newYorkStreets.userData.fallbackExposure=2;createUrbanView('new-york',streets,newYorkFeather);newYorkReady=true;host.dataset.detailNewYorkPrepareMs=(performance.now()-fetchedAt).toFixed(1);host.dataset.detailNewYorkStatus='ready';})();try{await newYorkLoading;}catch(e){newYorkLoading=null;throw e;}}
  const specialViews=specialDestinationViews({load,cloud,lines,urban:createUrbanView,alive:()=>!disposed&&!graphicsLost&&!signal.aborted});
  function updateUrban(nowSeconds:number,visibility:number){for(const [id,v] of urbanViews){const active=targetId===id&&layerFlags.urban&&genesisProgress>=1&&openProgress===0;v.traffic.material.uniforms.opacity.value=active?visibility*1.6:0;v.activity.material.uniforms.opacity.value=active?visibility*2.5:0;if(!active||visibility<.002)continue;v.model.sample(nowSeconds,v.trafficXYZ,v.activityXYZ);const brightness=v.traffic.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;for(let i=0;i<v.model.trafficCount;i++){const x=v.trafficXYZ[i*3],y=v.trafficXYZ[i*3+1],z=v.trafficXYZ[i*3+2],weight=v.feather(Math.atan2(x,z)/R,Math.atan2(y,Math.hypot(x,z))/R);brightness.setX(i,v.model.trafficBrightness[i]*v.model.trafficOpacity[i]*weight);}brightness.needsUpdate=true;const activityBrightness=v.activity.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;for(let i=0;i<v.model.activityCount;i++){const x=v.activityXYZ[i*3],y=v.activityXYZ[i*3+1],z=v.activityXYZ[i*3+2];activityBrightness.setX(i,v.model.activityBrightness[i]*v.feather(Math.atan2(x,z)/R,Math.atan2(y,Math.hypot(x,z))/R));}activityBrightness.needsUpdate=true;v.traffic.points.geometry.getAttribute('position').needsUpdate=true;v.activity.points.geometry.getAttribute('position').needsUpdate=true;}}
- const historicalFlights=atlasFlights(atlas?.air.filter((_,i)=>!fallback||i%6===0)??[]);
+ const historicalFlights=gatherAirCorridors(atlasFlights(atlas?.air.filter((_,i)=>!fallback||i%6===0)??[]),(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat));
  const flightPaths=[...prepareFlightPaths(aircraftCorridors,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat)),...historicalFlights];
  const allSeaPaths=[...seaLanePaths,...atlasMarine(atlas?.sea??[],true)];
  const allCablePaths=[...cablePaths,...atlasMarine(atlas?.cables??[],false)];
@@ -282,21 +284,21 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  type PathGeometry=Pick<ReturnType<typeof prepareSmoothCables>[number],'positions'|'progress'>;
  function ribbon(c:Cloud,paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,kind:number,gates:ActivityTransitions){
   const original=c.points;earth.remove(original);original.geometry.dispose();geometries.splice(geometries.indexOf(original.geometry),1);
-  const g=cableFilamentGeometry(paths,sources,onsets);geometries.push(g);
+  const bases=paths.filter(p=>!('strand' in p)||!p.strand) as (PathGeometry&{id:string})[];const importance=networkImportance(bases,sources);const g=cableFilamentGeometry(paths,sources.map((s,i)=>({...s,importance:importance[i]})),onsets);geometries.push(g);
   const columns=Math.min(1024,gates.values.length),rows=Math.ceil(gates.values.length/columns),bytes=new Uint8Array(columns*rows*4).fill(255),texture=new THREE.DataTexture(bytes,columns,rows,THREE.RGBAFormat);texture.needsUpdate=true;texture.minFilter=texture.magFilter=THREE.NearestFilter;gateTextures.push({texture,gates,bytes});
   c.material.vertexShader=cableFilamentVertex;c.material.fragmentShader=cableFilamentFragment;c.material.side=THREE.DoubleSide;
   Object.assign(c.material.uniforms,{resolution:{value:new THREE.Vector2(host.clientWidth,host.clientHeight)},awakeningTime:{value:0},pathKind:{value:kind},routeGate:{value:texture},routeSize:{value:new THREE.Vector2(columns,rows)},richness:{value:DEFAULT_LIGHT.pathVolume},drawDuration:{value:kind===0?AWAKENING.cables.draw:2.2},fadeDuration:{value:kind===0?AWAKENING.cables.fade:1.1}});
   const mesh=new THREE.Mesh(g,c.material);mesh.userData={...original.userData};mesh.frustumCulled=false;earth.add(mesh);c.points=mesh;c.count=g.getAttribute('position').count;
  }
  function pathway(paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,tint:string,kind:number,gates:ActivityTransitions){
-  const data:number[]=[],routeIndices:number[]=[],progress:number[]=[];
+  const data:number[]=[],routeIndices:number[]=[],progress:number[]=[];const importance=networkImportance(paths as (PathGeometry&{id:string})[],sources);
   if(fallback)paths.forEach((p,i)=>{const count=Math.min(256,p.progress.length);for(let k=0;k<count;k++){const n=Math.round(k*(p.progress.length-1)/(count-1));data.push(...p.positions.subarray(n*3,n*3+3),0,.62,i*.73);routeIndices.push(i);progress.push(p.progress[n]);}});
   const c=cloud(new Float32Array(data),tint);c.material.uniforms.regional.value=1;c.material.uniforms.shell.value=1;
   c.points.userData.shell=kind===2?'air-lanes':'sea-lanes';c.points.userData.rhythm=.15;c.points.userData.shimmer=0;c.points.userData.fallbackExposure=.65;
   const base=fallback?(c.points.geometry.getAttribute('position').array as Float32Array).slice():null;
   if(!fallback)ribbon(c,kind===1?marineStrands(paths as typeof smoothShipping,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),true):paths,sources,onsets,kind,gates);
   // The material does not move; the travelling light supplies local highlights.
-  return {cloud:c,gates,onsets,kind,sources,base,routeIndices,progress};
+  return {cloud:c,gates,onsets,kind,sources,base,routeIndices,progress,importance};
  }
  const airLanes=pathway(flightPaths,[...aircraftCorridors.map((_,i)=>({intensity:i%13===12?0:.72})),...historicalFlights.map(p=>({intensity:p.intensity,tier:p.tier,threshold:p.threshold}))],airOnsets,signalColors.aircraft,2,airPathGates);
  const seaLaneView=pathway(smoothShipping,allSeaPaths.map((p,i)=>({intensity:i<seaLanePaths.length&&i%19===18?0:p.intensity,tier:p.tier,threshold:i<seaLanePaths.length?0:.10+.66*((i-seaLanePaths.length)/Math.max(1,allSeaPaths.length-seaLanePaths.length))})),shipOnsets,seaLaneColor,1,shipPathGates),seaLanes=seaLaneView.cloud;
@@ -307,7 +309,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   const b=c.points.geometry.getAttribute('brightness') as THREE.BufferAttribute,p=c.points.geometry.getAttribute('position') as THREE.BufferAttribute;
   for(let k=0;k<view.routeIndices.length;k++){
    const i=view.routeIndices[k],progress=view.progress[k],age=awakening.elapsed-view.onsets[i];
-   b.setX(k,displayedLight.pathVolume*view.sources[i].intensity*smoothUnit((age-progress*2.2)/1.1)*smoothUnit((view.gates.values[i]-progress*.3)/.7));
+   b.setX(k,displayedLight.pathVolume*view.sources[i].intensity*view.importance[i]*smoothUnit((age-progress*2.2)/1.1)*smoothUnit((view.gates.values[i]-progress*.3)/.7));
    if(view.kind===2){const scale=flightRadius(flightPaths[i],depth,terrain.land*(1+TERRAIN.grazingLand*terrain.study))/flightPaths[i].radius;p.setXYZ(k,view.base![k*3]*scale,view.base![k*3+1]*scale,view.base![k*3+2]*scale);}
   }
   b.needsUpdate=true;if(view.kind===2)p.needsUpdate=true;
@@ -617,9 +619,9 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const thematicFocus=focusTransition.values[0],popFocus=populationFocus.values[0],footFocus=footprintFocus.values[0],connectionFocus=connectionsFocus.values[0];
  const nightFocus=Math.max(0,thematicFocus-Math.max(popFocus,footFocus));
  for(const [field,intensity,own,other,colour] of [[populationField,displayedLight.population,popFocus,footFocus,'#769ebe'],[footprintField,displayedLight.footprint,footFocus,popFocus,'#9b79b4']] as const){if(!field)continue;
-  field.material.uniforms.opacity.value=global*born.settled*(1-opened)*intensity*(.85+own*7)*(1-other*.9)*(1-nightFocus*.9)*(1-connectionFocus*.75);
+  field.material.uniforms.opacity.value=global*born.settled*(1-opened)*intensity*(1.15+own*6.7)*(1-other*.9)*(1-nightFocus*.9)*(1-connectionFocus*.75);
   field.material.uniforms.tint.value.set('#c2b7a5').lerp(new THREE.Color(colour),displayedLight.colour);
-  field.material.uniforms.sizeScale.value=.88;
+  field.material.uniforms.sizeScale.value=.96;
   field.points.geometry.setDrawRange(0,Math.floor(field.count*displayedLight.fieldDensity*(mobile?.6:1)));
  }
  lights.material.uniforms.opacity.value*=1-Math.max(popFocus,footFocus)*.52;
@@ -634,7 +636,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   (borders.material as THREE.LineBasicMaterial).opacity*=1-nightFocus;
   edgeM.uniforms.opacity.value*=1-nightFocus*.8;
  }
- for(const c of clouds){const u=c.material.uniforms;u.genesis.value=genesisProgress;u.genesisEnabled.value=c.points.userData.spatial&&!c.points.userData.network&&!c.points.userData.oceanVolume&&!c.points.userData.humanField?1:0;if(c.points.userData.baseRegional===undefined)c.points.userData.baseRegional=u.regional.value;const regionOpen=!!activeOpenTarget&&scaleTier==='region'&&!backgroundLayers.includes(c);u.regional.value=regionOpen?1:c.points.userData.baseRegional;u.regionOuter.value=regionOpen?Math.cos(Math.min(1.2,activeOpenTarget!.contextRadiusKm*2.8/6371)):.78;u.regionInner.value=regionOpen?Math.cos(Math.min(.8,activeOpenTarget!.contextRadiusKm*.6/6371)):.975;u.regionMix.value=regionOpen?1:1-transformationEase((alt-.30)/1.1);u.regionFocus.value.copy(geo(lon,lat));u.genesisExposure.value=born.exposure;u.genesisSize.value=born.size;u.opening.value=c.points.userData.spatial||c===personalCloud?openProgress:0;c.points.visible=u.opacity.value>.001&&(c!==storyCloud||!!selected||remembering);u.terrainLand.value=terrain.land;u.terrainFloor.value=terrain.floor;u.terrainStudy.value=terrain.study;u.terrainReady.value=born.settled*(1-opened);u.depthMix.value=depth;u.cutaway.value=cut;u.cameraDistance.value=camera.position.length();u.time.value=time*(c.points.userData.rhythm??1);u.motion.value=options.motion?1:0;u.glow.value=backgroundLayers.includes(c)?.45:options.glow*(c.points.userData.shell==='satellites'?.56:1);u.sparkle.value=options.shimmer*(c.points.userData.shimmer??(backgroundLayers.includes(c)?.25:c===land?.8:1));u.zoomFactor.value=backgroundLayers.includes(c)?1:Math.min(1.45,Math.pow(2.1/Math.max(alt,.3),.14))*(mobile?1-global*.4:1);if(c===land)c.points.geometry.setDrawRange(0,Math.floor(c.count*options.density));}
+ for(const c of clouds){const u=c.material.uniforms;u.genesis.value=genesisProgress;u.genesisEnabled.value=c.points.userData.spatial&&!c.points.userData.network&&!c.points.userData.oceanVolume&&!c.points.userData.humanField?1:0;if(c.points.userData.baseRegional===undefined)c.points.userData.baseRegional=u.regional.value;const regionOpen=!!activeOpenTarget&&scaleTier==='region'&&!backgroundLayers.includes(c);u.regional.value=regionOpen?1:c.points.userData.baseRegional;u.regionOuter.value=regionOpen?Math.cos(Math.min(1.2,activeOpenTarget!.contextRadiusKm*2.8/6371)):.78;u.regionInner.value=regionOpen?Math.cos(Math.min(.8,activeOpenTarget!.contextRadiusKm*.6/6371)):.975;u.regionMix.value=regionOpen?1:1-transformationEase((alt-.30)/1.1);u.regionFocus.value.copy(geo(lon,lat));u.genesisExposure.value=born.exposure;u.genesisSize.value=born.size;u.opening.value=c.points.userData.spatial||c===personalCloud?openProgress:0;c.points.visible=u.opacity.value>.001&&(c!==storyCloud||!!selected||remembering);u.terrainLand.value=terrain.land;u.terrainFloor.value=terrain.floor;u.terrainStudy.value=terrain.study;u.terrainReady.value=born.settled*(1-opened);u.depthMix.value=depth;u.cutaway.value=cut;u.cameraDistance.value=camera.position.length();u.time.value=time*(c.points.userData.rhythm??1);u.motion.value=options.motion?1:0;u.glow.value=backgroundLayers.includes(c)?.45:options.glow*(c.points.userData.shell==='satellites'?.92:1);u.sparkle.value=backgroundLayers.includes(c)?(c.points.userData.stellarDust?0:displayedLight.skyShimmer):options.shimmer*(c.points.userData.shimmer??(c===land?.8:1));u.zoomFactor.value=backgroundLayers.includes(c)?1:Math.min(1.45,Math.pow(2.1/Math.max(alt,.3),.14))*(mobile?1-global*.4:1);if(c===land)c.points.geometry.setDrawRange(0,Math.floor(c.count*options.density));}
  if(personalSettledAt!==null&&!personalArrivalSent&&!morph&&stage==='orbit'&&(!options.motion||now-personalSettledAt>=1100)&&Math.abs(alt-targetAlt)<.035){personalArrivalSent=true;personalSettledAt=null;callbacks.personalSettled?.();}
  if(settledAt!==null&&!arrivalSent&&(!options.motion||now-settledAt>=1400)){arrivalSent=true;callbacks.arrival(remembered?.id||null);}
  if(!options.motion||frameCount%2===0){placeLabel('singapore',1.30,103.85,stage==='orbit'&&viewMode==='globe'&&!morph&&genesisProgress>=1&&openProgress===0&&!personalPlaces);for(const s of stories)placeLabel(s.id,s.lat,s.lon,stage==='city'&&(targetId===null||targetId==='singapore')&&!selected);for(let i=0;i<3;i++){const p=selected?.places[i];placeLabel('place-'+i,p?.lat||0,p?.lon||0,stage==='city'&&!!p&&reveal.stars>i*.25+.15);}}

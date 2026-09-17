@@ -41,20 +41,27 @@ function water(p: V, elevation: Elevation, surface = false) {
  * These remain illustrations; rounding is not a new geographic data source. */
 export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elevation, surfaceRadius?: number): SmoothCable[] {
   const nodesFor=(path:CablePath):V[]=>path.waypoints.map(([lat,lon])=>[Math.cos(lat*R)*Math.sin(lon*R),Math.sin(lat*R),Math.cos(lat*R)*Math.cos(lon*R)]);
-  const hubLinks=new Map<string,{normal:V;directions:{vector:V;weight:number}[]}>();
+  const hubLinks=new Map<string,{normal:V;directions:{vector:V;weight:number;route:string;span:number}[]}>();
   paths.forEach(path=>{const nodes=nodesFor(path);for(const end of [0,nodes.length-1]){
     const p=nodes[end],q=nodes[end===0?1:end-1],key=JSON.stringify(path.waypoints[end]);
     const vector=norm(q.map((v,i)=>v-p[i]*dot(p,q)) as V);
-    const hub=hubLinks.get(key)??{normal:p,directions:[]};hub.directions.push({vector,weight:path.intensity});hubLinks.set(key,hub);
+    const hub=hubLinks.get(key)??{normal:p,directions:[]};hub.directions.push({vector,weight:path.intensity,route:path.id+':'+(end===0?0:1),span:angle(p,q)});hubLinks.set(key,hub);
   }});
-  // A shared tangent axis makes branches gather through a hub instead of
-  // terminating as a sharp starburst. Each side chooses the nearer direction.
-  const hubAxes=new Map<string,V>();
-  for(const [key,hub] of hubLinks){if(hub.directions.length<2)continue;let axis=hub.directions[0].vector;
-    for(let iteration=0;iteration<12;iteration++){
-      const next:V=[0,0,0];for(const {vector,weight} of hub.directions){const amount=dot(vector,axis)*weight;for(let j=0;j<3;j++)next[j]+=vector[j]*amount;}
-      if(Math.hypot(...next)<1e-8)break;axis=norm(next);
-    }hubAxes.set(key,axis);
+  // Gather compatible bearings separately. A single axis per hub forced
+  // unrelated approaches into the same starburst and produced sideways hooks.
+  const hubAxes=new Map<string,{axis:V;reach:number}>();
+  for(const hub of hubLinks.values()){
+    const bundles:{axis:V;links:typeof hub.directions}[]=[];
+    for(const link of [...hub.directions].sort((a,b)=>b.weight-a.weight||a.route.localeCompare(b.route))){
+      const candidates=bundles.filter(b=>dot(b.axis,link.vector)>.72).sort((a,b)=>dot(b.axis,link.vector)-dot(a.axis,link.vector));
+      const bundle=candidates[0];
+      if(bundle){bundle.links.push(link);bundle.axis=norm(bundle.links.reduce((sum,d)=>sum.map((v,j)=>v+d.vector[j]*d.weight) as V,[0,0,0] as V));}
+      else bundles.push({axis:link.vector,links:[link]});
+    }
+    for(const bundle of bundles){if(bundle.links.length<2)continue;
+      const reach=Math.min(.30,...bundle.links.map(d=>d.span*.48));
+      for(const link of bundle.links)hubAxes.set(link.route,{axis:bundle.axis,reach});
+    }
   }
   const groups = new Map<string, number[]>();
   paths.forEach((p,i) => { const key=JSON.stringify(p.waypoints); const group=groups.get(key)??[]; group.push(i); groups.set(key,group); });
@@ -81,16 +88,16 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
     }
     for(const end of [0,1]){
       const piece=end?pieces[pieces.length-1]:pieces[0],hub=end?piece.b:piece.a,other=end?piece.a:piece.b;
-      const axis=hubAxes.get(JSON.stringify(path.waypoints[end?path.waypoints.length-1:0]));if(!axis)continue;
+      const bundle=hubAxes.get(path.id+':'+end);if(!bundle)continue;const {axis,reach}=bundle;
       const span=angle(hub,other),direction=norm(other.map((v,i)=>v-hub[i]*dot(hub,other)) as V),sign=dot(axis,direction)<0?-1:1;
-      let trim=Math.min(span*.82,.23),connector:CableCurvePiece|undefined;
+      let trim=Math.min(span*.88,reach*1.6),connector:CableCurvePiece|undefined;
       for(let attempt=0;attempt<18&&trim>1e-8;attempt++){
         // Two controls follow the common axis before separating. Matching the
         // first two and last two controls to each great-circle plane removes
         // the abrupt curvature change of the old cubic starburst.
         const q=arc(hub,other,trim/span);
         const along=(distance:number)=>norm(hub.map((v,i)=>v*Math.cos(distance)+axis[i]*sign*Math.sin(distance)) as V);
-        const candidate:CableCurvePiece={a:hub,b:q,controls:[along(trim*.20),along(trim*.40),arc(hub,other,trim/span*.60),arc(hub,other,trim/span*.80)]};
+        const candidate:CableCurvePiece={a:hub,b:q,controls:[along(Math.min(trim*.20,reach*.20)),along(Math.min(trim*.40,reach*.40)),arc(hub,other,trim/span*.60),arc(hub,other,trim/span*.80)]};
         if(Array.from({length:129},(_,k)=>water(sampleCablePiece(candidate,k/128),elevation,!!surfaceRadius)).every(Boolean)){connector=candidate;break;}trim*=.5;
       }
       if(connector){if(end){piece.b=connector.b;pieces.push({a:connector.b,b:connector.a,controls:[...connector.controls!].reverse()});}else{piece.a=connector.b;pieces.unshift(connector);}}

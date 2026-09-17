@@ -1,7 +1,21 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.16';
+export const currentVersion = '0.10.17';
 
 export const releases = [
+  {
+    version: '0.10.17',
+    date: '2026-09-17',
+    dateLabel: '17 September 2026',
+    title: 'Gathering into currents',
+    milestone: 'Flow and light hierarchy · People’s Choice Lab',
+    changes: [
+      'Leading corridors, supporting branches and quieter connections bring hierarchy to the expanded network. Historical airport links gather gently while keeping their endpoints.',
+      'Compatible marine approaches share their direction before separating. Ships and cable pulses continue to follow the prepared paths.',
+      'Geographic light gains broader neighbourhoods and quieter gaps. The white-gold cities remain the foundation, with more compact live controls alongside Earth.',
+      'Satellites regain their earlier size and brightness. A minority of distant stars shimmer gently on independent phases; tune Distant star shimmer separately or set it to zero.',
+    ],
+    review: 'Network counts and source records are unchanged. Bundling and light hierarchy are artistic, not traffic measurements or flown tracks. Air data remains historical and marine paths illustrative. The sky is imagined; pause freezes its shimmer. Earlier settings remain compatible. Browser checks do not imply physical-device or subjective audio acceptance.',
+  },
   {
     version: '0.10.16',
     date: '2026-09-17',

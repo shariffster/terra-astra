@@ -3,6 +3,15 @@
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
 
+## v0.10.17 — Gathering into currents · 17 September 2026
+
+- Extend exact v0.10.16 `2ed8a38dddcc4164e31b6de097c04c22142236c6` in `people-choice/v0.10.17-flow-hierarchy`; Lab only.
+- Keep all source records and moving populations. Establish lead, supporting and quiet connections per geographic corridor; gather compatible historical airport links with fixed endpoints and bounded displacement.
+- Separate compatible marine approach directions instead of forcing all hub branches through one axis. Preserve water, tangent continuity and shared ship/pulse sampling.
+- Remap geographic field light from sourced spatial neighbourhoods; preserve all source positions, files and attribution. Compact the grouped tuning panel.
+- Restore satellite head size and brightness; add seeded, restrained distant-star shimmer with an independent saved control, static reduced-motion start and frozen pause.
+- See `docs/FLOW-HIERARCHY-V01017.md` for verification and limits. Earlier versions, canonical v0.10.8, the archive and Maker’s Mark are preserved.
+
 ## v0.10.16 — A wider web of light · 17 September 2026
 
 - Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.

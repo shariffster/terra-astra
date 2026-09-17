@@ -3,7 +3,7 @@ import { transformationEase } from './transformation';
 
 /** Exposure is perceptual; the bundled bathymetry supplies spatial ordering. */
 export const LIVING_MATERIAL = Object.freeze({
-  satellites: { size: 2.05, head: 1.40, tail: .34, opacity: 1.10, rhythm: .70, shimmer: .42 },
+  satellites: { size: 2.6, head: 1.65, tail: .55, opacity: 1.4, rhythm: .85, shimmer: .75 },
   aircraft: { size: 1.70, head: 1.75, tail: .34, opacity: 1.20, rhythm: 1.65, shimmer: .38 },
   ships: { size: 2.55, head: 1.95, tail: .72, opacity: 1.20, rhythm: .29, shimmer: .58 },
 });

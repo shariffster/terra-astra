@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.17 flow hierarchy authority (17 September 2026)
+
+The user authorizes route hierarchy, compatible branching, geographic land structure and tighter controls, followed by restoring satellite presence and adding restrained distant-star shimmer. Work in `people-choice/v0.10.17-flow-hierarchy` from exact v0.10.16 `2ed8a38dddcc4164e31b6de097c04c22142236c6`. Preserve source records, airport endpoints, water constraints, white-gold identity and smooth motion. Validate comparable Pacific, Atlantic and Asia views. Publish only to the existing People’s Choice Lab; preserve earlier releases, canonical, archive and Maker’s Mark.
+
 ## v0.10.16 network richness authority (17 September 2026)
 
 The user authorizes a broader network and the still-relevant framing, satellite hierarchy, geographic texture, grouped tuning, dust and persistence refinements. Work in `people-choice/v0.10.16-network-richness` from exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606`. Separate quiet network richness from moving traffic density. Preserve the white-gold foundation, smooth trajectories, sourced geography and truthful historical/illustrative disclosures. Publish only the existing People's Choice Lab after rendered verification. Preserve prior releases, canonical v0.10.8, archive and Maker's Mark.
