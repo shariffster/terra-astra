@@ -8,13 +8,14 @@ export type FamilyOptions = {
  pathways:boolean; travellers:boolean; mode:PathMode; count:number;
  distribution:'even'|'hubs'; travellerLight:number; pathLight:number; trailLight:number; tail:number;
  ahead:number; behind:number; softness:number; bundle:number; roundness:number;
+ speed:number; pulse:boolean; pulseRate:number; pulseDepth:number;
 };
 export type TransportOptions = Record<TransportFamily,FamilyOptions>;
 export const MAX_TRAVELLERS=600;
-export const FAMILY_RANGES = {count:[10,MAX_TRAVELLERS,1],travellerLight:[0,3,.01],pathLight:[0,2,.01],trailLight:[0,3,.01],tail:[0,6,.05],ahead:[0,4,.05],behind:[0,4,.05],softness:[0,1,.01],bundle:[0,1,.05],roundness:[0,1,.05]} as const;
+export const FAMILY_RANGES = {count:[10,MAX_TRAVELLERS,1],travellerLight:[0,3,.01],pathLight:[0,2,.01],trailLight:[0,3,.01],tail:[0,6,.05],ahead:[0,4,.05],behind:[0,4,.05],softness:[0,1,.01],bundle:[0,1,.05],roundness:[0,1,.05],speed:[0,4,.05],pulseRate:[.02,1,.01],pulseDepth:[0,1,.01]} as const;
 export type FamilyNumber=keyof typeof FAMILY_RANGES;
-const base:FamilyOptions={pathways:true,travellers:true,mode:'full',count:200,distribution:'hubs',travellerLight:1,pathLight:1,trailLight:1,tail:1,ahead:1,behind:1,softness:.55,bundle:1,roundness:1};
-export const DEFAULT_TRANSPORT:TransportOptions={aircraft:{...base,count:200},ships:{...base,count:176},cables:{...base,count:14},satellites:{...base,count:84,mode:'trail',distribution:'even'}};
+const base:FamilyOptions={pathways:true,travellers:true,mode:'full',count:200,distribution:'hubs',travellerLight:1,pathLight:1,trailLight:1,tail:1,ahead:1,behind:1,softness:.55,bundle:1,roundness:1,speed:1,pulse:false,pulseRate:.16,pulseDepth:.45};
+export const DEFAULT_TRANSPORT:TransportOptions={aircraft:{...base,count:200,mode:'local',ahead:.45,behind:.7},ships:{...base,count:176},cables:{...base,count:14,pulse:true},satellites:{...base,count:84,mode:'trail',distribution:'even'}};
 export function cloneTransport(value:TransportOptions=DEFAULT_TRANSPORT):TransportOptions {
  return Object.fromEntries(TRANSPORT_FAMILIES.map(f=>[f,{...value[f]}])) as TransportOptions;
 }
@@ -25,7 +26,9 @@ export function validateTransport(value:unknown):TransportOptions|null {
  for(const f of TRANSPORT_FAMILIES){const v=(value as Record<string,unknown>)[f];if(!v||typeof v!=='object'||Array.isArray(v))return null;const row=v as Record<string,unknown>;
   if(typeof row.pathways!=='boolean'||typeof row.travellers!=='boolean'||!['full','local','trail'].includes(row.mode as string)||!['even','hubs'].includes(row.distribution as string))return null;
   Object.assign(result[f],{pathways:row.pathways,travellers:row.travellers,mode:row.mode,distribution:row.distribution});
-  for(const [key,[min,max]] of Object.entries(FAMILY_RANGES)){const n=row[key];if(typeof n!=='number'||!Number.isFinite(n)||n<min||n>max||key==='count'&&!Number.isInteger(n))return null;(result[f] as unknown as Record<string,unknown>)[key]=n;}
+  if(row.pulse!==undefined&&typeof row.pulse!=='boolean')return null;
+  result[f].pulse=row.pulse===undefined?DEFAULT_TRANSPORT[f].pulse:row.pulse as boolean;
+  for(const [key,[min,max]] of Object.entries(FAMILY_RANGES)){const n=['speed','pulseRate','pulseDepth'].includes(key)&&row[key]===undefined?DEFAULT_TRANSPORT[f][key as FamilyNumber]:row[key];if(typeof n!=='number'||!Number.isFinite(n)||n<min||n>max||key==='count'&&!Number.isInteger(n))return null;(result[f] as unknown as Record<string,unknown>)[key]=n;}
  }return result;
 }
 export function sameTransport(a:TransportOptions,b:TransportOptions){return TRANSPORT_FAMILIES.every(f=>(Object.keys(a[f]) as (keyof FamilyOptions)[]).every(k=>a[f][k]===b[f][k]));}
@@ -56,3 +59,12 @@ export function sampleTravellerPath(path:TravellerPath,progress:number,out:{[ind
 }
 export function localPathOffset(fraction:number,ahead:number,behind:number,period:number){return (fraction<.5?-(1-fraction*2)*behind:fraction*2*ahead-ahead)*period*.055;}
 export function localPathLight(fraction:number){return smoothUnit(fraction/.18)*smoothUnit((1-fraction)/.18)*(fraction>.5?.7:1);}
+
+/** Integrate rates instead of multiplying absolute time: tuning never jumps phase. */
+export function advanceTransportClock(clock:{travel:number;pulse:number},delta:number,settings:Pick<FamilyOptions,'speed'|'pulseRate'>){
+ if(delta>0){clock.travel+=delta*settings.speed;clock.pulse+=delta*settings.pulseRate;}
+}
+export function travellerPulse(cycles:number,phase:number,depth:number){
+ const wave=.5+.5*Math.cos((cycles+phase)*Math.PI*2);
+ return 1-depth*(1-wave*wave);
+}

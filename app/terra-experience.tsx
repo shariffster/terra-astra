@@ -15,6 +15,7 @@ import { validatePersonalPlaces } from '@/lib/personal/model';
 import type { PersonalPlaces, TransformationState } from '@/lib/terra/personal-contract';
 import { WorldNavigation } from './world-navigation';
 import { CompositionControls, type CompositionTab } from './composition-controls';
+import type { SoloMemory } from './transport-controls';
 import { COMPOSITION_STORAGE, DEFAULT_LIGHT, composition, parseComposition, type Composition } from '@/lib/terra/composition';
 import { connectWorldNavigator, publishWorldState, sendWorldCommand } from '@/lib/world/bridge';
 import { WORLD_TARGETS, type GenesisState, type WorldState } from '@/lib/world/commands';
@@ -38,6 +39,7 @@ export default function TerraExperience(){
  const [genesis,setGenesis]=useState<GenesisState>({phase:'core',progress:0,busy:true});
  const [world,setWorld]=useState<WorldState|null>(null);
  const [compositionTab,setCompositionTab]=useState<CompositionTab|null>(null);
+ const soloMemory=useRef<SoloMemory|null>(null);
  const composeTrigger=useRef<HTMLButtonElement|null>(null),savedStartup=useRef<Composition|null>(null),preferencesReady=useRef(false),restoringPreferences=useRef(false),lightRevision=useRef(0);
  const [preferencesRestored,setPreferencesRestored]=useState(false);
  const closeComposition=useCallback(()=>{setCompositionTab(null);composeTrigger.current?.focus();},[]);
@@ -146,7 +148,7 @@ export default function TerraExperience(){
    <button disabled={!ready} onClick={()=>configure({motion:!options.motion})} aria-label={options.motion?'Pause ambient motion':'Resume ambient motion'} title={options.motion?'Pause ambient motion':'Resume ambient motion'}>{options.motion?<Pause size={16}/>:<Play size={16}/>}</button>
    <button disabled={!ready||genesis.busy||astra} aria-label="Adjust the constellations" title="Adjust the constellations" aria-controls="composition-panel" aria-expanded={compositionTab==='light'} onClick={e=>{composeTrigger.current=e.currentTarget;setCompositionTab(compositionTab==='light'?null:'light');}}><SlidersHorizontal size={18}/></button>
   </div>
-  {compositionTab&&ready&&!genesis.busy&&!astra?<CompositionControls tab={compositionTab} setTab={setCompositionTab} onClose={closeComposition} options={options} onChange={configure} state={world} onApply={applyComposition} onCompare={compareLight} disabled={!!world?.busy||!preferencesRestored}/>:null}
+  {compositionTab&&ready&&!genesis.busy&&!astra?<CompositionControls soloMemory={soloMemory} tab={compositionTab} setTab={setCompositionTab} onClose={closeComposition} options={options} onChange={configure} state={world} onApply={applyComposition} onCompare={compareLight} disabled={!!world?.busy||!preferencesRestored}/>:null}
   {ready&&!genesis.busy&&!astra&&world?.presentation?.focus!=='living'?<button className="active-earth-lens" onClick={e=>{composeTrigger.current=e.currentTarget;setCompositionTab('layers');}}>{({'night-lights':'Night lights · NASA 2016',population:'Population · 2020',footprint:'Human footprint · 2009',connections:'Illustrated connections',living:'Living Earth'} as const)[world?.presentation?.focus??'living']}</button>:null}
   {ready&&!genesis.busy&&!astra?<nav className="scale-navigation" aria-label="World scale">{(['planet','region','city','street'] as const).map(tier=><button key={tier} title={{planet:"The whole Earth",region:"Coastlines and wider context",city:"The city and its movement",street:"Close to the detailed streets"}[tier]} aria-current={world?.tier===tier?'step':undefined} disabled={!!world?.busy||(!world?.targetId&&tier!=='planet')||((world?.targetId==='challenger-deep'||!!openTarget&&!openUrban)&&(tier==='city'||tier==='street'))} onClick={()=>void sendWorldCommand({type:'setScale',tier})}>{tier}</button>)}</nav>:null}
   <div className="journey-bar">

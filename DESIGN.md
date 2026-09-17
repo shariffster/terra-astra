@@ -53,7 +53,7 @@ This records the built system, not a proposed redesign. Ground truth is `app/glo
 
 Run G preserves this incumbent world. Its generic named-place journey and current phone adaptations are scoped in [the Open Earth surface brief](.impeccable/surfaces/app-terra-experience-tsx.md). Earlier capture measurements below remain historical observations; the brief records the current cascade without replacing the personal or authored compositions. Source behavior and attribution remain in [the Run G implementation record](docs/PEOPLES-CHOICE-RUN-G.md).
 
-The same-version v0.10.17 transport-controls extension retains the white-gold Earth and the existing Light / Layers / Saved panel. Its family disclosures, numeric tuning and responsive behavior are recorded in [the composition-controls surface brief](.impeccable/surfaces/app-composition-controls-tsx.md); behavior and verification limits are in [the transport-controls implementation record](docs/TRANSPORT-CONTROLS-V01017.md). This scoped documentation preserves the earlier design record.
+The same-version v0.10.17 controls and shared-strands extensions retain the pearl-and-gold Earth, muted route families and existing Light / Layers / Saved panel. Family disclosures lead the Layers hierarchy; precise motion, light and shape tuning remains progressively disclosed. Current hierarchy, recovery behavior and responsive composition are recorded in [the composition-controls surface brief](.impeccable/surfaces/app-composition-controls-tsx.md), with behavior and verification limits in [the shared-strands implementation record](docs/STRANDS-MOTION-V01017.md). This scoped documentation preserves the earlier design record and its tokens.
 
 ## Colors
 
@@ -97,7 +97,7 @@ Actions and inputs are nearly rectangular with subtly softened corners; story an
 
 - **Open Earth extension:** name search, generic place context and source disclosure use the existing material and type pairing. Their Region/City/Street composition and responsive exceptions belong to the Open Earth surface brief, not to global component rules.
 
-- **Individual transport families (v0.10.17 follow-up):** native expandable rows within Layers separate Flights, Ships, Undersea cables and Satellites. Each exposes independent pathways and travellers, a path-style selector, count and distribution; nested Light & trail and Route shape disclosures keep fine tuning out of the initial scan. Paired numeric fields and sliders use the existing warm focus outline, dark input surface, thin dividers and quiet explanatory text. The established nonmodal panel remains left on desktop and below Earth on phones. Family behavior, illustrative labels and reset boundaries are surface-specific.
+- **Individual transport families (v0.10.17 follow-up):** native expandable rows lead Layers, ahead of Land & colour and collapsed Overall balance. Flights, Ships, Undersea cables and Satellites expose independent pathways/travellers, styles, effective count summaries and illustrative distribution. Quiet Solo / Restore and Reset actions sit within each family; Motion & pulse, Light & trail and Route shape reveal fine tuning progressively. Paired numeric fields and sliders retain warm focus, dark input surfaces, thin dividers and quiet explanatory text. The nonmodal panel stays beside Earth on desktop and below it on phones, with comparison and save actions outside the scrolling body. Detailed behavior and recovery boundaries remain surface-specific.
 
 ## Do's and Don'ts
 

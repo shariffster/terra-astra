@@ -8,7 +8,7 @@ const dot = (a: Point, b: Point) => a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
 const unit = (v: Point): Point => { const r=Math.hypot(...v); return v.map(x=>x/r) as Point; };
 const point = (p: Path, end: boolean): Point => unit(Array.from(p.positions.subarray(end?p.positions.length-3:0,end?p.positions.length:3)) as Point);
 const cell = (v: Point) => v.map(x=>Math.round(x*5)).join(',');
-const smooth = (x:number) => {const t=Math.max(0,Math.min(1,x));return t*t*(3-2*t);};
+const smooth = (x:number) => {const t=Math.max(0,Math.min(1,x));return t*t*t*(t*(6*t-15)+10);};
 function arc(a:Point,b:Point,t:number):Point {
  const angle=Math.acos(Math.max(-1,Math.min(1,dot(a,b)))),s=Math.sin(angle);
  if(Math.abs(s)<1e-5)return unit(a.map((v,j)=>v*(1-t)+b[j]*t) as Point);

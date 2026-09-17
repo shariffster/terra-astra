@@ -5,11 +5,11 @@ import { networkRadius } from '../terra/living-material';
 type V = [number, number, number];
 type Output = { [index: number]: number };
 type Elevation = (lon: number, lat: number) => number;
-export type CableCurvePiece = { a: V; b: V; control?: V; controls?: V[] };
+export type CableCurvePiece = { a: V; b: V; control?: V; controls?: V[]; corridor?: boolean };
 export type SmoothCable = {
   id: string; positions: Float32Array; progress: Float32Array;
   distances: Float64Array; length: number; pieces: CableCurvePiece[];
-  cornerCount: number; constrainedCorners: number; offset: number;
+  cornerCount: number; constrainedCorners: number; offset: number; gathering: Float32Array;
 };
 export const MAX_CABLE_VERTICES = 3072;
 const R = Math.PI / 180;
@@ -36,10 +36,10 @@ function water(p: V, elevation: Elevation, surface = false) {
 /** Water-constrained spherical fillets. The normalized quadratic meets each great-circle
  * leg with the same tangent. Coastal bends shrink until the existing ocean mask
  * permits them. Authored offshore endpoints and route identities are preserved.
- * Shared cubic hub approaches align geographic tangents; cables also share a
+ * Shared quintic hub approaches align geographic tangents; cables also share a
  * bounded depth at each hub. A surface radius selects the shipping treatment.
  * These remain illustrations; rounding is not a new geographic data source. */
-export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elevation, surfaceRadius?: number, shape={bundle:1,roundness:1}): SmoothCable[] {
+export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elevation, surfaceRadius?: number, shape={bundle:1,roundness:1},samplingScale=1): SmoothCable[] {
   const nodesFor=(path:CablePath):V[]=>path.waypoints.map(([lat,lon])=>[Math.cos(lat*R)*Math.sin(lon*R),Math.sin(lat*R),Math.cos(lat*R)*Math.cos(lon*R)]);
   const hubLinks=new Map<string,{normal:V;directions:{vector:V;weight:number;route:string;span:number}[]}>();
   paths.forEach(path=>{const nodes=nodesFor(path);for(const end of [0,nodes.length-1]){
@@ -63,6 +63,26 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
       for(const link of bundle.links)hubAxes.set(link.route,{axis:norm(mix(link.vector,bundle.axis,shape.bundle)),reach:reach*shape.bundle});
     }
   }
+  // Compatible open-water legs share a central approach. Coast-constrained
+  // candidates shrink back towards their source leg; source nodes never move.
+  const legKey=(a:V,b:V)=>{const x=a.map(v=>Math.round(v*5)).join(','),y=b.map(v=>Math.round(v*5)).join(',');return {key:x<y?x+'/'+y:y+'/'+x,reverse:x>y};};
+  const legGroups=new Map<string,{a:V;b:V}[]>();
+  for(const path of paths){const nodes=nodesFor(path);for(let i=0;i<nodes.length-1;i++){
+    const a=nodes[i],b=nodes[i+1];if(angle(a,b)<.18)continue;
+    const {key,reverse}=legKey(a,b),group=legGroups.get(key)??[];group.push(reverse?{a:b,b:a}:{a,b});legGroups.set(key,group);
+  }}
+  const centres=new Map<string,{a:V;b:V}>();
+  for(const [key,group] of legGroups){if(group.length<3)continue;const mean=(end:'a'|'b')=>norm(group.reduce((sum,p)=>sum.map((v,j)=>v+p[end][j]) as V,[0,0,0] as V));centres.set(key,{a:mean('a'),b:mean('b')});}
+  const gatherLeg=(piece:CableCurvePiece,a:V,b:V):CableCurvePiece=>{
+    if(shape.bundle<=0)return piece;const {key,reverse}=legKey(a,b),centre=centres.get(key);if(!centre)return piece;
+    const start=reverse?centre.b:centre.a,end=reverse?centre.a:centre.b;
+    if(angle(arc(piece.a,piece.b,.5),arc(start,end,.5))<.0001)return piece;
+    for(let attempt=0;attempt<8;attempt++){
+      const shift=(t:number)=>{const p=arc(piece.a,piece.b,t),q=arc(start,end,t);return arc(p,q,Math.min(.94,.025/Math.max(.00001,angle(p,q)))*shape.bundle*2**-attempt);};
+      const candidate:CableCurvePiece={...piece,corridor:true,controls:[arc(piece.a,piece.b,.125),arc(piece.a,piece.b,.25),shift(.375),shift(.625),arc(piece.a,piece.b,.75),arc(piece.a,piece.b,.875)]};
+      if(Array.from({length:257},(_,k)=>water(sampleCablePiece(candidate,k/256),elevation,!!surfaceRadius)).every(Boolean))return candidate;
+    }return piece;
+  };
   const groups = new Map<string, number[]>();
   paths.forEach((p,i) => { const key=JSON.stringify(p.waypoints); const group=groups.get(key)??[]; group.push(i); groups.set(key,group); });
   const prepared=paths.map((path,index) => {
@@ -71,9 +91,12 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
     let constrainedCorners=0;
     for(let i=1;i<nodes.length-1;i++) {
       const a=nodes[i-1], b=nodes[i], c=nodes[i+1], incoming=angle(a,b), outgoing=angle(b,c);
-      let trim=Math.min(incoming*.46,outgoing*.46,.16)*(.02+.98*shape.roundness), accepted: CableCurvePiece|undefined;
+      let trim=Math.min(incoming*.46,outgoing*.46,.22)*(.02+.98*shape.roundness), accepted: CableCurvePiece|undefined;
       for(let attempt=0;attempt<18;attempt++) {
-        const piece={a:arc(a,b,1-trim/incoming),control:b,b:arc(b,c,trim/outgoing)};
+        // Two controls on each adjoining great circle ease curvature into and
+        // out of a bend. Shared legs keep one tangent instead of a visible elbow.
+        const start=arc(a,b,1-trim/incoming),end=arc(b,c,trim/outgoing);
+        const piece:CableCurvePiece={a:start,b:end,controls:[arc(start,b,.32),arc(start,b,.64),arc(b,end,.36),arc(b,end,.68)]};
         if(Array.from({length:257},(_,k)=>water(sampleCablePiece(piece,k/256),elevation,!!surfaceRadius)).every(Boolean)) { accepted=piece; if(attempt)constrainedCorners++; break; }
         trim*=.5;
       }
@@ -102,12 +125,19 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
       }
       if(connector){if(end){piece.b=connector.b;pieces.push({a:connector.b,b:connector.a,controls:[...connector.controls!].reverse()});}else{piece.a=connector.b;pieces.unshift(connector);}}
     }
-    const samples: V[]=[];
+    for(let i=0;i<pieces.length;i++){const p=pieces[i];if(!p.controls&&!p.control)pieces[i]=gatherLeg(p,p.a,p.b);}
+    const samples: V[]=[],gatheringValues:number[]=[];
     for(const piece of pieces) {
-      const count=piece.controls?Math.max(32,Math.ceil(angle(piece.a,piece.b)/.0005)):piece.control?Math.max(32,Math.ceil((angle(piece.a,piece.control)+angle(piece.control,piece.b))/.0007)):Math.max(2,Math.ceil(angle(piece.a,piece.b)/.001));
-      for(let k=0;k<count;k++)samples.push(sampleCablePiece(piece,k/count));
+      const count=piece.corridor?Math.max(32,Math.ceil(angle(piece.a,piece.b)/(.001*samplingScale))):piece.controls?Math.max(32,Math.ceil(angle(piece.a,piece.b)/(.0005*samplingScale))):piece.control?Math.max(32,Math.ceil((angle(piece.a,piece.control)+angle(piece.control,piece.b))/(.0007*samplingScale))):Math.max(2,Math.ceil(angle(piece.a,piece.b)/(.001*samplingScale)));
+      for(let k=0;k<count;k++){
+        const t=k/count;samples.push(sampleCablePiece(piece,t));
+        // Companion strands gather through bends, then fan out with a zero
+        // slope into the open-water leg. This also handles intermediate turns.
+        gatheringValues.push(piece.controls||piece.control?1-.86*shape.bundle*Math.sin(Math.PI*t)**4:1);
+      }
     }
-    samples.push(nodes[nodes.length-1]);
+    samples.push(nodes[nodes.length-1]);gatheringValues.push(1);
+    const gathering=Float32Array.from(gatheringValues);
     if(samples.length>MAX_CABLE_VERTICES) throw new Error(`Cable preparation budget exceeded: ${path.id}`);
     const group=groups.get(JSON.stringify(path.waypoints))!;
     let offset=(group.indexOf(index)-(group.length-1)/2)*(surfaceRadius?.0004:.00055);
@@ -132,7 +162,7 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
     const length=distances[distances.length-1];
     if(surfaceRadius){
       points.forEach((p,i)=>{progress[i]=distances[i]/length;positions.set(p.map(x=>x*surfaceRadius),i*3);});
-      return {id:path.id,positions,progress,distances,length,pieces,cornerCount:corners.size,constrainedCorners,offset};
+      return {id:path.id,positions,progress,distances,length,pieces,cornerCount:corners.size,constrainedCorners,offset,gathering};
     }
     // A cubic B-spline envelope over local upper bounds smooths exaggerated
     // coarse-grid cliffs. Every contributing bound includes the current floor,
@@ -154,7 +184,7 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
       // to raw terrain here reintroduced cliff-shaped dives near coastal hubs.
       positions.set(points[i].map(x=>x*envelope),i*3);
     });
-    return {id:path.id,positions,progress,distances,length,pieces,cornerCount:corners.size,constrainedCorners,offset};
+    return {id:path.id,positions,progress,distances,length,pieces,cornerCount:corners.size,constrainedCorners,offset,gathering};
   });
   if(!surfaceRadius){
     // Shared depth and zero radial slope at a junction remove vertical V joins.
@@ -197,7 +227,7 @@ export function marineStrands(paths: readonly SmoothCable[], elevation: Elevatio
    const a=Math.max(0,k-1)*3,b=Math.min(count-1,k+1)*3;
    const tx=p[b]-p[a],ty=p[b+1]-p[a+1],tz=p[b+2]-p[a+2];
    const nx=y*tz-z*ty,ny=z*tx-x*tz,nz=x*ty-y*tx,n=Math.max(1e-12,Math.hypot(nx,ny,nz));
-   normals.set([nx/n,ny/n,nz/n],i);tapers[k]=Math.sin(Math.PI*path.progress[k])**2;
+   normals.set([nx/n,ny/n,nz/n],i);tapers[k]=Math.sin(Math.PI*path.progress[k])**2*(path.gathering?.[k]??1);
   }
   for(const strand of [1,2,3,4]){
    let offset=(strand%2?1:-1)*Math.ceil(strand/2)*(surface?.0035:.0022);

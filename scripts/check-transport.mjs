@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {registerHooks} from 'node:module';
 registerHooks({resolve(s,c,n){return n(c.parentURL?.includes('/lib/')&&s.startsWith('.')&&!s.endsWith('.ts')?s+'.ts':s,c)}});
-const {DEFAULT_TRANSPORT,cloneTransport,validateTransport,travellerPool,travellerProgress,sampleTravellerPath,localPathOffset,localPathLight,MAX_TRAVELLERS}=await import('../lib/terra/transport.ts');
+const {DEFAULT_TRANSPORT,cloneTransport,validateTransport,travellerPool,travellerProgress,sampleTravellerPath,localPathOffset,localPathLight,MAX_TRAVELLERS,advanceTransportClock,travellerPulse}=await import('../lib/terra/transport.ts');
 const {composition,parseComposition,DEFAULT_LIGHT,sameComposition}=await import('../lib/terra/composition.ts');
 const legacy=JSON.parse(JSON.stringify(composition('Old',DEFAULT_LIGHT)));delete legacy.light.transport;assert.deepEqual(parseComposition(JSON.stringify(legacy)).light.transport,DEFAULT_TRANSPORT);
+const previous=cloneTransport();for(const f of Object.values(previous))for(const k of ['speed','pulse','pulseRate','pulseDepth'])delete f[k];assert.ok(validateTransport(previous),'Existing family saves migrate new motion controls');
+const clock={travel:12,pulse:.3};advanceTransportClock(clock,0,{speed:4,pulseRate:1});assert.deepEqual(clock,{travel:12,pulse:.3},'Tuning a paused clock cannot jump position or phase');advanceTransportClock(clock,.5,{speed:2,pulseRate:.2});assert.deepEqual(clock,{travel:13,pulse:.4});advanceTransportClock(clock,1,{speed:0,pulseRate:.2});assert.equal(clock.travel,13,'Family hold leaves motion fixed while pulse can continue');for(let t=0;t<10;t+=.07){assert.equal(travellerPulse(t,.2,0),1);assert.ok(travellerPulse(t,.2,.45)>=.55&&travellerPulse(t,.2,.45)<=1);}
 const custom=cloneTransport();custom.aircraft.mode='local';custom.aircraft.travellers=false;custom.ships.pathways=false;custom.cables.count=600;custom.satellites.mode='full';custom.ships.roundness=0;
 const saved=composition('New',{...DEFAULT_LIGHT,transport:custom});assert.deepEqual(parseComposition(JSON.stringify(saved)),saved);assert.ok(!sameComposition(saved,composition('New',DEFAULT_LIGHT)));
 for(const mutate of [v=>v.ships.count=601,v=>v.aircraft.count=10.2,v=>v.cables.softness=NaN,v=>v.satellites.mode='bad',v=>v.aircraft.pathways='yes']){const v=cloneTransport();mutate(v);assert.equal(validateTransport(v),null);}
@@ -23,4 +25,5 @@ for(const surface of [true,false]){const sources=[...(surface?seaLanePaths:cable
  }
 }
 assert.equal(localPathOffset(.5,2,3,100),0);assert.equal(localPathLight(0),0);assert.equal(localPathLight(1),0);assert.ok(localPathOffset(0,1,1,100)<0&&localPathOffset(1,1,1,100)>0);
+const {prepareCurrentPaths,sampleCurrent}=await import('../lib/world/ocean-volume.ts');const currents=prepareCurrentPaths(elevation),out=new Float64Array(3);for(let i=0;i<currents.length;i++)for(let k=0;k<192;k++)for(const time of [0,200]){assert.ok(Number.isFinite(sampleCurrent(i,k,time,grid,out,currents)));assert.ok(out.every(Number.isFinite));}
 console.log(JSON.stringify({result:'PASS',migration:true,roundtrip:true,capacity:MAX_TRAVELLERS,waterSamples:samples,shapes:'straight / intermediate / round',distribution:'even / illustrative hub weighting',sharedSampler:true}));

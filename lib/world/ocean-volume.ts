@@ -1,3 +1,4 @@
+import { prepareSmoothCables, sampleSmoothCable, type SmoothCable } from './smooth-cables';
 import { oceanNetwork } from './ocean-network-data';
 import { marinePath, sampleMarinePath } from './marine-path';
 import { reliefRadius, sampleElevation } from '../terra/spatial';
@@ -32,13 +33,16 @@ export function sampleSuspended(x:number,y:number,z:number,phase:number,time:num
   const k=r/Math.hypot(...out);out[0]*=k;out[1]*=k;out[2]*=k;
 }
 
-export function sampleCurrent(pathIndex:number,particle:number,time:number,grid:Int16Array,out:Float64Array) {
+export const prepareCurrentPaths=(elevation:(lon:number,lat:number)=>number)=>prepareSmoothCables(currentPaths.map(p=>({...p,tier:"current",intensity:1})),elevation,1.0003,{bundle:0,roundness:1},4);
+
+export function sampleCurrent(pathIndex:number,particle:number,time:number,grid:Int16Array,out:Float64Array,prepared?:readonly SmoothCable[]) {
   const path=currentPaths[pathIndex],seed=(particle*.61803398875)%1;
   const tail=particle%3, progress=((Math.floor(particle/3)/(CURRENT_PARTICLES/3)+(time-tail*.5)*.0007/Math.max(.2,path.totalArc))%1+1)%1;
-  sampleMarinePath(path,progress,out);
+  if(prepared)sampleSmoothCable(prepared[pathIndex],progress,out);else sampleMarinePath(path,progress,out);
+  const norm=Math.hypot(...out);for(let i=0;i<3;i++)out[i]/=norm;
   const lon=Math.atan2(out[0],out[2])/R,lat=Math.asin(out[1])/R;
   const metres=sampleElevation(grid,1440,720,lon,lat),floor=reliefRadius(Math.min(-1,metres));
-  const radius=1-(1-floor)*(.16+.30*seed);
+  const radius=prepared?1.0003:1-(1-floor)*(.16+.30*seed);
   out[0]*=radius;out[1]*=radius;out[2]*=radius;
   return Math.min(1,progress*24,(1-progress)*24)*(.24+seed*.24)*(particle%3===0?1:.3)*smooth(-40,-800,metres);
 }

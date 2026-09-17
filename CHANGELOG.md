@@ -21,6 +21,15 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Add the user's proposed quieter mix as a one-click option. Integrate every setting into last-view restore, named saves, compare, import/export and legacy composition migration. Existing saved family and global switches remain respected.
 - See `docs/TRANSPORT-CONTROLS-V01017.md` for controls, data meaning, verification and limits.
 
+### Same-version follow-up — Shared strands and motion · 18 September 2026
+
+- Preserve the same version, branch, Lab Site and original tag. Gather compatible open-water legs into bounded shared corridors, round intermediate marine bends with tangent-aligned curves, and narrow companion strands through turns before separating again. Keep brighter shared approaches where paths converge.
+- Retain source route identities and endpoints, water constraints and shared traveller/path sampling. These remain illustrative corridors; this pass does not add surveyed cable alignments or AIS coastal tracks.
+- Add independent 0–4× travel speed, brightness pulse on/off, frequency and depth to every family. Integrate travel and pulse phases independently so rate changes do not jump positions; zero speed holds travellers while optional brightness pulses continue.
+- Bring family controls forward, show effective worldwide light budgets, and add solo/restore, per-family reset and a saved-light comparison source. New defaults use short flight guides, full ship/cable paths and satellite tails; existing saved choices remain intact.
+- Add optional shoreline light swells and separate current light/speed controls. Smooth the existing eight illustrative current paths near the surface; no tides, waves or measured ocean velocities are claimed.
+- See `docs/STRANDS-MOTION-V01017.md` for checks, control ranges and geographic limits.
+
 ## v0.10.16 — A wider web of light · 17 September 2026
 
 - Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.

@@ -1,4 +1,4 @@
-import { travellerPool, travellerProgress, sampleTravellerPath, localPathOffset, localPathLight, MAX_TRAVELLERS, TRANSPORT_FAMILIES, cloneTransport, type TransportFamily, type TravellerPath, type Traveller } from './transport';
+import { advanceTransportClock, travellerPulse, travellerPool, travellerProgress, sampleTravellerPath, localPathOffset, localPathLight, MAX_TRAVELLERS, TRANSPORT_FAMILIES, cloneTransport, type TransportFamily, type TravellerPath, type Traveller } from './transport';
 import { gatherAirCorridors, networkImportance } from './network-composition';
 import { structureLandLight } from './land-light';
 import * as THREE from 'three';
@@ -20,7 +20,7 @@ import { cablePaths, cableColor, CABLE_SEGMENTS_PER_PATH, cableHubs } from '../w
 import { prepareSmoothCables, sampleSmoothCable, marineStrands } from '../world/smooth-cables';
 import { cableFilamentGeometry, cableFilamentVertex, cableFilamentFragment, movingPathGeometry, writeMovingPath } from './cable-filaments';
 import { seaLanePaths, seaLaneColor } from '../world/sea-lanes';
-import { createOceanVolume, sampleSuspended, currentPaths, CURRENT_PARTICLES, sampleCurrent, oceanExposure } from '../world/ocean-volume';
+import { createOceanVolume, prepareCurrentPaths, sampleSuspended, currentPaths, CURRENT_PARTICLES, sampleCurrent, oceanExposure } from '../world/ocean-volume';
 import { LIVING_MATERIAL, livingExposure, networkRadius } from './living-material';
 import { createUrbanActivity, type UrbanActivity } from '../world/urban-activity';
 import { GENESIS_DURATION, genesisGLSL, genesisSeed, genesisLight, genesisState } from './genesis';
@@ -47,7 +47,7 @@ const clamp=THREE.MathUtils.clamp;
 const wrap=(x:number)=>((x+180)%360+360)%360-180;
 const vertex=`attribute float brightness;attribute float starSize;attribute float phase;attribute float revealAt;
 uniform float time;uniform float motion;uniform float pixelRatio;uniform float zoomFactor;uniform float sizeScale;uniform float reveal;uniform float sparkle;uniform float signature;uniform float shell;
-uniform float regional;uniform float regionMix;uniform vec3 regionFocus;uniform float regionOuter;uniform float regionInner;
+uniform float shoreBreath;uniform float regional;uniform float regionMix;uniform vec3 regionFocus;uniform float regionOuter;uniform float regionInner;
 varying float vB;varying float vG;varying float vP;
 ${scintillationGLSL}
 ${transformationGLSL}
@@ -55,7 +55,7 @@ ${terrainVertexGLSL}
 ${spatialVertexGLSL}
 ${genesisGLSL}
 float shellVisibility(vec3 world){if(shell<.5)return 1.0;if(shell>1.5)return smoothstep(-.02,.08,dot(normalize(world),normalize(cameraPosition-world)));vec3 ray=normalize(world-cameraPosition);float b=dot(cameraPosition,ray),d=b*b-dot(cameraPosition,cameraPosition)+1.0;if(d<=0.0)return 1.0;float hit=-b-sqrt(d);return hit>0.0&&hit<distance(world,cameraPosition)-.001?0.0:1.0;}
-void main(){vec3 world=genesisPosition(openedPosition(spatialPosition(position)));vec2 terrain=terrainLight(position);vec4 p=modelViewMatrix*vec4(world,1.0);gl_Position=projectionMatrix*p;vec3 light=scintillate(time,phase,motion,sparkle,signature);vB=mix(brightness,max(brightness,.24),vMarine)*light.x*terrain.x*shellVisibility(world)*smoothstep(revealAt,revealAt+.18,reveal)*mix(spatialVisibility(world),1.0,genesisEnabled*(1.0-genRamp(.78,1.0,genesis)))*mix(1.0,genesisExposure,genesisEnabled);vG=light.y;vP=phase;vB*=mix(1.0,.12+.88*smoothstep(regionOuter,regionInner,dot(normalize(world),regionFocus)),regional*regionMix);gl_PointSize=clamp(starSize*pixelRatio*4.1*zoomFactor*sizeScale*light.z*terrain.y*mix(1.0,genesisSize,genesisEnabled)*mix(1.0,clamp(cameraDistance/max(.01,-p.z),.55,2.6),max(spatial*depthMix,opening)),.75*pixelRatio,40.0*pixelRatio);}`;
+void main(){vec3 world=genesisPosition(openedPosition(spatialPosition(position)));vec2 terrain=terrainLight(position);vec4 p=modelViewMatrix*vec4(world,1.0);gl_Position=projectionMatrix*p;vec3 light=scintillate(time,phase,motion,sparkle,signature);vB=mix(brightness,max(brightness,.24),vMarine)*light.x*terrain.x*shellVisibility(world)*smoothstep(revealAt,revealAt+.18,reveal)*mix(spatialVisibility(world),1.0,genesisEnabled*(1.0-genRamp(.78,1.0,genesis)))*mix(1.0,genesisExposure,genesisEnabled);vB*=1.0+shoreBreath*.85*pow(.5+.5*sin(dot(normalize(position),vec3(24.0,17.0,31.0))-time*.18),5.0);vG=light.y;vP=phase;vB*=mix(1.0,.12+.88*smoothstep(regionOuter,regionInner,dot(normalize(world),regionFocus)),regional*regionMix);gl_PointSize=clamp(starSize*pixelRatio*4.1*zoomFactor*sizeScale*light.z*terrain.y*mix(1.0,genesisSize,genesisEnabled)*mix(1.0,clamp(cameraDistance/max(.01,-p.z),.55,2.6),max(spatial*depthMix,opening)),.75*pixelRatio,40.0*pixelRatio);}`;
 const fragment=`uniform vec3 tint;uniform float opacity;uniform float glow;uniform float soft;varying float vB;varying float vG;varying float vP;
 void main(){vec2 p=gl_PointCoord-.5;float r=length(p);if(r>.5)discard;float core=exp(-r*r*205.0);float halo=exp(-r*r*24.0)*.27*glow;float ray=exp(-abs(p.x)*120.0)*exp(-abs(p.y)*12.0)+exp(-abs(p.y)*120.0)*exp(-abs(p.x)*12.0);float flare=ray*(.035*step(.96,fract(vP*13.37))+.42*vG);float a=mix(core+halo+flare,exp(-r*r*14.0)*.18*glow,soft)*vB*opacity;vec3 color=mix(tint,vec3(1.0),core*.38+min(vG,.8)*.2);gl_FragColor=vec4(color,a);}`;
 export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,callbacks:Callbacks,signal:AbortSignal):Promise<Engine>{
@@ -100,7 +100,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  function geometry(positions:number[]|Float32Array){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometries.push(g);return g;}
  function cloud(data:Float32Array,tint:string,feather:boolean|((lon:number,lat:number)=>number)=false){const count=data.length/6;const p=new Float32Array(count*3),b=new Float32Array(count),s=new Float32Array(count),ph=new Float32Array(count);for(let i=0;i<count;i++){p.set(data.subarray(i*6,i*6+3),i*3);b[i]=data[i*6+3]*(feather?(typeof feather==='function'?feather:cityFeather)(Math.atan2(p[i*3],p[i*3+2])/R,Math.atan2(p[i*3+1],Math.hypot(p[i*3],p[i*3+2]))/R):1);s[i]=data[i*6+4];ph[i]=data[i*6+5];}
  const g=geometry(p);const ids=new Float32Array(count),seeds=new Float32Array(count*3);for(let i=0;i<count;i++){ids[i]=particleOffset+i+1;seeds.set([genesisSeed(ids[i],1),genesisSeed(ids[i],2),genesisSeed(ids[i],3)],i*3);}particleOffset+=count;g.setAttribute('particleId',new THREE.BufferAttribute(ids,1));g.setAttribute('genesisSeed',new THREE.BufferAttribute(seeds,3));g.setAttribute('brightness',new THREE.BufferAttribute(b,1));g.setAttribute('starSize',new THREE.BufferAttribute(s,1));g.setAttribute('phase',new THREE.BufferAttribute(ph,1));g.setAttribute('revealAt',new THREE.BufferAttribute(new Float32Array(count),1));
- const m=new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:fragment,uniforms:{genesis:{value:1},genesisEnabled:{value:0},genesisExposure:{value:1},genesisSize:{value:1},tint:{value:new THREE.Color(tint)},opacity:{value:1},glow:{value:1},time:{value:0},motion:{value:1},pixelRatio:{value:renderer.getPixelRatio()},zoomFactor:{value:1},sizeScale:{value:1},reveal:{value:1},sparkle:{value:1},signature:{value:-1},shell:{value:0},opening:{value:0},openingFrame:{value:openFrame},personalStar:{value:0},terrainKind:{value:0},terrainLand:{value:1},terrainFloor:{value:1},terrainStudy:{value:0},terrainReady:{value:0},seaMotion:{value:0},spatial:{value:0},depthMix:{value:0},cutaway:{value:0},cutNormal:{value:cutNormal},cutFacing:{value:cutFacing},cameraDistance:{value:3},soft:{value:0},regional:{value:0},regionMix:{value:0},regionFocus:{value:new THREE.Vector3(0,0,1)},regionOuter:{value:.78},regionInner:{value:.975}},transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending});Object.assign(m.defaultAttributeValues,{terrainData:[0,0,0,0]});materials.push(m);const points=new THREE.Points(g,m);points.frustumCulled=false;earth.add(points);const c={points,material:m,count};clouds.push(c);return c;}
+ const m=new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:fragment,uniforms:{shoreBreath:{value:0},genesis:{value:1},genesisEnabled:{value:0},genesisExposure:{value:1},genesisSize:{value:1},tint:{value:new THREE.Color(tint)},opacity:{value:1},glow:{value:1},time:{value:0},motion:{value:1},pixelRatio:{value:renderer.getPixelRatio()},zoomFactor:{value:1},sizeScale:{value:1},reveal:{value:1},sparkle:{value:1},signature:{value:-1},shell:{value:0},opening:{value:0},openingFrame:{value:openFrame},personalStar:{value:0},terrainKind:{value:0},terrainLand:{value:1},terrainFloor:{value:1},terrainStudy:{value:0},terrainReady:{value:0},seaMotion:{value:0},spatial:{value:0},depthMix:{value:0},cutaway:{value:0},cutNormal:{value:cutNormal},cutFacing:{value:cutFacing},cameraDistance:{value:3},soft:{value:0},regional:{value:0},regionMix:{value:0},regionFocus:{value:new THREE.Vector3(0,0,1)},regionOuter:{value:.78},regionInner:{value:.975}},transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending});Object.assign(m.defaultAttributeValues,{terrainData:[0,0,0,0]});materials.push(m);const points=new THREE.Points(g,m);points.frustumCulled=false;earth.add(points);const c={points,material:m,count};clouds.push(c);return c;}
  function lines(data:Float32Array|number[],color:string,feather:boolean|((lon:number,lat:number)=>number)=false){const m=new THREE.LineBasicMaterial({color,transparent:true,opacity:.2,depthWrite:false,blending:THREE.AdditiveBlending});materials.push(m);const o=new THREE.LineSegments(geometry(data),m);o.frustumCulled=false;earth.add(o);if(feather){const a=o.geometry.getAttribute('position'),colors=new Float32Array(a.count*3);for(let i=0;i<a.count;i++){const w=(typeof feather==='function'?feather:cityFeather)(Math.atan2(a.getX(i),a.getZ(i))/R,Math.atan2(a.getY(i),Math.hypot(a.getX(i),a.getZ(i)))/R);colors.set([w,w,w],i*3);}o.geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));m.vertexColors=true;}return o;}
  async function load(name:string,requestSignal=signal){const res=await fetch('/data/'+name+'.bin',{signal:requestSignal});if(!res.ok)throw new Error('Could not load '+name);const b=await res.arrayBuffer();if(b.byteLength%4)throw new Error('Invalid geographic data');return new Float32Array(b);}
  function spatialCloud(data:Float32Array,tint:string){const c=cloud(data,tint);c.material.uniforms.spatial.value=1;c.points.userData.spatial=true;c.points.userData.sampleBudget=22000;c.points.userData.spatialExposure=1.8;return c;}
@@ -247,10 +247,10 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   c.points.geometry.setAttribute('trailPart',new THREE.BufferAttribute(trailPart,1));
   c.material.vertexShader='attribute float trailPart;varying float vTrail;\n'+vertex.replace('void main(){','void main(){vTrail=trailPart;');
   c.material.fragmentShader='varying float vTrail;\n'+fragment.replace(',soft)',',soft*vTrail)');
-  c.points.userData.shell=layer;c.points.userData.rhythm=material.rhythm;c.points.userData.shimmer=material.shimmer;c.material.uniforms.shell.value=layer==='cables'?2:1;c.points.userData.fallbackExposure=1.4;
+  c.points.userData.shell=layer;c.points.userData.rhythm=material.rhythm;c.points.userData.shimmer=0;c.material.uniforms.shell.value=layer==='cables'?2:1;c.points.userData.fallbackExposure=1.4;
   if(layer==='cables'){c.points.userData.seaBackbone=true;c.points.userData.network=true;c.points.userData.spatial=true;c.material.uniforms.spatial.value=1;terrainCloud(c,4);}
   const gates=new ActivityTransitions(records.map(r=>r.id),'travellers'),localGates=new ActivityTransitions(records.map(r=>r.id),'pathways',false),tailGates=new ActivityTransitions(records.map(r=>r.id),'travellers');
-  return {records,cloud:c,window:movingWindow(layer,localGates),positions:c.points.geometry.getAttribute('position').array as Float32Array,brightness:c.points.geometry.getAttribute('brightness') as THREE.BufferAttribute,onsets,trailCount:TRAIL_SAMPLES,layer,gates,localGates,tailGates,population:new Float32Array(MAX_TRAVELLERS),distribution:options.transport[layer].distribution,activity:0,drawCount:0};
+  return {clock:{travel:0,pulse:0},lastTime:0,pulseMix:options.transport[layer].pulse?1:0,records,cloud:c,window:movingWindow(layer,localGates),positions:c.points.geometry.getAttribute('position').array as Float32Array,brightness:c.points.geometry.getAttribute('brightness') as THREE.BufferAttribute,onsets,trailCount:TRAIL_SAMPLES,layer,gates,localGates,tailGates,population:new Float32Array(MAX_TRAVELLERS),distribution:options.transport[layer].distribution,activity:0,drawCount:0};
  }
  const signalViews=[signalView('satellites'),signalView('aircraft'),signalView('ships'),signalView('cables')],signalOutput=new Float64Array(3),windowXYZ=new Float32Array(WINDOW_SAMPLES*3),windowLight=new Float32Array(WINDOW_SAMPLES);
  const cableView=signalViews[3],seaPulses=cableView.cloud;
@@ -259,7 +259,10 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   if(view.layer==='aircraft')liftFlight(path as typeof flightPaths[number],depth,terrain.land*(1+TERRAIN.grazingLand*terrain.study),out);
  }
  function updateSignals(nowSeconds:number,visibility:number,dt:number){const exposure=livingExposure(alt);for(const v of signalViews){
-  const cfg=options.transport[v.layer],m=materialFor(v.layer),scale=displayedLight[familyKey(v.layer)],level=v.layer==='satellites'?exposure.orbit:v.layer==='aircraft'?exposure.air:v.layer==='cables'?exposure.cables:exposure.ships;
+  const cfg=options.transport[v.layer];
+  advanceTransportClock(v.clock,Math.max(0,nowSeconds-v.lastTime),cfg);v.lastTime=nowSeconds;
+  v.pulseMix+=(Number(cfg.pulse)-v.pulseMix)*(reducedMotion||!options.motion?1:1-Math.exp(-dt*4));
+  const travelSeconds=v.clock.travel,m=materialFor(v.layer),scale=displayedLight[familyKey(v.layer)],level=v.layer==='satellites'?exposure.orbit:v.layer==='aircraft'?exposure.air:v.layer==='cables'?exposure.cables:exposure.ships;
   v.cloud.material.uniforms.opacity.value=visibility*displayedLight.travellerLight*scale*m.opacity*level*cfg.travellerLight*Math.min(1,v.gates.average*4);
   v.window.material.uniforms.opacity.value=visibility*displayedLight.pathLight*scale*level*cfg.pathLight*.9;
   v.window.material.uniforms.soft.value=cfg.softness*.5;
@@ -271,15 +274,15 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
    const target=smoothUnit(count-i),population=v.population[i]+(target-v.population[i])*(reducedMotion||!options.motion?1:1-Math.exp(-dt*(1.4+activitySeed(v.records[i].id)*2)));v.population[i]=population;
    const age=awakening.elapsed-v.onsets[i],reveal=smoothUnit(age/(v.layer==='cables'?.9:AWAKENING[v.layer].fade)),weight=population*reveal;
    if(weight<.0001){for(let k=0;k<TRAIL_SAMPLES;k++)v.brightness.setX(i*TRAIL_SAMPLES+k,0);continue;}
-   active++;if(reveal>=1)full++;last=i+1;const record=v.records[i],gate=v.gates.values[i]*weight;
+   active++;if(reveal>=1)full++;last=i+1;const record=v.records[i],pulse=travellerPulse(v.clock.pulse,record.phase,cfg.pulseDepth*v.pulseMix),gate=v.gates.values[i]*weight;
    v.activity+=gate/Math.max(1,cfg.count);
    for(let k=0;k<TRAIL_SAMPLES;k++){
     const fraction=k/(TRAIL_SAMPLES-1),tail=Math.pow(1-fraction,1.7),tailGate=v.tailGates.values[i]*weight;
-    v.brightness.setX(i*TRAIL_SAMPLES+k,k===0?m.head*gate:cfg.tail>0?m.tail*tail*tailGate*cfg.trailLight:0);
-    sampleTraveller(v,record,nowSeconds-record.trailSeconds*fraction*cfg.tail,signalOutput);v.positions.set(signalOutput,(i*TRAIL_SAMPLES+k)*3);
+    v.brightness.setX(i*TRAIL_SAMPLES+k,pulse*(k===0?m.head*gate:cfg.tail>0?m.tail*tail*tailGate*cfg.trailLight:0));
+    sampleTraveller(v,record,travelSeconds-record.trailSeconds*fraction*cfg.tail,signalOutput);v.positions.set(signalOutput,(i*TRAIL_SAMPLES+k)*3);
    }
    const windowGate=v.localGates.values[i]*weight;
-   if(windowActive){for(let k=0;k<WINDOW_SAMPLES;k++){const fraction=k/(WINDOW_SAMPLES-1);sampleTraveller(v,record,nowSeconds+localPathOffset(fraction,cfg.ahead,cfg.behind,record.period),signalOutput);windowXYZ.set(signalOutput,k*3);windowLight[k]=windowGate*localPathLight(fraction);}
+   if(windowActive){for(let k=0;k<WINDOW_SAMPLES;k++){const fraction=k/(WINDOW_SAMPLES-1);sampleTraveller(v,record,travelSeconds+localPathOffset(fraction,cfg.ahead,cfg.behind,record.period),signalOutput);windowXYZ.set(signalOutput,k*3);windowLight[k]=windowGate*localPathLight(fraction);}
     if(fallback){const p=v.window.points.geometry.getAttribute('position'),b=v.window.points.geometry.getAttribute('brightness');for(let k=0;k<WINDOW_SAMPLES;k++){p.setXYZ(i*WINDOW_SAMPLES+k,windowXYZ[k*3],windowXYZ[k*3+1],windowXYZ[k*3+2]);b.setX(i*WINDOW_SAMPLES+k,windowLight[k]);}}
     else writeMovingPath(v.window.points.geometry,i,windowXYZ,windowLight);
    }
@@ -296,21 +299,23 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const volumeSource=new Float32Array(floorP.count*6);
  for(let i=0;i<floorP.count;i++)volumeSource.set([floorP.getX(i),floorP.getY(i),floorP.getZ(i),0,0,floorPhase.getX(i)],i*6);
  const suspendedData=createOceanVolume(volumeSource),suspended=cloud(suspendedData,'#718C93');
+ const smoothCurrents=prepareCurrentPaths((lon,lat)=>sampleElevation(elevation,1440,720,lon,lat));
  const currentData=new Float32Array(currentPaths.length*CURRENT_PARTICLES*6),waterSample=new Float64Array(3);
- for(let i=0;i<currentPaths.length;i++)for(let k=0;k<CURRENT_PARTICLES;k++){const light=sampleCurrent(i,k,0,elevation,waterSample);currentData.set([...waterSample,light,.58+(k%3)*.14,i*.73+k*.618],(i*CURRENT_PARTICLES+k)*6);}
+ for(let i=0;i<currentPaths.length;i++)for(let k=0;k<CURRENT_PARTICLES;k++){const light=sampleCurrent(i,k,0,elevation,waterSample,smoothCurrents);currentData.set([...waterSample,light,.58+(k%3)*.14,i*.73+k*.618],(i*CURRENT_PARTICLES+k)*6);}
  const currents=cloud(currentData,'#5E999E');
  for(const c of [suspended,currents]){c.points.userData.spatial=true;c.points.userData.oceanVolume=true;c.points.userData.rhythm=.13;c.points.userData.shimmer=.18;c.points.userData.sampleBudget=5000;c.material.uniforms.spatial.value=1;terrainCloud(c,6);}
  const suspendedPosition=suspended.points.geometry.getAttribute('position') as THREE.BufferAttribute;
  const currentPosition=currents.points.geometry.getAttribute('position') as THREE.BufferAttribute;
  const currentBrightness=currents.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;
- let lastWaterTime=-Infinity;
+ let lastWaterTime=-Infinity,lastCurrentTime=0,currentSeconds=0;
  function updateWater(seconds:number,visibility:number){
+  currentSeconds+=Math.max(0,seconds-lastCurrentTime)*options.currentSpeed;lastCurrentTime=seconds;
   const exposure=oceanExposure(alt,tilt,cut)*visibility*depth*awakening.ocean;
-  suspended.material.uniforms.opacity.value=exposure*2.3*displayedLight.oceanLight;currents.material.uniforms.opacity.value=exposure*1.4*displayedLight.oceanLight;
+  suspended.material.uniforms.opacity.value=exposure*2.3*displayedLight.oceanLight;currents.material.uniforms.opacity.value=(exposure+visibility*awakening.ocean*.12)*1.4*displayedLight.oceanLight*displayedLight.currentLight;
   suspended.points.geometry.setDrawRange(0,Math.floor(suspended.count*(host.clientWidth<700?.58:1)));
-  if((seconds===0||Math.abs(seconds-lastWaterTime)>=1/30)&&exposure>.001){
+  if((seconds===0||Math.abs(seconds-lastWaterTime)>=1/30)&&(exposure>.001||displayedLight.currentLight>.001)){
    for(let i=0;i<suspended.count;i++){const n=i*6;sampleSuspended(suspendedData[n],suspendedData[n+1],suspendedData[n+2],suspendedData[n+5],seconds,waterSample);suspendedPosition.setXYZ(i,waterSample[0],waterSample[1],waterSample[2]);}
-   for(let i=0;i<currentPaths.length;i++)for(let k=0;k<CURRENT_PARTICLES;k++){const light=sampleCurrent(i,k,seconds,elevation,waterSample),n=i*CURRENT_PARTICLES+k;currentPosition.setXYZ(n,waterSample[0],waterSample[1],waterSample[2]);currentBrightness.setX(n,light);}
+   for(let i=0;i<currentPaths.length;i++)for(let k=0;k<CURRENT_PARTICLES;k++){const light=sampleCurrent(i,k,currentSeconds,elevation,waterSample,smoothCurrents),n=i*CURRENT_PARTICLES+k;currentPosition.setXYZ(n,waterSample[0],waterSample[1],waterSample[2]);currentBrightness.setX(n,light);}
    suspendedPosition.needsUpdate=true;currentPosition.needsUpdate=true;currentBrightness.needsUpdate=true;lastWaterTime=seconds;
   }
   host.dataset.oceanVolumePoints=String(suspended.count);host.dataset.currentPoints=String(currents.count);host.dataset.oceanVolumeExposure=exposure.toFixed(3);
@@ -446,7 +451,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
    }catch(error){host.dataset.routeShape='error';window.dispatchEvent?.(new CustomEvent('terra-route-shape',{detail:'error'}));console.error('Route shaping could not finish',error);}
   },350);
  }
- function resetAwakening(){awakening.reset();time=0;for(const v of signalViews){v.cloud.points.geometry.setDrawRange(0,0);v.cloud.material.uniforms.opacity.value=0;v.brightness.array.fill(0);v.brightness.needsUpdate=true;}updateSea(0,0);updateWater(0,0);notifyAwakening();}
+ function resetAwakening(){awakening.reset();time=0;currentSeconds=0;lastCurrentTime=0;lastWaterTime=-Infinity;for(const v of signalViews){v.clock={travel:0,pulse:0};v.lastTime=0;v.cloud.points.geometry.setDrawRange(0,0);v.cloud.material.uniforms.opacity.value=0;v.brightness.array.fill(0);v.brightness.needsUpdate=true;}updateSea(0,0);updateWater(0,0);notifyAwakening();}
  let navigationHighlight:Cloud|null=null,highlightedTargetId:string|null=null;
  function highlight(id:string|null){
   highlightedTargetId=id;const target=activeOpenTarget?.id===id?activeOpenTarget:WORLD_TARGETS.find(t=>t.id===id);
@@ -647,6 +652,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  // Project the actual places: the merge follows their visible separation at every viewport.
  let spread=0;if(remembering&&remembered){const places=remembered.places.map(p=>geo(p.lon,p.lat,1.00003).project(camera));for(let i=0;i<places.length;i++)for(let j=i+1;j<places.length;j++)spread=Math.max(spread,Math.hypot((places[i].x-places[j].x)*w/2,(places[i].y-places[j].y)*h/2));}
  const memory=memoryLight(spread,settledAt===null?null:(now-settledAt)/1000,options.motion);
+ coast.material.uniforms.shoreBreath.value=displayedLight.shoreBreath;
  land.material.uniforms.tint.value.set('#c8ced1').lerp(new THREE.Color('#cbb78f'),displayedLight.warmth);
  land.material.uniforms.opacity.value=global*.65*(1-depth*.8);coast.material.uniforms.opacity.value=global*.44*(1-depth*.2);lights.material.uniforms.opacity.value=displayedLight.nightLights*global*1.12*(1-depth*.40);lights.material.uniforms.sizeScale.value=1-depth*.42;coast.material.uniforms.sizeScale.value=.82-depth*.16;(coastLines.material as THREE.LineBasicMaterial).opacity=global*options.threads*.10*(1-depth)*(1-opened);(borders.material as THREE.LineBasicMaterial).opacity=options.borders?global*.15*(1-cut)*(1-opened):0;edgeM.uniforms.opacity.value=global*(1-depth)*(1-opened)*born.settled;(coastLines.material as THREE.LineBasicMaterial).opacity*=born.settled;(borders.material as THREE.LineBasicMaterial).opacity*=born.settled;for(const c of backgroundLayers){c.material.uniforms.opacity.value=born.settled*(c.points.userData.stellarDust?displayedLight.skyDust:displayedLight.skyLight)*(.2+.8*global);c.material.uniforms.skyRadius.value=1-opened;}
  const quality=mobile?.45:.8;const singaporeVisibility=targetId===null||targetId==='singapore'?1:0,newYorkVisibility=targetId==='new-york'?1:0;

@@ -78,7 +78,7 @@ void main(){
   float hierarchy=routeStrand<.5?1.0:.28;
   float screenDetail=smoothstep(380.0,1000.0,resolution.x);
   float screenHierarchy=mix(.38+.62*smoothstep(.25,1.4,routeImportance),1.0,screenDetail);
-  float junction=mix(.28,1.0,smoothstep(0.0,pathKind>1.5?.09:.07,min(route.x,1.0-route.x)));
+  float junction=mix(.68,1.0,smoothstep(0.0,pathKind>1.5?.09:.07,min(route.x,1.0-route.x)));
   if(localPath>.5){vLight=localLight*front*(pathKind<.5?spatialVisibility(world):1.0)*focus;return;}
   vLight=screenHierarchy*route.z*routeExposure*mix(routeImportance,sqrt(routeImportance),regionMix)*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
 }`;

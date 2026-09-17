@@ -2,7 +2,7 @@
 version: 1
 slug: "app-composition-controls-tsx"
 primary_target: "app/composition-controls.tsx"
-related_targets: ["app/composition-controls.module.css", "app/terra-experience.tsx", "lib/terra/composition.ts", "lib/terra/engine.ts", "lib/world/smooth-cables.ts", "docs/COMPOSITION-V01013.md", "app/transport-controls.tsx", "lib/terra/transport.ts", "docs/TRANSPORT-CONTROLS-V01017.md"]
+related_targets: ["app/composition-controls.module.css", "app/terra-experience.tsx", "lib/terra/composition.ts", "lib/terra/engine.ts", "lib/world/smooth-cables.ts", "docs/COMPOSITION-V01013.md", "app/transport-controls.tsx", "lib/terra/transport.ts", "docs/TRANSPORT-CONTROLS-V01017.md", "docs/STRANDS-MOTION-V01017.md"]
 ---
 
 # v0.10.13 — Compose a living Earth
@@ -24,7 +24,9 @@ Give the constellated Earth a sparse, distant, steady pearl-and-warm-star settin
 
 ## v0.10.17 same-version transport-controls extension
 
-This follow-up extends the built panel and keeps the existing Experience mode, white-gold Earth, typography, Site identity and version badge. It does not replace the v0.10.17 flow-hierarchy milestone. Ground truth for this addition is `app/transport-controls.tsx`, `app/composition-controls.tsx`, their shared stylesheet and `lib/terra/transport.ts`; detailed behavior and verification are in `docs/TRANSPORT-CONTROLS-V01017.md`. PRODUCT.md is absent, so this record makes no broader product claims.
+Historical record of the 17 September extension. The dated shared-strands extension below records the current hierarchy, count semantics, motion controls and recovery behavior.
+
+This follow-up extends the built panel and keeps the existing Experience mode, white-gold Earth, typography, Site identity and version badge. It does not replace the v0.10.17 flow-hierarchy milestone. Ground truth for this addition is `app/transport-controls.tsx`, `app/composition-controls.tsx`, their shared stylesheet and `lib/terra/transport.ts`; detailed behavior and verification are in `docs/TRANSPORT-CONTROLS-V01017.md`. PRODUCT.md was absent when this earlier extension was documented; the current minimal product record contains only confirmed context.
 
 ### Control hierarchy and behavior
 
@@ -57,3 +59,34 @@ Family settings participate in last-view persistence, named saves, import/export
 The finish review disposition is **ship after three fixes**, now reflected in the built extension: restore access to legacy family intensity so earlier zero values are recoverable; preserve transport configuration when restoring original light; clarify that zero tail length does not hide full or local pathways.
 
 The documenter inspected the supplied corrected captures: [desktop, 1440×1000](../review/families/desktop-fixed.png), [phone viewport, 390×844](../review/families/mobile-fixed.png) and [user window, 1868×1324](../review/families/user-1868-fixed.png). They show the retained Earth/panel hierarchy, focused numeric controls and the available comparison/save actions. Source inspection confirms the reset boundary and tail copy. Dynamic behavior and test results are recorded in the implementation record; this documentation pass did not run a browser or republish the Site. These captures do not establish physical-device, other-browser or subjective audio acceptance. High-count orbit guides remain an intentionally busy experiment setting.
+
+
+## v0.10.17 shared strands and motion — 18 September 2026
+
+This same-version extension retains Experience mode, the existing Site identity and earlier records. Pearl-and-gold Earth remains dominant against generous darkness, with muted route families beneath it. Shared luminous convergence is requested; it does not authorize invented geographic connections. Ground truth is the current composition and transport controls, stylesheet, owning TerraExperience component, transport/composition models and docs/STRANDS-MOTION-V01017.md.
+
+### Current hierarchy and controls
+
+Layers presents Individual families before Land & colour and the initially collapsed Overall balance section. Each family's native disclosure reports an effective worldwide light budget after overall density, or its off state, rather than an on-screen count. Arrival, occlusion and style affect visible lights. Global pathway/traveller switches now live in Overall balance and retain individual choices.
+
+Solo / Restore families and Reset this family precede independent switches, style, count and distribution. Motion & pulse precedes Light & trail and Route shape. Travel speed is 0–4×; independent brightness pulses have frequency 0.02–1 Hz and depth 0–100%, with seconds-per-pulse feedback. Zero travel speed can coexist with pulsing. Integrated clocks preserve phase when rates change; global pause holds both. Pulses represent brightness rather than traffic or launch frequency.
+
+Solo restores prior family pathway/traveller switches and family-layer state while retaining fine adjustments. Its snapshot belongs to TerraExperience, surviving tab changes and panel close/reopen within the mounted experience. It is not persisted across reloads or exported. Per-family reset restores transport defaults without changing global masters or legacy family intensity.
+
+Use the calmer mix enables family layers and selects local flight guides, full ship/cable paths and satellite tails. It clears solo and retains counts/fine tuning except flight forward/rear reach, set to 0.45× / 0.7×. Existing saves retain their styles until changed. Global masters remain respected.
+
+### Geometry, comparison and shore light
+
+Strand gathering extends compatible approaches into bounded open-water corridors. Rounded marine bends retain water constraints; rejected candidates shrink towards original geometry. Travellers and local guides sample the same prepared routes, preserving endpoints and identities. These illustrations are not AIS tracks, surveyed alignments or an exact reconstruction of the reference poster.
+
+Saved → Compare light from selects a named composition's light and family tuning as A, or captures current light. Hold previews A; release returns to B. Lens, legacy layer switches and camera remain in place. The fixed comparison action remains outside the scrolling body, which becomes inert during comparison.
+
+Light → Shore & water exposes Shoreline breathing (0–1×), Current light (0–3×) and Current speed (0–3×). Shore breathing modulates existing stars; zero removes the swell while global shimmer remains independent. Current light zero hides traces; speed zero holds them. The disclosure identifies illustrated flows, not measured currents or waves.
+
+New settings participate in last-view restore, named saves, import/export and comparison. Missing fields in old saves receive defaults; invalid provided values are rejected. Light presets and Restore the original light retain transport configuration and motion choice.
+
+### Material, layout and evidence
+
+Retain warm focus, paired numeric/range controls, thin dividers, native disclosures and the subdued dark panel. Desktop controls sit beside Earth; the phone dock has bounded scrolling below it. Header, tabs, comparison and save remain outside the scrolling body. No new global tokens or type families.
+
+The documenter inspected desktop, 390×844 phone and 1036×998 user-window captures plus Atlantic, Americas, mobile-motion and shore views in ../review/strands/. They support Earth-first composition and family hierarchy. The owner then recaptured desktop, phone, user-window and corrected shore wording after the solo/copy fixes, and exercised solo → close → reopen → restore. The implementation record carries final review/build results. Stills do not establish motion quality, physical-device, other-browser, subjective audio or quantitative performance acceptance.

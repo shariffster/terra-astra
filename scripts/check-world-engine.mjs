@@ -165,7 +165,17 @@ for(const family of TRANSPORT_FAMILIES){
  const transport=cloneTransport();transport[family].count=600;engine.configure({...DEFAULT_LIGHT,...baseOptions,transport});tick();tick();
  assert.equal(Number(host.dataset[family+'TravellerCount']),600,`${family} reaches six hundred`);
 }
-globalThis.matchMedia=()=>({matches:false});engine.configure(baseOptions);tick();
+// Family speed holds positions independently; pulse brightness changes without
+// changing the trajectory. Changing speed while paused cannot teleport a head.
+globalThis.matchMedia=()=>({matches:false});
+const tuned=cloneTransport();tuned.aircraft.speed=0;tuned.aircraft.pulse=true;tuned.aircraft.pulseDepth=.8;
+engine.configure({...DEFAULT_LIGHT,...baseOptions,motion:true,transport:tuned});for(let i=0;i<90;i++)tick(50);
+const heldAircraft=objects().find(o=>o.userData.shell==='aircraft'),movingShips=objects().find(o=>o.userData.shell==='ships');
+const heldPosition=heldAircraft.geometry.getAttribute('position').array.slice(0,96),shipPosition=movingShips.geometry.getAttribute('position').array.slice(0,3),beforePulse=heldAircraft.geometry.getAttribute('brightness').getX(0);
+for(let i=0;i<30;i++)tick(50);
+assert.deepEqual(heldAircraft.geometry.getAttribute('position').array.slice(0,96),heldPosition,'Zero speed holds heads and tails on their route');assert.notDeepEqual(movingShips.geometry.getAttribute('position').array.slice(0,3),shipPosition,'Other families keep moving');assert.notEqual(heldAircraft.geometry.getAttribute('brightness').getX(0),beforePulse,'Pulse can continue on a held traveller');
+engine.configure({...DEFAULT_LIGHT,...baseOptions,motion:false,transport:tuned});tick();const pausedPosition=heldAircraft.geometry.getAttribute('position').array.slice(0,96);tuned.aircraft.speed=4;engine.configure({...DEFAULT_LIGHT,...baseOptions,motion:false,transport:tuned});tick();assert.deepEqual(heldAircraft.geometry.getAttribute('position').array.slice(0,96),pausedPosition,'Speed tuning does not change paused phase');
+engine.configure(baseOptions);tick();
 assert.equal((await complete({type:'flyTo',targetId:'missing'})).ok,false);
 engine.configure({...baseOptions,motion:true});const flight=engine.command({type:'flyTo',targetId:'challenger-deep'});for(let i=0;i<5;i++){await Promise.resolve();tick(100);}host.clientWidth=390;host.clientHeight=844;resizeCallback();for(let i=0;i<80;i++){tick(100);await Promise.resolve();}assert.equal((await flight).ok,true);assert.ok(Math.abs(rendered.camera.position.distanceTo(trenchAnchor)-.62)<1e-6,'In-flight regional resize retains its intended horizon altitude');engine.region('indonesia');assert.equal(engine.worldState().targetId,null,'Explicit depth preset clears old command target');
 const lostCommand=engine.command({type:'flyTo',targetId:'singapore'});for(let i=0;i<6;i++){await Promise.resolve();tick(100);}assert.ok(graphicsLostCallback);graphicsLostCallback({preventDefault(){}});assert.equal((await lostCommand).ok,false,'Graphics loss settles active command');assert.equal((await engine.command({type:'resetView'})).ok,false,'Graphics loss rejects later commands');
