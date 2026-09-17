@@ -9,3 +9,5 @@
 .panel input,.panel select{scroll-margin-block:18px}
 
 .presets{display:flex;gap:7px;margin-bottom:14px}.presets button{flex:1;min-height:36px;background:#e9d7b30a;color:#e9d7b3;border:1px solid #526573;border-radius:3px;font:inherit}.compareRow{padding:10px 18px;border-top:1px solid #52657366}.compareRow button{width:100%;min-height:35px;background:transparent;border:1px solid #526573;color:#e9d7b3;border-radius:3px;font:inherit;touch-action:none;user-select:none}.compareRow button[aria-pressed=true]{background:#e9d7b326;border-color:#e9d7b3}.compareRow span{display:block;text-align:center;font-size:11px;color:#adbdc6;margin-top:4px}.body[inert]{opacity:.7}@media(max-width:700px){.compareRow{padding:6px 14px}.compareRow span{display:none}.compareRow button{min-height:30px}}
+
+.fine{margin:4px 0 8px;padding-top:4px;border-top:1px solid #52657366}.fine>summary{cursor:pointer;color:#adbdc6;font-size:14px;padding:12px 0}.fine .sliderRow{margin-top:10px}

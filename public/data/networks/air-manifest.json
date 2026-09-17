@@ -1,0 +1,28 @@
+{
+  "source": "OpenFlights / Airline Route Mapper",
+  "sourceUrl": "https://openflights.org/data",
+  "revision": "4b969f8e91eb800c45f0e0e2355a0fbb93de27e4",
+  "historicalDate": "2014-06",
+  "prepared": "2026-09-17",
+  "license": "ODbL-1.0",
+  "inputs": {
+    "airports.dat": "9387cdb38df5bd664da823f8ccb69fdd9b33a1888f5b7cca09c34a3cd9ff59f9",
+    "routes.dat": "bd373706238134f619c624c606dccc74c05c2582a977c489c81de501735f2390"
+  },
+  "counts": {
+    "connections": 2400,
+    "airports": 654
+  },
+  "columns": [
+    "fromOpenFlightsId",
+    "toOpenFlightsId",
+    "fromLat",
+    "fromLon",
+    "toLat",
+    "toLon",
+    "routeMaximumMetres",
+    "artisticIntensity"
+  ],
+  "selection": "Deduplicated undirected nonstop pairs. Geographic cell coverage then record-multiplicity and endpoint-connectivity ranking; bounded at 2400. Multiplicity is not traffic volume.",
+  "geometry": "Illustrative great-circle interpolation and exaggerated constant cruise clearance; not historical flown paths or current service."
+}

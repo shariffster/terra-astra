@@ -11,7 +11,7 @@ export type SmoothCable = {
   distances: Float64Array; length: number; pieces: CableCurvePiece[];
   cornerCount: number; constrainedCorners: number; offset: number;
 };
-export const MAX_CABLE_VERTICES = 2048;
+export const MAX_CABLE_VERTICES = 3072;
 const R = Math.PI / 180;
 const norm = (p: V): V => { const r = Math.hypot(...p); return p.map(x => x / r) as V; };
 const dot = (a: V, b: V) => a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
@@ -30,7 +30,7 @@ export function sampleCablePiece(piece: CableCurvePiece, t: number): V {
 const coordinates = (p: V) => [Math.atan2(p[0],p[2])/R, Math.atan2(p[1],Math.hypot(p[0],p[2]))/R];
 function water(p: V, elevation: Elevation, surface = false) {
   const [lon,lat] = coordinates(p);
-  return elevation(lon,lat)<0 || schematicPassage(lon,lat) || surface && schematicCanal(lon,lat);
+  return elevation(lon,lat)<-5 || schematicPassage(lon,lat) || surface && schematicCanal(lon,lat);
 }
 
 /** Water-constrained spherical fillets. The normalized quadratic meets each great-circle
@@ -97,7 +97,7 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
     }
     const samples: V[]=[];
     for(const piece of pieces) {
-      const count=piece.controls?Math.max(32,Math.ceil(angle(piece.a,piece.b)/.0005)):piece.control?(surfaceRadius?Math.max(32,Math.ceil((angle(piece.a,piece.control)+angle(piece.control,piece.b))/.0007)):32):Math.max(2,Math.ceil(angle(piece.a,piece.b)/.001));
+      const count=piece.controls?Math.max(32,Math.ceil(angle(piece.a,piece.b)/.0005)):piece.control?Math.max(32,Math.ceil((angle(piece.a,piece.control)+angle(piece.control,piece.b))/.0007)):Math.max(2,Math.ceil(angle(piece.a,piece.b)/.001));
       for(let k=0;k<count;k++)samples.push(sampleCablePiece(piece,k/count));
     }
     samples.push(nodes[nodes.length-1]);
@@ -193,7 +193,7 @@ export function marineStrands(paths: readonly SmoothCable[], elevation: Elevatio
    normals.set([nx/n,ny/n,nz/n],i);tapers[k]=Math.sin(Math.PI*path.progress[k])**2;
   }
   for(const strand of [1,2,3,4]){
-   let offset=(strand%2?1:-1)*Math.ceil(strand/2)*.00125;
+   let offset=(strand%2?1:-1)*Math.ceil(strand/2)*(surface?.0035:.0022);
    const candidate=new Float32Array(path.positions.length);
    const form=()=>{
     for(let k=0;k<count;k++){

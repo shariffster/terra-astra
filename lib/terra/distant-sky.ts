@@ -7,7 +7,7 @@ export function distantSky() {
  const point = (lon: number, lat: number, radius: number) => new Vector3(
   radius * Math.cos(lat) * Math.sin(lon), radius * Math.sin(lat), radius * Math.cos(lat) * Math.cos(lon),
  );
- const stars = ([[4200,48,'#d5dce5',.85,.88],[150,42,'#dfd1b8',1.05,1.15],[70,36,'#d7e4f1',1.15,1.35]] as const).map(([count,radius,tint,brightness,size]) => {
+ const stars = ([[4200,48,'#d5dce5',.85,.88],[150,42,'#dfd1b8',1.05,1.15],[70,36,'#d7e4f1',1.28,1.48]] as const).map(([count,radius,tint,brightness,size]) => {
   const data: number[] = [];
   for(let i=0;i<count;i++) {
    const p = point(random()*Math.PI*2,Math.asin(random()*2-1),radius);
@@ -22,11 +22,11 @@ export function distantSky() {
   const centre = point(lon*Math.PI/180,lat*Math.PI/180,1);
   const east = new Vector3(Math.cos(lon*Math.PI/180),0,-Math.sin(lon*Math.PI/180));
   const north = new Vector3().crossVectors(centre,east);
-  for(let i=0;i<900;i++) {
+  for(let i=0;i<1200;i++) {
    const angle=random()*Math.PI*2,spread=Math.sqrt(-2*Math.log(Math.max(.001,random())));
-   const x=Math.cos(angle)*spread*.26,y=Math.sin(angle)*spread*.11;
-   const p=centre.clone().addScaledVector(east,x).addScaledVector(north,y+.08*Math.sin(x*7)).normalize().multiplyScalar(46);
-   dust[patch%2].push(...p.toArray(),.10*(.35+random()*.65),4+random()*4,random()*6.28);
+   const x=Math.cos(angle)*spread*.32,y=Math.sin(angle)*spread*.034;
+   const p=centre.clone().addScaledVector(east,x).addScaledVector(north,y+.065*Math.sin(x*8)+.018*Math.sin(x*19)).normalize().multiplyScalar(46);
+   dust[patch%2].push(...p.toArray(),.13*(.25+random()*.75),.65+random()*1.25,random()*6.28);
   }
  });
  return {stars,dust:dust.map((data,i)=>({data:new Float32Array(data),tint:i?'#8983b9':'#748fae'}))};

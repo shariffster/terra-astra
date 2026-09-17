@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.16 network richness authority (17 September 2026)
+
+The user authorizes a broader network and the still-relevant framing, satellite hierarchy, geographic texture, grouped tuning, dust and persistence refinements. Work in `people-choice/v0.10.16-network-richness` from exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606`. Separate quiet network richness from moving traffic density. Preserve the white-gold foundation, smooth trajectories, sourced geography and truthful historical/illustrative disclosures. Publish only the existing People's Choice Lab after rendered verification. Preserve prior releases, canonical v0.10.8, archive and Maker's Mark.
+
 ## v0.10.15 visible sky authority (17 September 2026)
 
 The user authorizes correcting the imperceptible distant starlight and exploring a restrained surrounding atmosphere while Earth remains the focal point. Work in `people-choice/v0.10.15-visible-sky` from exact v0.10.14 `1a0bfab8c9066e01367538273b4253919e914366`. Make default stars visibly readable; add independently adjustable optional stellar dust. Preserve Earth, geography, routes, motion and sound. Publish only the existing People's Choice Lab after rendered verification; retain all earlier releases, canonical v0.10.8, archive and Maker's Mark.

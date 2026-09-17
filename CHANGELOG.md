@@ -3,6 +3,17 @@
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
 
+## v0.10.16 — A wider web of light · 17 September 2026
+
+- Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.
+- Separate network coverage from traveller count: add 2,400 historical airport pairs across 654 airports, 368 illustrative sea paths and 246 cable paths. Preserve 200 aircraft, 176 ships, 84 satellites and fourteen pulse slots. Total source paths: 2,440 / 454 / 362.
+- Add 145 coastal reference regions and 104 water-checked ocean crossings. Publish the derived OpenFlights database and ODbL attribution; explicitly distinguish historical endpoint links from illustrative arcs and marine geography.
+- Replace the 128-route uniform ceiling with a bounded 2D gate texture. Preserve seeded progressive activation, pause and family switches. Thin strokes, smooth local overlap attenuation and greater water-constrained strand separation prevent luminous trunk buildup.
+- Increase marine curve sampling at tight bends, require a small water clearance margin and bound each path at 3,072 vertices. Ships and cable pulses continue to sample their visible paths.
+- Fit the planetary silhouette to measured panel bounds at every width; avoid entrance-animation offsets. Group controls, guard settings against late light restoration, and flush last-view settings on page exit.
+- Reduce satellite size, shimmer and halo; strengthen geographic-field contrast; give dust finer, elongated distributions while keeping it off by default.
+- Source methods, rendered verification and limits: `docs/NETWORK-RICHNESS-V01016.md`. Native save/deployment identities are recorded separately after publication.
+
 ## v0.10.15 — A little more universe · 17 September 2026
 
 - Extend exact v0.10.14 `1a0bfab8c9066e01367538273b4253919e914366` in `people-choice/v0.10.15-visible-sky`; People's Choice Lab only.

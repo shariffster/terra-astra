@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { loadConnectionAtlas, atlasFlights, atlasMarine } from '../world/connection-atlas';
+import { compositionFraming, type PanelBounds } from './composition-framing';
 import { distantSky, skyVertex, skyFragment, dustFragment } from './distant-sky';
 import { resolvePlace, resolverDiagnostics } from '../world/place-resolver';
 import { cameraAltitude, type ResolvedWorldTarget, type OpenWorldContext } from '../world/open-types';
@@ -33,7 +35,7 @@ import { reliefRadius, sampleElevation, spatialBlend, spatialVertexGLSL, studyRe
 export type Stage = 'orbit'|'descending'|'city'|'ascending';
 import { DEFAULT_LIGHT, type LightOptions } from './composition';
 export type ViewOptions = LightOptions;
-export type Engine = { audioState:()=>AudioWorldState; replayGenesis:()=>void; skipGenesis:()=>void; command:(command:WorldCommand)=>Promise<WorldCommandResult>; worldState:()=>WorldState; transform:(open:boolean)=>void; personal:(places:PersonalPlaces|null)=>void; descend:()=>Promise<void>; orbit:()=>void; zoom:(factor:number)=>void; rotate:(dx:number,dy:number)=>void; select:(id:string|null)=>void; configure:(o:ViewOptions)=>void; storyInset:(pixels:number)=>void; compositionPanel:(open:boolean)=>void; narrativePanel:(visible:boolean)=>void; compareLight:(light:ViewOptions|null)=>void; view:(view:EarthView)=>void; region:(region:StudyRegion)=>void; dispose:()=>void };
+export type Engine = { audioState:()=>AudioWorldState; replayGenesis:()=>void; skipGenesis:()=>void; command:(command:WorldCommand)=>Promise<WorldCommandResult>; worldState:()=>WorldState; transform:(open:boolean)=>void; personal:(places:PersonalPlaces|null)=>void; descend:()=>Promise<void>; orbit:()=>void; zoom:(factor:number)=>void; rotate:(dx:number,dy:number)=>void; select:(id:string|null)=>void; configure:(o:ViewOptions)=>void; storyInset:(pixels:number)=>void; compositionPanel:(open:boolean,bounds?:PanelBounds)=>void; narrativePanel:(visible:boolean)=>void; compareLight:(light:ViewOptions|null)=>void; view:(view:EarthView)=>void; region:(region:StudyRegion)=>void; dispose:()=>void };
 type Callbacks={discovery?:(ready:boolean)=>void;genesis?:(state:GenesisState)=>void;worldState?:(state:WorldState)=>void;transformation?:(state:TransformationState)=>void;personalSettled?:()=>void;stage:(s:Stage)=>void;ready:()=>void;error:(s:string,fatal?:boolean)=>void;coordinates:(lat:number,lon:number)=>void;interact:()=>void;arrival:(storyId:string|null)=>void;view?:(view:EarthView)=>void};
 type Cloud={points:THREE.Points|THREE.Mesh;material:THREE.ShaderMaterial;count:number};
 const R=Math.PI/180;
@@ -61,6 +63,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const pixelRatio=Math.min(window.devicePixelRatio||1,window.innerWidth<700?1.35:1.7);renderer.setPixelRatio(pixelRatio);
  renderer.domElement.setAttribute('aria-label','Focus Earth: WASD pans, Q and E orbit, R and F zoom, T and G tilt. Keys 1 through 4 change scale; 0 resets. Arrow keys and drag also rotate.');renderer.domElement.tabIndex=0;renderer.domElement.style.touchAction='none';host.appendChild(renderer.domElement);
  const scene=new THREE.Scene();const camera=new THREE.PerspectiveCamera(42,1,.000001,100);const earth=new THREE.Group();scene.add(earth);
+ const gateTextures:{texture:THREE.DataTexture;gates:ActivityTransitions;bytes:Uint8Array}[]=[];
  const geometries:THREE.BufferGeometry[]=[];const materials:THREE.Material[]=[];const clouds:Cloud[]=[];
  const homeAltitude=()=>{const w=host.clientWidth,h=host.clientHeight,r=Math.min(w*(w<700?.44:.30),h*.38);return Math.max(2.15,Math.sqrt(1+Math.pow(h/(2*Math.tan(21*R)*r),2))-1);};
  const heldKeys=new Set<string>();
@@ -136,6 +139,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  host.dataset.stellarDust=String(sky.dust.reduce((n,c)=>n+c.data.length/6,0));
  let reliefLand:Cloud,reliefOcean:Cloud,body:Cloud,interior:Cloud,haze:Cloud,halo:Cloud;
  let populationField:Cloud|null=null,footprintField:Cloud|null=null;
+ let atlas:Awaited<ReturnType<typeof loadConnectionAtlas>>=null;
  let land:Cloud,coast:Cloud,lights:Cloud,coastLines:THREE.LineSegments,borders:THREE.LineSegments;
  let cityStars:Cloud|null=null,cityCoast:Cloud|null=null,streetLines:THREE.LineSegments|null=null,regional:THREE.LineSegments|null=null;
  let storyCloud:Cloud|null=null;let memoryCloud:Cloud|null=null;let storyLines:THREE.LineSegments|null=null;
@@ -143,12 +147,12 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  type UrbanView={model:UrbanActivity;traffic:Cloud;activity:Cloud;trafficXYZ:Float32Array;activityXYZ:Float32Array;feather:(lon:number,lat:number)=>number};
  const urbanViews=new Map<string,UrbanView>();const contextViews=new Map<string,{stars:Cloud;lines:THREE.LineSegments;intermediate:{stars:Cloud;lines:THREE.LineSegments}}>();
  let peopleCloud:Cloud|null=null;let storyStarted=0,focus=0,storyInset=0;
- const smoothCameraOffset=new THREE.Vector2();let compositionOpen=false,narrativeVisible=true;
+ const smoothCameraOffset=new THREE.Vector2();let compositionOpen=false,narrativeVisible=true;let compositionBounds:PanelBounds|null=null;
  let previousHomeAltitude=homeAltitude();
  function resize(){stillFrames=0;const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;const nextHomeAltitude=homeAltitude();if(stage==='orbit'&&scaleTier==='planet'&&viewMode==='globe'&&!flight&&!morph){const scale=nextHomeAltitude/previousHomeAltitude;alt*=scale;targetAlt*=scale;}if(flight?.end==='orbit'&&scaleTier==='planet')flight.toAlt=nextHomeAltitude;previousHomeAltitude=nextHomeAltitude;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();if(selected&&storyInset)setStoryInset(storyInset);}
  const observer=new ResizeObserver(resize);observer.observe(host);resize();
  const openViews=createOpenWorldView({cloud,lines,replaceLines:(batch,data)=>{earth.remove(batch.lines);release(batch.lines.geometry,batch.lines.material as THREE.Material);batch.lines=lines(data,'#a1b6b9');},terrain:(data,kind)=>{const c=spatialCloud(data,kind===1?'#a3a6a0':'#658497');terrainCloud(c,kind,true);return c;},elevation:(x,y)=>sampleElevation(elevation,1440,720,x,y),wake:()=>{stillFrames=0;},notify:context=>{openContext=context??undefined;if(context&&scaleTier==='street'&&!context.detailLoading&&context.detailState!=='DETAILED'&&!context.detailMessage.startsWith('Source-backed')){scaleTier='city';targetAlt=cameraAltitude(activeOpenTarget?.cityRadiusKm??20,host.clientWidth,host.clientHeight);openViews.setTier('city');}notifyWorld();},remove:batch=>{for(const object of [batch.stars.points,batch.lines]){earth.remove(object);release(object.geometry,object.material as THREE.Material);}const i=clouds.indexOf(batch.stars);if(i>=0)clouds.splice(i,1);}});
- const destroy=()=>{if(disposed)return;disposed=true;resolverRequest?.abort();openViews?.dispose();awakening.dispose();if(warmupTimer!==null)clearTimeout(warmupTimer);for(const resolve of idleWaiters.splice(0))resolve(false);cancelAnimationFrame(raf);observer.disconnect();host.removeEventListener('pointerdown',down);host.removeEventListener('pointermove',move);host.removeEventListener('pointerup',up);host.removeEventListener('pointercancel',cancel);host.removeEventListener('wheel',wheel);renderer.domElement.removeEventListener('keydown',key);window.removeEventListener('keyup',keyUp);window.removeEventListener('blur',clearHeld);renderer.domElement.removeEventListener('blur',clearHeld);heldKeys.clear();renderer.domElement.removeEventListener('webglcontextlost',contextLost);document.removeEventListener('visibilitychange',visibility);for(const g of geometries)g.dispose();for(const m of materials)m.dispose();renderer.dispose();renderer.domElement.remove();};
+ const destroy=()=>{if(disposed)return;disposed=true;resolverRequest?.abort();openViews?.dispose();awakening.dispose();if(warmupTimer!==null)clearTimeout(warmupTimer);for(const resolve of idleWaiters.splice(0))resolve(false);cancelAnimationFrame(raf);observer.disconnect();host.removeEventListener('pointerdown',down);host.removeEventListener('pointermove',move);host.removeEventListener('pointerup',up);host.removeEventListener('pointercancel',cancel);host.removeEventListener('wheel',wheel);renderer.domElement.removeEventListener('keydown',key);window.removeEventListener('keyup',keyUp);window.removeEventListener('blur',clearHeld);renderer.domElement.removeEventListener('blur',clearHeld);heldKeys.clear();renderer.domElement.removeEventListener('webglcontextlost',contextLost);document.removeEventListener('visibilitychange',visibility);for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const {texture} of gateTextures)texture.dispose();renderer.dispose();renderer.domElement.remove();};
  const contextLost=(e:Event)=>{e.preventDefault();heldKeys.clear();graphicsLost=true;resolverRequest?.abort();openViews.dispose();awakening.dispose();notifyAwakening();for(const resolve of idleWaiters.splice(0))resolve(false);notifyWorld();callbacks.error('Graphics became unavailable. Restart the journey to gather the stars again.',true);cancelAnimationFrame(raf);};renderer.domElement.addEventListener('webglcontextlost',contextLost);
  try{
  const humanAbort=new AbortController(),abortHuman=()=>humanAbort.abort();signal.addEventListener('abort',abortHuman,{once:true});
@@ -156,6 +160,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const humanRequest=Promise.all([load('human-population',humanAbort.signal),load('human-footprint',humanAbort.signal)]).then(fields=>{
   if(fields.some((data,index)=>data.length!==(index?72000:60000)*6||!data.every(Number.isFinite)))throw new Error('Invalid optional geographic field');return fields;
  }).catch(()=>{humanAbort.abort();return null;}).finally(()=>{clearTimeout(humanTimeout);signal.removeEventListener('abort',abortHuman);});
+ const atlasRequest=loadConnectionAtlas(signal);
  const gridRequest=fetch('/data/relief-grid.bin',{signal}).then(async res=>{if(!res.ok)throw new Error('Relief unavailable');const buffer=await res.arrayBuffer();if(buffer.byteLength!==1440*720*2)throw new Error('Invalid relief grid');return new Int16Array(buffer);});
  const [data,grid]=await Promise.all([Promise.all(['land','coast','lights','coast-lines','borders','relief-land','relief-ocean','stellar-body','stellar-interior','stellar-haze','stellar-halo'].map(name=>load(name))),gridRequest]);
  if(signal.aborted){destroy();throw new DOMException('Aborted','AbortError');}elevation=grid;
@@ -163,9 +168,11 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  for(const c of [land,coast,lights]){c.points.userData.sampleBudget=5000;c.points.userData.spatialExposure=1;}
  reliefLand=spatialCloud(data[5],'#8f9598');reliefOcean=spatialCloud(data[6],'#718084');body=spatialCloud(data[7],'#a79a83');interior=spatialCloud(data[8],'#b4a17f');haze=spatialCloud(data[9],'#887f75');halo=spatialCloud(data[10],'#c7d0d6');haze.material.uniforms.soft.value=1;reliefOcean.material.uniforms.seaMotion.value=1;
  terrainCloud(land,1);terrainCloud(coast,3);terrainCloud(lights,4);terrainCloud(reliefLand,1,true);terrainCloud(reliefOcean,2,true);
- const humanData=await humanRequest;
+ const humanData=await humanRequest;atlas=await atlasRequest;
+ host.dataset.networkAtlas=atlas?'ready':'unavailable';
  if(signal.aborted){destroy();throw new DOMException('Aborted','AbortError');}
- if(humanData){populationField=spatialCloud(humanData[0],'#8eabc6');footprintField=spatialCloud(humanData[1],'#9786ae');for(const c of [populationField,footprintField]){terrainCloud(c,1);c.points.userData.humanField=true;c.points.userData.shimmer=.06;c.material.uniforms.opacity.value=0;}}
+ if(humanData){for(const data of humanData)for(let i=3;i<data.length;i+=6){const strength=Math.max(0,Math.min(1,(data[i]-.22)/.62));data[i]=.035+.90*Math.pow(strength,1.30);}
+ populationField=spatialCloud(humanData[0],'#8eabc6');footprintField=spatialCloud(humanData[1],'#9786ae');for(const c of [populationField,footprintField]){terrainCloud(c,1);c.points.userData.humanField=true;c.points.userData.shimmer=.06;c.material.uniforms.opacity.value=0;}}
  host.dataset.humanFields=humanData?'ready':'unavailable';
  scene.userData.spatial={depth:1,cut:0,cutNormal,cutFacing};
  }catch(e){destroy();throw e;}
@@ -198,9 +205,13 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  async function ensureNewYork(){if(newYorkReady)return;if(newYorkLoading)return newYorkLoading;newYorkLoading=(async()=>{const requestedAt=performance.now();host.dataset.detailNewYorkStatus='fetching';const [stars,streets]=await Promise.all(['new-york-stars','new-york-streets'].map(name=>load(name)));const fetchedAt=performance.now();host.dataset.detailNewYorkFetchMs=(fetchedAt-requestedAt).toFixed(1);host.dataset.detailNewYorkStatus='preparing';if(disposed||graphicsLost||signal.aborted)return;const order=Array.from({length:stars.length/6},(_,i)=>i).sort((a,b)=>(Math.imul(a+1,2654435761)>>>0)-(Math.imul(b+1,2654435761)>>>0)),sorted=new Float32Array(stars.length);order.forEach((i,j)=>sorted.set(stars.subarray(i*6,i*6+6),j*6));newYorkStars=cloud(sorted,'#d5c5a5',newYorkFeather);newYorkStreets=lines(streets,'#c1a780',newYorkFeather);newYorkStars.points.userData.fallbackExposure=2.4;newYorkStreets.userData.fallbackExposure=2;createUrbanView('new-york',streets,newYorkFeather);newYorkReady=true;host.dataset.detailNewYorkPrepareMs=(performance.now()-fetchedAt).toFixed(1);host.dataset.detailNewYorkStatus='ready';})();try{await newYorkLoading;}catch(e){newYorkLoading=null;throw e;}}
  const specialViews=specialDestinationViews({load,cloud,lines,urban:createUrbanView,alive:()=>!disposed&&!graphicsLost&&!signal.aborted});
  function updateUrban(nowSeconds:number,visibility:number){for(const [id,v] of urbanViews){const active=targetId===id&&layerFlags.urban&&genesisProgress>=1&&openProgress===0;v.traffic.material.uniforms.opacity.value=active?visibility*1.6:0;v.activity.material.uniforms.opacity.value=active?visibility*2.5:0;if(!active||visibility<.002)continue;v.model.sample(nowSeconds,v.trafficXYZ,v.activityXYZ);const brightness=v.traffic.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;for(let i=0;i<v.model.trafficCount;i++){const x=v.trafficXYZ[i*3],y=v.trafficXYZ[i*3+1],z=v.trafficXYZ[i*3+2],weight=v.feather(Math.atan2(x,z)/R,Math.atan2(y,Math.hypot(x,z))/R);brightness.setX(i,v.model.trafficBrightness[i]*v.model.trafficOpacity[i]*weight);}brightness.needsUpdate=true;const activityBrightness=v.activity.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;for(let i=0;i<v.model.activityCount;i++){const x=v.activityXYZ[i*3],y=v.activityXYZ[i*3+1],z=v.activityXYZ[i*3+2];activityBrightness.setX(i,v.model.activityBrightness[i]*v.feather(Math.atan2(x,z)/R,Math.atan2(y,Math.hypot(x,z))/R));}activityBrightness.needsUpdate=true;v.traffic.points.geometry.getAttribute('position').needsUpdate=true;v.activity.points.geometry.getAttribute('position').needsUpdate=true;}}
- const flightPaths=prepareFlightPaths(aircraftCorridors,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat));
+ const historicalFlights=atlasFlights(atlas?.air.filter((_,i)=>!fallback||i%6===0)??[]);
+ const flightPaths=[...prepareFlightPaths(aircraftCorridors,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat)),...historicalFlights];
+ const allSeaPaths=[...seaLanePaths,...atlasMarine(atlas?.sea??[],true)];
+ const allCablePaths=[...cablePaths,...atlasMarine(atlas?.cables??[],false)];
+ host.dataset.networkCounts=JSON.stringify({air:flightPaths.length,sea:allSeaPaths.length,cables:allCablePaths.length,aircraft:aircraftSignals.length,ships:shipSignals.length});
  const flightPathsById=new Map(flightPaths.map(path=>[path.id,path]));
- const smoothShipping=prepareSmoothCables(seaLanePaths,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),1.002);
+ const smoothShipping=prepareSmoothCables(allSeaPaths,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),1.002);
  const shippingById=new Map(smoothShipping.map(path=>[path.id,path]));
  const flightReferences=new Map(aircraftSignals.map(record=>[record,flightPathsById.get(flightPathId(record))!]));
  const shipReferences=new Map(shipSignals.map(record=>[record,shippingById.get(flightPathId(record))!]));
@@ -263,7 +274,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
 
  const airPathGates=new ActivityTransitions(flightPaths.map(p=>p.id),'pathways');
  const shipPathGates=new ActivityTransitions(smoothShipping.map(p=>p.id),'pathways');
- const cablePathGates=new ActivityTransitions(cablePaths.map(p=>p.id),'pathways');
+ const cablePathGates=new ActivityTransitions(allCablePaths.map(p=>p.id),'pathways');
  const cableTravellerGates=new ActivityTransitions(cablePaths.map(p=>p.id),'travellers');
  const activityTransitions=[...signalViews.map(v=>v.gates),airPathGates,shipPathGates,cablePathGates,cableTravellerGates,focusTransition,populationFocus,footprintFocus,connectionsFocus];
  const airOnsets=Float32Array.from(flightPaths,(_,i)=>signalOnset('aircraft',i,flightPaths.length));
@@ -272,8 +283,9 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  function ribbon(c:Cloud,paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,kind:number,gates:ActivityTransitions){
   const original=c.points;earth.remove(original);original.geometry.dispose();geometries.splice(geometries.indexOf(original.geometry),1);
   const g=cableFilamentGeometry(paths,sources,onsets);geometries.push(g);
+  const columns=Math.min(1024,gates.values.length),rows=Math.ceil(gates.values.length/columns),bytes=new Uint8Array(columns*rows*4).fill(255),texture=new THREE.DataTexture(bytes,columns,rows,THREE.RGBAFormat);texture.needsUpdate=true;texture.minFilter=texture.magFilter=THREE.NearestFilter;gateTextures.push({texture,gates,bytes});
   c.material.vertexShader=cableFilamentVertex;c.material.fragmentShader=cableFilamentFragment;c.material.side=THREE.DoubleSide;
-  Object.assign(c.material.uniforms,{resolution:{value:new THREE.Vector2(host.clientWidth,host.clientHeight)},awakeningTime:{value:0},pathKind:{value:kind},routeGate:{value:gates.values},richness:{value:DEFAULT_LIGHT.pathVolume},drawDuration:{value:kind===0?AWAKENING.cables.draw:2.2},fadeDuration:{value:kind===0?AWAKENING.cables.fade:1.1}});
+  Object.assign(c.material.uniforms,{resolution:{value:new THREE.Vector2(host.clientWidth,host.clientHeight)},awakeningTime:{value:0},pathKind:{value:kind},routeGate:{value:texture},routeSize:{value:new THREE.Vector2(columns,rows)},richness:{value:DEFAULT_LIGHT.pathVolume},drawDuration:{value:kind===0?AWAKENING.cables.draw:2.2},fadeDuration:{value:kind===0?AWAKENING.cables.fade:1.1}});
   const mesh=new THREE.Mesh(g,c.material);mesh.userData={...original.userData};mesh.frustumCulled=false;earth.add(mesh);c.points=mesh;c.count=g.getAttribute('position').count;
  }
  function pathway(paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,tint:string,kind:number,gates:ActivityTransitions){
@@ -286,8 +298,8 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   // The material does not move; the travelling light supplies local highlights.
   return {cloud:c,gates,onsets,kind,sources,base,routeIndices,progress};
  }
- const airLanes=pathway(flightPaths,flightPaths.map((_,i)=>({intensity:i%13===12?0:.65})),airOnsets,signalColors.aircraft,2,airPathGates);
- const seaLaneView=pathway(smoothShipping,seaLanePaths.map((p,i)=>({intensity:i%19===18?0:p.intensity,tier:p.tier})),shipOnsets,seaLaneColor,1,shipPathGates),seaLanes=seaLaneView.cloud;
+ const airLanes=pathway(flightPaths,[...aircraftCorridors.map((_,i)=>({intensity:i%13===12?0:.72})),...historicalFlights.map(p=>({intensity:p.intensity,tier:p.tier,threshold:p.threshold}))],airOnsets,signalColors.aircraft,2,airPathGates);
+ const seaLaneView=pathway(smoothShipping,allSeaPaths.map((p,i)=>({intensity:i<seaLanePaths.length&&i%19===18?0:p.intensity,tier:p.tier,threshold:i<seaLanePaths.length?0:.10+.66*((i-seaLanePaths.length)/Math.max(1,allSeaPaths.length-seaLanePaths.length))})),shipOnsets,seaLaneColor,1,shipPathGates),seaLanes=seaLaneView.cloud;
  seaLanes.points.userData.seaLanes=true;
  function updatePathway(view:ReturnType<typeof pathway>,visibility:number){
   const c=view.cloud;c.material.uniforms.opacity.value=visibility*Math.min(1,view.gates.average*4);
@@ -313,9 +325,9 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  // Cable-only rounded geography; the seated stroke and signal lights share it.
  const cableSample=new Float64Array(3),cableStars:number[]=[],pulseStars:number[]=[];
  function seatNetwork(out:Float64Array){const r=Math.hypot(out[0],out[1],out[2]),h=sampleElevation(elevation,1440,720,Math.atan2(out[0],out[2])/R,Math.atan2(out[1],Math.hypot(out[0],out[2]))/R);const scale=networkRadius(h)/r;for(let j=0;j<3;j++)out[j]*=scale;}
- const smoothCables=prepareSmoothCables(cablePaths,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat));
- const seaOnsets=cableOnsets(cablePaths);
- for(let i=0;fallback&&i<cablePaths.length;i++){
+ const smoothCables=prepareSmoothCables(allCablePaths,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat));
+ const seaOnsets=cableOnsets(allCablePaths);
+ for(let i=0;fallback&&i<allCablePaths.length;i++){
   for(let k=0;k<CABLE_SEGMENTS_PER_PATH;k++){sampleSmoothCable(smoothCables[i],k/(CABLE_SEGMENTS_PER_PATH-1),cableSample);cableStars.push(...cableSample,0,.48,(i*.61+k*.017)%6.28);}
  }
  for(let i=0;i<CABLE_PULSE_SLOTS;i++)for(let k=0;k<4;k++)pulseStars.push(0,0,.98,0,k===0?1.35:.58,i*.61+k*.07);
@@ -323,7 +335,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  for(const hub of cableHubs){const [lat,lon]=hub.point;cableSample.set(geo(lon,lat).toArray());seatNetwork(cableSample);hubStars.push(...cableSample,.55,.75,hub.degree);for(let k=0;k<Math.min(22,4+hub.degree);k++){const radius=.035+.018*Math.sqrt(k),angle=k*2.39996;const latK=lat+Math.sin(angle)*radius,lonK=lon+Math.cos(angle)*radius/Math.max(.3,Math.cos(lat*R));const v=geo(lonK,latK);cableSample.set(v.toArray());seatNetwork(cableSample);hubStars.push(...cableSample,.22+Math.min(.4,hub.degree*.02),.38+(k%4)*.10,k*.71+hub.degree);}}
  const seaHubs=cloud(new Float32Array(hubStars),'#AC98D0');seaHubs.points.userData.hubField=true;
  const seaFilaments:Cloud=cloud(new Float32Array(cableStars),cableColor),seaPulses=cloud(new Float32Array(pulseStars),'#C5ABEE');
- if(!fallback)ribbon(seaFilaments,marineStrands(smoothCables,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat)),cablePaths,seaOnsets,0,cablePathGates);
+ if(!fallback)ribbon(seaFilaments,marineStrands(smoothCables,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat)),allCablePaths.map((p,i)=>({...p,threshold:i<cablePaths.length?0:.12+.64*((i-cablePaths.length)/Math.max(1,allCablePaths.length-cablePaths.length))})),seaOnsets,0,cablePathGates);
  host.dataset.cableStroke=fallback?'smooth-points':'continuous-ribbon';
  host.dataset.cableCurveVertices=String(smoothCables.reduce((n,p)=>n+p.progress.length,0));
  for(const c of [seaFilaments,seaPulses,seaHubs]){
@@ -335,23 +347,24 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  }
  const cableBrightness=seaFilaments.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;
  function updateSea(seconds:number,visibility:number){
+  for(const {texture,gates,bytes} of gateTextures){let changed=false;for(let i=0;i<gates.values.length;i++){const v=Math.round(gates.values[i]*255);if(bytes[i*4]!==v){bytes[i*4]=v;changed=true;}}if(changed)texture.needsUpdate=true;}
   const exposure=livingExposure(alt);
-  updatePathway(airLanes,visibility*exposure.air*.38*displayedLight.pathLight*displayedLight.airLight);
-  updatePathway(seaLaneView,visibility*exposure.lanes*.30*displayedLight.pathLight*displayedLight.seaLight);
+  updatePathway(airLanes,visibility*exposure.air*.57*displayedLight.pathLight*displayedLight.airLight);
+  updatePathway(seaLaneView,visibility*exposure.lanes*.66*displayedLight.pathLight*displayedLight.seaLight);
   const lanesFull=shipOnsets.reduce((n,onset)=>n+(awakening.elapsed-onset>=3.3?1:0),0);
   const alpha=awakening.elapsed>AWAKENING.cables.start?visibility*exposure.cables:0;
-  seaFilaments.material.uniforms.opacity.value=(fallback?displayedLight.pathVolume:1)*alpha*.70*displayedLight.pathLight*displayedLight.cableLight*Math.min(1,cablePathGates.average*4);
+  seaFilaments.material.uniforms.opacity.value=(fallback?displayedLight.pathVolume:1)*alpha*.88*displayedLight.pathLight*displayedLight.cableLight*Math.min(1,cablePathGates.average*4);
   seaPulses.material.uniforms.opacity.value=alpha*1.7*displayedLight.travellerLight*displayedLight.cableLight*Math.min(1,cableTravellerGates.average*4);
   seaHubs.material.uniforms.opacity.value=alpha*.13*displayedLight.pathLight*displayedLight.cableLight*cableReveal(awakening.elapsed-AWAKENING.cables.start-2,1)*cablePathGates.average;
   if(!fallback){seaFilaments.material.uniforms.richness.value=displayedLight.pathVolume;seaFilaments.material.uniforms.awakeningTime.value=awakening.elapsed;seaFilaments.material.uniforms.resolution.value.set(host.clientWidth,host.clientHeight);}
   const a=seaPulses.points.geometry.getAttribute('position') as THREE.BufferAttribute,b=seaPulses.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;
   let active=0,full=0;
-  for(let i=0;i<cablePaths.length;i++){
+  for(let i=0;i<allCablePaths.length;i++){
    const age=awakening.elapsed-seaOnsets[i];if(age>0)active++;if(cableReveal(age,1)===1)full++;
    if(fallback)for(let k=0;k<CABLE_SEGMENTS_PER_PATH;k++){
     // A sparse bright knot at branches, with quiet precise trunks between them.
     const endpoint=k<3||k>CABLE_SEGMENTS_PER_PATH-4;
-    cableBrightness.setX(i*CABLE_SEGMENTS_PER_PATH+k,(endpoint?.85:.54)*cablePaths[i].intensity*cableReveal(age,k/(CABLE_SEGMENTS_PER_PATH-1))*smoothUnit((cablePathGates.values[i]-k/(CABLE_SEGMENTS_PER_PATH-1)*.3)/.7));
+    cableBrightness.setX(i*CABLE_SEGMENTS_PER_PATH+k,(endpoint?.65:.54)*allCablePaths[i].intensity*cableReveal(age,k/(CABLE_SEGMENTS_PER_PATH-1))*smoothUnit((cablePathGates.values[i]-k/(CABLE_SEGMENTS_PER_PATH-1)*.3)/.7));
    }
   }
   let journeys=0;
@@ -428,7 +441,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  }
 
  function isBusy(){return genesisProgress<1||!!flight||!!morph||loadingDetail;}
- function worldState():WorldState{return {targetId,tier:scaleTier,busy:isBusy(),genesis:genesisState(genesisProgress),layers:{...layerFlags},presentation:{...presentation},humanFields:populationField&&footprintField?'ready':'unavailable',...(activeOpenTarget?{resolvedTarget:activeOpenTarget}:{}),...(openContext?{open:openContext}:{}),resolving};}
+ function worldState():WorldState{return {targetId,tier:scaleTier,busy:isBusy(),genesis:genesisState(genesisProgress),layers:{...layerFlags},presentation:{...presentation},humanFields:populationField&&footprintField?'ready':'unavailable',connectionAtlas:atlas?'ready':'unavailable',...(activeOpenTarget?{resolvedTarget:activeOpenTarget}:{}),...(openContext?{open:openContext}:{}),resolving};}
  /** A bounded read-only view. Audio never advances a visual clock or samples
   * every moving object; twelve representative traffic weights are sufficient. */
  function audioState():AudioWorldState {
@@ -553,7 +566,17 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const born=genesisLight(genesisProgress),opened=transformationEase(openProgress);
  for(const key of Object.keys(displayedLight) as (keyof LightOptions)[]){if(typeof options[key]==='number')(displayedLight as unknown as Record<string,number>)[key]=THREE.MathUtils.lerp((displayedLight as unknown as Record<string,number>)[key],(options as unknown as Record<string,number>)[key],reducedMotion||!options.motion?1:1-Math.exp(-dt*5));}
  const levels=lightLevels(alt),global=levels.global;const ease=options.motion?1-Math.exp(-dt*3):1;tilt=THREE.MathUtils.lerp(tilt,targetTilt,ease);cut=THREE.MathUtils.lerp(cut,viewMode==='cutaway'&&options.depth?1:0,ease);depth=THREE.MathUtils.lerp(depth,activeOpenTarget&&scaleTier==='region'&&options.depth?1:spatialBlend(alt,options.depth),ease);terrain=terrainTuning(alt,tilt,cut);scene.userData.spatial={depth,cut,cutNormal,cutFacing};sphere.visible=genesisProgress>=.94&&cut<.02&&opened<.995;sphere.scale.setScalar((1-depth*.30)*(1-opened));scene.userData.coreRadius=sphere.visible?(1-depth*.30)*(1-opened):0;scene.userData.opening=openProgress;scene.userData.genesis=genesisProgress;focus=THREE.MathUtils.lerp(focus,selected?1:0,options.motion?1-Math.exp(-dt*3.2):1);const cityDim=1-focus*.64;const reveal=revealProgress((now-storyStarted)/1000,options.motion);
- north.copy(geo(lon,lat+90));camera.position.copy(geo(lon,lat)).addScaledVector(geo(lon,lat),alt*Math.cos(tilt*R)).addScaledVector(north,-alt*Math.sin(tilt*R));camera.up.copy(north);camera.lookAt(geo(lon,lat).multiplyScalar(born.settled));const w=host.clientWidth,h=host.clientHeight,mobile=w<700;const offsetY=mobile?(compositionOpen?Math.min(170,h*.19):selected?(storyInset?Math.max(0,(storyInset-70)/2):h*.225):openProgress>0?h*.25:personalPlaces&&stage==='orbit'?-h*.09:viewMode==='cutaway'?h*.11:stage==='orbit'&&scaleTier==='planet'?h*.015:-h*.035):0;const desktopInset=stage==='city'?(SPECIAL_CITIES[targetId??'']?.desktopOffset??.17):(compositionOpen||narrativeVisible||openProgress>0||!!personalPlaces)?.17:0;smoothCameraOffset.lerp(new THREE.Vector2(mobile?0:-w*desktopInset*born.settled,offsetY*born.settled),frameCount===1||!options.motion?1:1-Math.exp(-dt*4));const panelZoom=compositionOpen?(mobile?Math.min(1,(h*.57-105)/(Math.min(w*.44,h*.38)*2)):w<=1100?Math.min(1,(w-(w<=1000?328:364)-84)/(Math.min(w*.30,h*.38)*2)):1):1;camera.zoom=THREE.MathUtils.lerp(camera.zoom,panelZoom,!options.motion?1:1-Math.exp(-dt*6));camera.setViewOffset(w,h,smoothCameraOffset.x,smoothCameraOffset.y,w,h);camera.near=Math.max(.0000004,alt*.002);camera.far=65;camera.updateProjectionMatrix();camera.updateMatrixWorld();
+ north.copy(geo(lon,lat+90));camera.position.copy(geo(lon,lat)).addScaledVector(geo(lon,lat),alt*Math.cos(tilt*R)).addScaledVector(north,-alt*Math.sin(tilt*R));camera.up.copy(north);camera.lookAt(geo(lon,lat).multiplyScalar(born.settled));const w=host.clientWidth,h=host.clientHeight,mobile=w<700;
+ const available=compositionOpen&&compositionBounds?compositionFraming(w,h,compositionBounds,camera.position.length()):null;
+ const offsetY=mobile?(selected?(storyInset?Math.max(0,(storyInset-70)/2):h*.225):openProgress>0?h*.25:personalPlaces&&stage==='orbit'?-h*.09:viewMode==='cutaway'?h*.11:stage==='orbit'&&scaleTier==='planet'?h*.015:-h*.035):0;
+ const desktopInset=stage==='city'?(SPECIAL_CITIES[targetId??'']?.desktopOffset??.17):(narrativeVisible||openProgress>0||!!personalPlaces)?.17:0;
+ const frameMix=frameCount===1||!options.motion?1:1-Math.exp(-dt*6);
+ smoothCameraOffset.lerp(new THREE.Vector2((available?.x??(mobile?0:-w*desktopInset))*born.settled,(available?.y??offsetY)*born.settled),frameMix);
+ const panelZoom=available&&scaleTier==='planet'&&viewMode==='globe'?available.zoom:1;
+ camera.zoom=THREE.MathUtils.lerp(camera.zoom,panelZoom,frameMix);
+ camera.setViewOffset(w,h,smoothCameraOffset.x,smoothCameraOffset.y,w,h);
+ if(available)host.dataset.compositionFrame=JSON.stringify({...available,zoom:camera.zoom});else delete host.dataset.compositionFrame;
+ camera.near=Math.max(.0000004,alt*.002);camera.far=65;camera.updateProjectionMatrix();camera.updateMatrixWorld();
  // Project the actual places: the merge follows their visible separation at every viewport.
  let spread=0;if(remembering&&remembered){const places=remembered.places.map(p=>geo(p.lon,p.lat,1.00003).project(camera));for(let i=0;i<places.length;i++)for(let j=i+1;j<places.length;j++)spread=Math.max(spread,Math.hypot((places[i].x-places[j].x)*w/2,(places[i].y-places[j].y)*h/2));}
  const memory=memoryLight(spread,settledAt===null?null:(now-settledAt)/1000,options.motion);
@@ -611,7 +634,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   (borders.material as THREE.LineBasicMaterial).opacity*=1-nightFocus;
   edgeM.uniforms.opacity.value*=1-nightFocus*.8;
  }
- for(const c of clouds){const u=c.material.uniforms;u.genesis.value=genesisProgress;u.genesisEnabled.value=c.points.userData.spatial&&!c.points.userData.network&&!c.points.userData.oceanVolume&&!c.points.userData.humanField?1:0;if(c.points.userData.baseRegional===undefined)c.points.userData.baseRegional=u.regional.value;const regionOpen=!!activeOpenTarget&&scaleTier==='region'&&!backgroundLayers.includes(c);u.regional.value=regionOpen?1:c.points.userData.baseRegional;u.regionOuter.value=regionOpen?Math.cos(Math.min(1.2,activeOpenTarget!.contextRadiusKm*2.8/6371)):.78;u.regionInner.value=regionOpen?Math.cos(Math.min(.8,activeOpenTarget!.contextRadiusKm*.6/6371)):.975;u.regionMix.value=regionOpen?1:1-transformationEase((alt-.30)/1.1);u.regionFocus.value.copy(geo(lon,lat));u.genesisExposure.value=born.exposure;u.genesisSize.value=born.size;u.opening.value=c.points.userData.spatial||c===personalCloud?openProgress:0;c.points.visible=u.opacity.value>.001&&(c!==storyCloud||!!selected||remembering);u.terrainLand.value=terrain.land;u.terrainFloor.value=terrain.floor;u.terrainStudy.value=terrain.study;u.terrainReady.value=born.settled*(1-opened);u.depthMix.value=depth;u.cutaway.value=cut;u.cameraDistance.value=camera.position.length();u.time.value=time*(c.points.userData.rhythm??1);u.motion.value=options.motion?1:0;u.glow.value=backgroundLayers.includes(c)?.45:options.glow;u.sparkle.value=options.shimmer*(c.points.userData.shimmer??(backgroundLayers.includes(c)?.25:c===land?.8:1));u.zoomFactor.value=backgroundLayers.includes(c)?1:Math.min(1.45,Math.pow(2.1/Math.max(alt,.3),.14))*(mobile?1-global*.4:1);if(c===land)c.points.geometry.setDrawRange(0,Math.floor(c.count*options.density));}
+ for(const c of clouds){const u=c.material.uniforms;u.genesis.value=genesisProgress;u.genesisEnabled.value=c.points.userData.spatial&&!c.points.userData.network&&!c.points.userData.oceanVolume&&!c.points.userData.humanField?1:0;if(c.points.userData.baseRegional===undefined)c.points.userData.baseRegional=u.regional.value;const regionOpen=!!activeOpenTarget&&scaleTier==='region'&&!backgroundLayers.includes(c);u.regional.value=regionOpen?1:c.points.userData.baseRegional;u.regionOuter.value=regionOpen?Math.cos(Math.min(1.2,activeOpenTarget!.contextRadiusKm*2.8/6371)):.78;u.regionInner.value=regionOpen?Math.cos(Math.min(.8,activeOpenTarget!.contextRadiusKm*.6/6371)):.975;u.regionMix.value=regionOpen?1:1-transformationEase((alt-.30)/1.1);u.regionFocus.value.copy(geo(lon,lat));u.genesisExposure.value=born.exposure;u.genesisSize.value=born.size;u.opening.value=c.points.userData.spatial||c===personalCloud?openProgress:0;c.points.visible=u.opacity.value>.001&&(c!==storyCloud||!!selected||remembering);u.terrainLand.value=terrain.land;u.terrainFloor.value=terrain.floor;u.terrainStudy.value=terrain.study;u.terrainReady.value=born.settled*(1-opened);u.depthMix.value=depth;u.cutaway.value=cut;u.cameraDistance.value=camera.position.length();u.time.value=time*(c.points.userData.rhythm??1);u.motion.value=options.motion?1:0;u.glow.value=backgroundLayers.includes(c)?.45:options.glow*(c.points.userData.shell==='satellites'?.56:1);u.sparkle.value=options.shimmer*(c.points.userData.shimmer??(backgroundLayers.includes(c)?.25:c===land?.8:1));u.zoomFactor.value=backgroundLayers.includes(c)?1:Math.min(1.45,Math.pow(2.1/Math.max(alt,.3),.14))*(mobile?1-global*.4:1);if(c===land)c.points.geometry.setDrawRange(0,Math.floor(c.count*options.density));}
  if(personalSettledAt!==null&&!personalArrivalSent&&!morph&&stage==='orbit'&&(!options.motion||now-personalSettledAt>=1100)&&Math.abs(alt-targetAlt)<.035){personalArrivalSent=true;personalSettledAt=null;callbacks.personalSettled?.();}
  if(settledAt!==null&&!arrivalSent&&(!options.motion||now-settledAt>=1400)){arrivalSent=true;callbacks.arrival(remembered?.id||null);}
  if(!options.motion||frameCount%2===0){placeLabel('singapore',1.30,103.85,stage==='orbit'&&viewMode==='globe'&&!morph&&genesisProgress>=1&&openProgress===0&&!personalPlaces);for(const s of stories)placeLabel(s.id,s.lat,s.lon,stage==='city'&&(targetId===null||targetId==='singapore')&&!selected);for(let i=0;i<3;i++){const p=selected?.places[i];placeLabel('place-'+i,p?.lat||0,p?.lon||0,stage==='city'&&!!p&&reveal.stars>i*.25+.15);}}
@@ -625,5 +648,5 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  }
  function visibility(){clearHeld();stillFrames=0;if(document.hidden||graphicsLost){cancelAnimationFrame(raf);}else{lastTime=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);}}document.addEventListener('visibilitychange',visibility);
  genesisStarted=performance.now();lastTime=genesisStarted;if(genesisProgress===1)awakening.settle(options.motion);notifyAwakening();callbacks.ready();notifyGenesis(true);notifyTransformation(true);raf=requestAnimationFrame(frame);
- return {audioState,replayGenesis,skipGenesis,command,worldState,transform:setTransformation,personal:setPersonal,descend:async()=>{if(flight||morph||genesisProgress<1||openProgress>0)return;try{personalSettledAt=null;personalArrivalSent=false;clearStory();remembered=null;remembering=false;settledAt=null;arrivalSent=false;activeOpenTarget=undefined;void openViews.setTarget(null);targetId='singapore';scaleTier='city';if(presentation.focus!=='living'){presentation={...presentation,focus:'living'};syncPresentation();}loadingDetail=true;fly(1.2965,103.851,.0018,'city');notifyWorld();try{await ensureCity();}finally{loadingDetail=false;stillFrames=0;notifyWorld();}if(disposed)return;}catch(e){if(!signal.aborted)callbacks.error('Singapore could not load. Your Earth is still here; try entering again.');throw e;}},orbit:()=>{if(flight||morph||stage!=='city')return;clearStory();remembering=!!remembered;settledAt=null;arrivalSent=false;activeOpenTarget=undefined;void openViews.setTarget(null);targetId=null;scaleTier='planet';fly(19,95,homeAltitude(),'orbit');notifyWorld();},zoom,rotate,select,view:setView,region:setRegion,configure:(o)=>{configuredLight={...DEFAULT_LIGHT,...o};if(!comparingLight)options={...configuredLight};reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;for(const transition of activityTransitions)transition.update(layerClock,reducedMotion);if(!o.motion)awakening.advance(0,false);notifyAwakening();if(flight&&!o.motion)flight.duration=0;lastInteraction=performance.now();stillFrames=0;},storyInset:setStoryInset,compositionPanel:(open)=>{compositionOpen=open;stillFrames=0;},narrativePanel:(visible)=>{narrativeVisible=visible;stillFrames=0;},compareLight:(light)=>{comparingLight=!!light;options={...(light??configuredLight),motion:configuredLight.motion};Object.assign(displayedLight,options);lastInteraction=performance.now();stillFrames=0;},dispose:destroy};
+ return {audioState,replayGenesis,skipGenesis,command,worldState,transform:setTransformation,personal:setPersonal,descend:async()=>{if(flight||morph||genesisProgress<1||openProgress>0)return;try{personalSettledAt=null;personalArrivalSent=false;clearStory();remembered=null;remembering=false;settledAt=null;arrivalSent=false;activeOpenTarget=undefined;void openViews.setTarget(null);targetId='singapore';scaleTier='city';if(presentation.focus!=='living'){presentation={...presentation,focus:'living'};syncPresentation();}loadingDetail=true;fly(1.2965,103.851,.0018,'city');notifyWorld();try{await ensureCity();}finally{loadingDetail=false;stillFrames=0;notifyWorld();}if(disposed)return;}catch(e){if(!signal.aborted)callbacks.error('Singapore could not load. Your Earth is still here; try entering again.');throw e;}},orbit:()=>{if(flight||morph||stage!=='city')return;clearStory();remembering=!!remembered;settledAt=null;arrivalSent=false;activeOpenTarget=undefined;void openViews.setTarget(null);targetId=null;scaleTier='planet';fly(19,95,homeAltitude(),'orbit');notifyWorld();},zoom,rotate,select,view:setView,region:setRegion,configure:(o)=>{configuredLight={...DEFAULT_LIGHT,...o};if(!comparingLight)options={...configuredLight};reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;for(const transition of activityTransitions)transition.update(layerClock,reducedMotion);if(!o.motion)awakening.advance(0,false);notifyAwakening();if(flight&&!o.motion)flight.duration=0;lastInteraction=performance.now();stillFrames=0;},storyInset:setStoryInset,compositionPanel:(open,bounds)=>{compositionOpen=open;compositionBounds=open?(bounds??compositionBounds):null;stillFrames=0;},narrativePanel:(visible)=>{narrativeVisible=visible;stillFrames=0;},compareLight:(light)=>{comparingLight=!!light;options={...(light??configuredLight),motion:configuredLight.motion};Object.assign(displayedLight,options);lastInteraction=performance.now();stillFrames=0;},dispose:destroy};
 }

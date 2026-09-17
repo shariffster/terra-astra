@@ -15,7 +15,7 @@ export type WorldCommand =
   | { type: 'resetView' };
 export type GenesisPhase = 'core' | 'compression' | 'ignition' | 'ejection' | 'capture' | 'settlement' | 'complete';
 export type GenesisState = Readonly<{ phase: GenesisPhase; progress: number; busy: boolean }>;
-export type WorldState = Readonly<{ targetId: string | null; tier: ScaleTier; busy: boolean; genesis: GenesisState; layers: Readonly<Record<WorldLayer, boolean>>; presentation?: WorldPresentation; humanFields?: 'ready' | 'unavailable'; resolvedTarget?:ResolvedWorldTarget; open?:OpenWorldContext; resolving?:boolean }>;
+export type WorldState = Readonly<{ targetId: string | null; tier: ScaleTier; busy: boolean; genesis: GenesisState; layers: Readonly<Record<WorldLayer, boolean>>; presentation?: WorldPresentation; humanFields?: 'ready' | 'unavailable'; connectionAtlas?: 'ready' | 'unavailable'; resolvedTarget?:ResolvedWorldTarget; open?:OpenWorldContext; resolving?:boolean }>;
 export type WorldCommandResult = Readonly<{ ok: boolean; command: WorldCommand; reason?: string; resolution?:PlaceResolution }>;
 export type WorldTarget = Readonly<{ id: string; label: string; lat: number; lon: number; tier: ScaleTier; detail: string }>;
 export const WORLD_TARGETS: readonly WorldTarget[] = Object.freeze(([

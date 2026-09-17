@@ -1,7 +1,22 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.15';
+export const currentVersion = '0.10.16';
 
 export const releases = [
+  {
+    version: '0.10.16',
+    date: '2026-09-17',
+    dateLabel: '17 September 2026',
+    title: 'A wider web of light',
+    milestone: 'Network richness · People’s Choice Lab',
+    changes: [
+      'The quiet network expands to 2,440 air connections, 454 sea paths and 362 undersea paths. Moving aircraft, ships and pulses remain independently restrained.',
+      'A historical selection connects 654 airports from OpenFlights’ June 2014 route snapshot. Illustrative coastal branches and ocean fans use existing Natural Earth geography and ETOPO water constraints.',
+      'Finer strokes share their brightness at crowded approaches. Open-water strands separate more clearly, while dense land fields gain stronger clusters and quieter gaps.',
+      'Earth fits the measured space beside or above the controls. Earth light, Connections and Surrounding sky group the tuning; fine adjustments stay expandable.',
+      'Smaller, quieter satellites support the white-gold Earth and distant pearl stars. Optional dust becomes finer and more elongated. Restoring saved settings no longer replays old light over newer edits.',
+    ],
+    review: 'Air links are historical endpoint connections with illustrative arcs, not current services or flown tracks. Sea and cable routes remain artistic, not AIS or surveyed alignments. Extra strands are visual detail, not extra cables. Canvas uses reduced air detail. Earlier versions, canonical v0.10.8 and the archive remain preserved. Physical-device and subjective audio acceptance are not implied by browser checks.',
+  },
   {
     version: '0.10.15',
     date: '2026-09-17',

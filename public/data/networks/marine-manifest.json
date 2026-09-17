@@ -1,0 +1,16 @@
+{
+  "source": "Existing Natural Earth populated places and NOAA ETOPO 2022 ocean mask",
+  "prepared": "2026-09-17",
+  "provenance": "Illustrative topology. Offshore points, pairings, geometry and intensities are artistic; not actual ports, cable landings, measured routes or traffic.",
+  "counts": {
+    "coastalRegions": 145,
+    "seaPaths": 368,
+    "cablePaths": 246,
+    "oceanCrossings": 104
+  },
+  "selection": "Up to 145 population-ranked coastal cities, >159 km separation, <=89 km offshore snap; two nearby offshore connections; bounded water-checked ocean fans.",
+  "inputs": {
+    "public/data/open-earth/places.json": "7bfdfce74b3c5d97ca7834dc1520466d866b5985d7fced4ec3b3c4a490f4bfc3",
+    "public/data/relief-grid.bin": "38ec07739763397d9a560dc608a4023a8e00c1ffa648ac592f15a851747a380f"
+  }
+}
