@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.17 wider-ocean refinement authority (18 September 2026)
+
+The user approves the subsequent critique from exact `532edba88208782a5671a21fdc5152ef4e634952`: extend shared marine approaches across the remaining oceans and give first light a clearer Earth form. Continue the existing branch, version and Lab Site. Preserve endpoints, source records, water checks, saved settings, satellite balance, earlier tags and releases. Minor layout findings are context; prioritize the approved ocean and loading composition. Canonical and archive remain frozen.
+
 ## v0.10.17 corridor and loading refinement authority (18 September 2026)
 
 Continue the same branch, semantic version and Lab Site from `d42bbbbed1fa1c56a7b6245c413272015f0ce9e8`. The user authorizes smoother shared Indian Ocean–Singapore and North Atlantic corridors, sustained marine hierarchy, distinct current strokes, and an on-brand loading state. Preserve original route records/endpoints, water constraints, restored satellites, source provenance, Genesis timing, original tag and all earlier milestones. Publish only the existing Lab after checks; canonical, archive and Maker’s Mark remain untouched.

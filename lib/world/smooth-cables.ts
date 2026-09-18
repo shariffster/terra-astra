@@ -10,7 +10,7 @@ export type CableCurvePiece = { a: V; b: V; control?: V; controls?: V[]; corrido
 export type SmoothCable = {
   id: string; positions: Float32Array; progress: Float32Array;
   distances: Float64Array; length: number; pieces: CableCurvePiece[];
-  cornerCount: number; constrainedCorners: number; offset: number; gathering: Float32Array;
+  corridorAdjusted: boolean; cornerCount: number; constrainedCorners: number; offset: number; gathering: Float32Array;
 };
 export const MAX_CABLE_VERTICES = 3072;
 const R = Math.PI / 180;
@@ -42,10 +42,12 @@ function water(p: V, elevation: Elevation, surface = false) {
  * These remain illustrations; rounding is not a new geographic data source. */
 export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elevation, surfaceRadius?: number, shape={bundle:1,roundness:1},samplingScale=1): SmoothCable[] {
   const toNodes=(points:readonly (readonly [number,number])[]):V[]=>points.map(([lat,lon])=>[Math.cos(lat*R)*Math.sin(lon*R),Math.sin(lat*R),Math.cos(lat*R)*Math.cos(lon*R)]);
+  const refined=new Set<string>();
   const displayNodes=new Map(paths.map(path=>{
     const waypoints=marineCorridorWaypoints(path.waypoints),candidate=toNodes(waypoints);
     // Reject a display spine if a different supplied water mask disallows it.
     const allowed=waypoints===path.waypoints||candidate.every((b,i)=>{if(!i)return true;const count=Math.max(2,Math.ceil(angle(candidate[i-1],b)/.00025));for(let k=0;k<=count;k++)if(!water(arc(candidate[i-1],b,k/count),elevation,!!surfaceRadius))return false;return true;});
+    if(allowed&&waypoints!==path.waypoints)refined.add(path.id);
     return [path.id,allowed?candidate:toNodes(path.waypoints)] as const;
   }));
   const nodesFor=(path:CablePath)=>displayNodes.get(path.id)!;
@@ -92,7 +94,8 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
     }return piece;
   };
   const groups = new Map<string, number[]>();
-  paths.forEach((p,i) => { const key=JSON.stringify(p.waypoints); const group=groups.get(key)??[]; group.push(i); groups.set(key,group); });
+  const groupKeys=paths.map(path=>{const nodes=nodesFor(path),forward=JSON.stringify(nodes),reverse=JSON.stringify([...nodes].reverse());return {key:forward<reverse?forward:reverse,direction:forward<reverse?1:-1};});
+  groupKeys.forEach(({key},i)=>{const group=groups.get(key)??[];group.push(i);groups.set(key,group);});
   const prepared=paths.map((path,index) => {
     const nodes=nodesFor(path);
     const corners = new Map<number,CableCurvePiece>();
@@ -133,7 +136,9 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
       }
       if(connector){if(end){piece.b=connector.b;pieces.push({a:connector.b,b:connector.a,controls:[...connector.controls!].reverse()});}else{piece.a=connector.b;pieces.unshift(connector);}}
     }
-    for(let i=0;i<pieces.length;i++){const p=pieces[i];if(!p.controls&&!p.control)pieces[i]=gatherLeg(p,...(p.sourceLeg??[p.a,p.b]));}
+    // The explicit spine/basin pass already gathers these routes. Pulling its
+    // short legs sideways again creates small S-bends between shared gates.
+    if(!refined.has(path.id))for(let i=0;i<pieces.length;i++){const p=pieces[i];if(!p.controls&&!p.control)pieces[i]=gatherLeg(p,...(p.sourceLeg??[p.a,p.b]));}
     const samples: V[]=[],gatheringValues:number[]=[];
     for(const piece of pieces) {
       const count=piece.corridor?Math.max(32,Math.ceil(angle(piece.a,piece.b)/(.001*samplingScale))):piece.controls?Math.max(32,Math.ceil(angle(piece.a,piece.b)/(.0005*samplingScale))):piece.control?Math.max(32,Math.ceil((angle(piece.a,piece.control)+angle(piece.control,piece.b))/(.0007*samplingScale))):Math.max(2,Math.ceil(angle(piece.a,piece.b)/(.001*samplingScale)));
@@ -147,14 +152,14 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
     samples.push(nodes[nodes.length-1]);gatheringValues.push(1);
     const gathering=Float32Array.from(gatheringValues);
     if(samples.length>MAX_CABLE_VERTICES) throw new Error(`Cable preparation budget exceeded: ${path.id}`);
-    const group=groups.get(JSON.stringify(path.waypoints))!;
-    let offset=(group.indexOf(index)-(group.length-1)/2)*(surfaceRadius?.0004:.00055);
+    const group=groups.get(groupKeys[index].key)!;
+    let offset=(group.indexOf(index)-(group.length-1)/2)*(surfaceRadius?.0014:.0010)*groupKeys[index].direction;
     const lateral=(p: V,k: number): V => {
       const a=samples[Math.max(0,k-1)],b=samples[Math.min(samples.length-1,k+1)];
       const t=b.map((v,j)=>v-a[j]) as V;
       const n=norm([p[1]*t[2]-p[2]*t[1],p[2]*t[0]-p[0]*t[2],p[0]*t[1]-p[1]*t[0]]);
       // Zero position and derivative at the two common hub endpoints.
-      const taper=Math.sin(Math.PI*k/(samples.length-1))**2;
+      const taper=Math.sin(Math.PI*k/(samples.length-1))**2*gathering[k];
       return norm(p.map((v,j)=>v+n[j]*offset*taper) as V);
     };
     if(offset) {
@@ -170,7 +175,7 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
     const length=distances[distances.length-1];
     if(surfaceRadius){
       points.forEach((p,i)=>{progress[i]=distances[i]/length;positions.set(p.map(x=>x*surfaceRadius),i*3);});
-      return {id:path.id,positions,progress,distances,length,pieces,cornerCount:corners.size,constrainedCorners,offset,gathering};
+      return {id:path.id,positions,progress,distances,length,pieces,corridorAdjusted:refined.has(path.id),cornerCount:corners.size,constrainedCorners,offset,gathering};
     }
     // A cubic B-spline envelope over local upper bounds smooths exaggerated
     // coarse-grid cliffs. Every contributing bound includes the current floor,
@@ -192,7 +197,7 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
       // to raw terrain here reintroduced cliff-shaped dives near coastal hubs.
       positions.set(points[i].map(x=>x*envelope),i*3);
     });
-    return {id:path.id,positions,progress,distances,length,pieces,cornerCount:corners.size,constrainedCorners,offset,gathering};
+    return {id:path.id,positions,progress,distances,length,pieces,corridorAdjusted:refined.has(path.id),cornerCount:corners.size,constrainedCorners,offset,gathering};
   });
   if(!surfaceRadius){
     // Shared depth and zero radial slope at a junction remove vertical V joins.

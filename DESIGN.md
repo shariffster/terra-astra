@@ -55,6 +55,8 @@ Run G preserves this incumbent world. Its generic named-place journey and curren
 
 The same-version v0.10.17 controls and shared-strands extensions retain the pearl-and-gold Earth, muted route families and existing Light / Layers / Saved panel. Family disclosures lead the Layers hierarchy; precise motion, light and shape tuning remains progressively disclosed. Current hierarchy, recovery behavior and responsive composition are recorded in [the composition-controls surface brief](.impeccable/surfaces/app-composition-controls-tsx.md), with behavior and verification limits in [the shared-strands implementation record](docs/STRANDS-MOTION-V01017.md). This scoped documentation preserves the earlier design record and its tokens.
 
+The subsequent same-version wider-ocean refinement extends shared marine approaches and gives first light a recognizable geographic Earth. It preserves the existing palette, typography, controls and spatial hierarchy. Current composition and historical corridor evidence are recorded in [the corridors and first-light surface brief](.impeccable/surfaces/app-constellation-loading-tsx.md); source behavior and verification limits remain in [the wider-ocean implementation record](docs/WIDER-OCEANS-V01017.md).
+
 ## Colors
 
 **Primary — human light.** Human ink colors actions and personal content; display emphasis warms italic phrases. Personal stars and their threads are brighter focal accents. The night-light layer also carries warmth, so warmth is not an exclusive indicator of a selected place.
@@ -89,8 +91,8 @@ Actions and inputs are nearly rectangular with subtly softened corners; story an
 
 ## Components
 
-- **Marine corridors:** sustained long connections sit above quieter companion strands while Earth's pearl-and-gold geography remains dominant. Muted teal shipping and lilac cables share smooth, water-constrained approaches; soft, discontinuous current strokes remain distinct from travelling lights. Geometry, illustrative scope and evidence belong to the [corridors and first-light surface brief](.impeccable/surfaces/app-constellation-loading-tsx.md).
-- **First light:** a small pearl-and-gold constellation, fine warm threads and the existing serif name occupy generous darkness while Earth prepares. Plain status text carries the loading state. Readiness starts the handover immediately; reduced motion presents a settled constellation and removes the fade. Composition and timing remain surface-specific.
+- **Marine corridors:** sustained long connections sit above quieter companion strands while Earth's pearl-and-gold geography remains dominant. Muted teal shipping and lilac cables share water-constrained approaches across the oceans; companion strands gather through bends and separate gently into crossings. Soft, discontinuous current strokes remain distinct from travelling lights. Geometry, illustrative scope and evidence belong to the [corridors and first-light surface brief](.impeccable/surfaces/app-constellation-loading-tsx.md).
+- **First light:** a small geographic Earth in pearl points and independently shimmering gold light sits above the existing serif name within generous darkness. Plain status text carries the loading state. Readiness starts the handover immediately; reduced motion presents a settled Earth and removes the fade. Sample counts, dimensions and timing remain surface-specific.
 
 - **Journey actions:** warm text, a thin warm border, faint tinted fill, and a directional icon. Hover strengthens fill and border; keyboard focus has a visible warm outline. Secondary actions are quiet text buttons.
 - **Three-place chooser:** a serif heading followed by three labeled searchable selections. Inputs have dark fills, clear outlines, and a stronger warm focus treatment. Results pair a place name with smaller regional context; errors are readable warm text. Primary submission spans the form width; reset is secondary.

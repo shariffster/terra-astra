@@ -14,11 +14,12 @@ const gridB=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.ur
 const {sampleElevation}=await import('../lib/terra/spatial.ts');const elevation=(lon,lat)=>sampleElevation(grid,1440,720,lon,lat);
 const {atlasMarine}=await import('../lib/world/connection-atlas.ts');const marine=JSON.parse(readFileSync(new URL('../public/data/networks/marine-branches.json',import.meta.url)));
 const {seaLanePaths}=await import('../lib/world/sea-lanes.ts');const {cablePaths}=await import('../lib/world/cables.ts');const {prepareSmoothCables,sampleSmoothCable}=await import('../lib/world/smooth-cables.ts');const {schematicPassage,schematicCanal}=await import('../lib/world/ocean-geography.ts');
-let samples=0;
+let samples=0,acceptedCorridors=0;
 const {marineCorridorWaypoints}=await import('../lib/world/marine-corridors.ts');let refinedPaths=0;
 for(const surface of [true,false]){const sources=[...(surface?seaLanePaths:cablePaths),...atlasMarine(surface?marine.sea:marine.cables,surface)];let previous;const sourceSnapshot=JSON.stringify(sources);refinedPaths+=sources.filter(p=>marineCorridorWaypoints(p.waypoints)!==p.waypoints).length;
  for(const shape of [{bundle:0,roundness:0},{bundle:.5,roundness:.5},{bundle:1,roundness:1}]){
   const paths=prepareSmoothCables(sources,elevation,surface?1.002:undefined,shape),out=new Float64Array(3);
+  if(shape.bundle===1)acceptedCorridors+=paths.filter(p=>p.corridorAdjusted).length;
   assert.equal(JSON.stringify(sources),sourceSnapshot,'Display corridors must not mutate source records');assert.equal(paths.length,sources.length);
   for(const [index,p] of paths.entries()){assert.equal(p.id,sources[index].id);assert.ok(p.positions.every(Number.isFinite));
    for(const end of [0,1]){sampleSmoothCable(p,end,out);const lon=Math.atan2(out[0],out[2])*180/Math.PI,lat=Math.atan2(out[1],Math.hypot(out[0],out[2]))*180/Math.PI,expected=sources[index].waypoints[end?sources[index].waypoints.length-1:0];assert.ok(Math.abs(lat-expected[0])<.00003&&Math.abs(lon-expected[1])<.00003,`${p.id} preserves endpoint`);}for(let k=0;k<=300;k++){sampleSmoothCable(p,k/300,out);const [x,y,z]=out,lon=Math.atan2(x,z)*180/Math.PI,lat=Math.atan2(y,Math.hypot(x,z))*180/Math.PI;assert.ok(elevation(lon,lat)<.2||schematicPassage(lon,lat)||surface&&schematicCanal(lon,lat),`${p.id} leaves water`);samples++;}}
@@ -29,4 +30,4 @@ for(const surface of [true,false]){const sources=[...(surface?seaLanePaths:cable
 }
 assert.equal(localPathOffset(.5,2,3,100),0);assert.equal(localPathLight(0),0);assert.equal(localPathLight(1),0);assert.ok(localPathOffset(0,1,1,100)<0&&localPathOffset(1,1,1,100)>0);
 const {prepareCurrentPaths,sampleCurrent}=await import('../lib/world/ocean-volume.ts');const currents=prepareCurrentPaths(elevation),out=new Float64Array(3);for(let i=0;i<currents.length;i++)for(let k=0;k<192;k++)for(const time of [0,200]){assert.ok(Number.isFinite(sampleCurrent(i,k,time,grid,out,currents)));assert.ok(out.every(Number.isFinite));}
-console.log(JSON.stringify({result:'PASS',migration:true,roundtrip:true,capacity:MAX_TRAVELLERS,waterSamples:samples,refinedPaths,shapes:'straight / intermediate / round',distribution:'even / illustrative hub weighting',sharedSampler:true}));
+console.log(JSON.stringify({result:'PASS',migration:true,roundtrip:true,capacity:MAX_TRAVELLERS,waterSamples:samples,refinedPaths,acceptedCorridors,shapes:'straight / intermediate / round',distribution:'even / illustrative hub weighting',sharedSampler:true}));

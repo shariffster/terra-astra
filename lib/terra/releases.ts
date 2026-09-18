@@ -20,6 +20,8 @@ export const releases = [
       'Shore & water adds slow shoreline light swells and independent current brightness and speed. The eight current paths remain illustrative.',
       'Indian Ocean and North Atlantic display corridors share smoother offshore approaches, with sustained light across long crossings and quieter branches. Ocean currents drift as soft, discontinuous strokes.',
       'A small pearl-and-gold constellation welcomes you while Earth loads, then yields to the existing birth sequence as soon as it is ready.',
+      'The wider ocean pass carries shared approaches into the Pacific, South Atlantic and around southern Africa. Companion strands separate gently across water without adding more travellers.',
+      'First light now draws a recognizable Earth from the existing geographic star samples, with quiet gold shimmer while the main scene loads.',
     ],
     review: 'Source network counts and records are unchanged; moving populations are now adjustable. Hub weighting estimates activity from connectivity and authored intensity, not measured traffic. Bundling and light hierarchy are artistic, not traffic measurements or flown tracks. Air data remains historical and marine paths illustrative. The sky is imagined; pause freezes its shimmer. Earlier settings remain compatible. Browser checks do not imply physical-device or subjective audio acceptance.',
   },

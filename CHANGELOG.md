@@ -40,6 +40,14 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Direct satellite visibility comparison confirmed that cyan streaks belong to satellites while distant stars are already round pearl points; preserve both appearances.
 - Verification and limits: `docs/CORRIDORS-FIRST-LIGHT-V01017.md`.
 
+### Same-version follow-up — Wider ocean strands · 18 September 2026
+
+- Continue from `532edba88208782a5671a21fdc5152ef4e634952` on the same branch and Lab Site; preserve the original v0.10.17 tag.
+- Extend the seven display spines to 31, adding Pacific, South Atlantic, southern African and southern Indian Ocean approaches. Bounded basin gathering also reaches regional crossing fans. Of 240 candidate source paths, 234 accept the refinement under the water mask; six retain their original geometry.
+- Separate coincident display strands in a consistent order, including reversed routes. Refined corridors skip the older second gathering pass, removing small sideways bends between the new shared gates. Preserve source records, route counts, endpoints and existing traveller settings.
+- Replace the generic loading emblem with 406 projected samples from the bundled Natural Earth coast/land and NASA 2016 night lights. Retain pearl/gold, independent gentle shimmer, reduced-motion styling and immediate readiness handover.
+- Verification and remaining limits: `docs/WIDER-OCEANS-V01017.md`.
+
 ## v0.10.16 — A wider web of light · 17 September 2026
 
 - Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.
