@@ -37,7 +37,7 @@ export function networkImportance(paths:readonly Path[],sources:readonly Source[
     let length=0;const p=paths[index];
     for(let k=3;k<p.positions.length;k+=3)length+=Math.hypot(p.positions[k]-p.positions[k-3],p.positions[k+1]-p.positions[k-2],p.positions[k+2]-p.positions[k-1]);
     const sustained=.48+.78*smooth((length-.12)/.65);
-    values[index]=rank===0?Math.max(sustained,group.length>=3?1.5:0):rank<3?.65:.25;
+    values[index]=rank===0?Math.max(sustained,group.length>=3?1.5:0):rank<3?.86:.46;
    }else values[index]=(rank===0?lead:rank<3?.72:.26)*(regional?.60:1);
   });
  }return values;

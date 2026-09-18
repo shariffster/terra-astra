@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.17 network richness and junction authority (18 September 2026)
+
+From exact `af2782ae74cf53fe43c435bd27c8e2ea6c2dd3c9`, the user authorizes richer marine branching and remaining junction refinement, led by the Indian Ocean–Singapore and Cape regions. Continue the same branch, version and Lab Site. Preserve source identities, endpoints, water constraints, saved controls, traveller populations, restored satellites and the white-gold Earth. Compare Atlantic and Pacific views. Loading and phone layout are outside this pass; preserve earlier tags, canonical, archive and Maker’s Mark.
+
 ## v0.10.17 wider-ocean refinement authority (18 September 2026)
 
 The user approves the subsequent critique from exact `532edba88208782a5671a21fdc5152ef4e634952`: extend shared marine approaches across the remaining oceans and give first light a clearer Earth form. Continue the existing branch, version and Lab Site. Preserve endpoints, source records, water checks, saved settings, satellite balance, earlier tags and releases. Minor layout findings are context; prioritize the approved ocean and loading composition. Canonical and archive remain frozen.

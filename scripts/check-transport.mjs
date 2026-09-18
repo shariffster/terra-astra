@@ -14,6 +14,7 @@ const gridB=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.ur
 const {sampleElevation}=await import('../lib/terra/spatial.ts');const elevation=(lon,lat)=>sampleElevation(grid,1440,720,lon,lat);
 const {atlasMarine}=await import('../lib/world/connection-atlas.ts');const marine=JSON.parse(readFileSync(new URL('../public/data/networks/marine-branches.json',import.meta.url)));
 const {seaLanePaths}=await import('../lib/world/sea-lanes.ts');const {cablePaths}=await import('../lib/world/cables.ts');const {prepareSmoothCables,sampleSmoothCable}=await import('../lib/world/smooth-cables.ts');const {schematicPassage,schematicCanal}=await import('../lib/world/ocean-geography.ts');
+const indian=JSON.parse(readFileSync(new URL('../public/data/networks/indian-branches.json',import.meta.url)));for(const family of ['sea','cables'])marine[family].push(...indian[family]);
 let samples=0,acceptedCorridors=0;
 const {marineCorridorWaypoints}=await import('../lib/world/marine-corridors.ts');let refinedPaths=0;
 for(const surface of [true,false]){const sources=[...(surface?seaLanePaths:cablePaths),...atlasMarine(surface?marine.sea:marine.cables,surface)];let previous;const sourceSnapshot=JSON.stringify(sources);refinedPaths+=sources.filter(p=>marineCorridorWaypoints(p.waypoints)!==p.waypoints).length;

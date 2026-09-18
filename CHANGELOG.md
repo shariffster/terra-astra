@@ -48,6 +48,14 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Replace the generic loading emblem with 406 projected samples from the bundled Natural Earth coast/land and NASA 2016 night lights. Retain pearl/gold, independent gentle shimmer, reduced-motion styling and immediate readiness handover.
 - Verification and remaining limits: `docs/WIDER-OCEANS-V01017.md`.
 
+### Same-version follow-up — Indian Ocean branching · 18 September 2026
+
+- Continue from exact `af2782ae74cf53fe43c435bd27c8e2ea6c2dd3c9` on the existing Lab branch and Site; retain the original v0.10.17 tag.
+- Add 16 illustrative shipping and 16 cable connections between existing offshore anchors, with East African coastal feeders, varied Indian Ocean crossings and common approaches toward India, Malacca and Perth. Totals are now 470 sea paths and 378 cable paths; the original datasets remain byte-for-byte unchanged. These additions are authored illustrations, not measured services or surveyed alignments.
+- Align compatible opposing approaches through hubs, soften the Cape–Perth bow, and refine ten Indian Ocean feeder spines. Strands gather locally at coast and seafloor constraints, then recover their separation offshore instead of shrinking an entire crossing.
+- Strengthen secondary marine strokes and vary companion spacing with crossing length. Preserve the palette, white-gold hierarchy, default traveller budgets, saved controls, restored satellites, loading sequence and earlier releases.
+- See `docs/INDIAN-NETWORK-V01017.md` for reproducible data generation, checks, rendered comparisons and limits.
+
 ## v0.10.16 — A wider web of light · 17 September 2026
 
 - Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.

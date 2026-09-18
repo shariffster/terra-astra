@@ -68,7 +68,20 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
       if(bundle){bundle.links.push(link);bundle.axis=norm(bundle.links.reduce((sum,d)=>sum.map((v,j)=>v+d.vector[j]*d.weight) as V,[0,0,0] as V));}
       else bundles.push({axis:link.vector,links:[link]});
     }
-    for(const bundle of bundles){if(bundle.links.length<2||shape.bundle<=0)continue;
+    // Opposing approaches describe a through-flow. Share a tangent across the
+    // hub, rather than rounding each terminating route into an unrelated elbow.
+    // Branches outside that bearing family retain their own axis.
+    const paired=new Set<number>();
+    for(let i=0;i<bundles.length;i++){
+      if(paired.has(i))continue;
+      let other=-1,opposition=-.45;
+      for(let j=i+1;j<bundles.length;j++)if(!paired.has(j)&&dot(bundles[i].axis,bundles[j].axis)<opposition){other=j;opposition=dot(bundles[i].axis,bundles[j].axis);}
+      if(other<0)continue;
+      const axis=norm(bundles[i].axis.map((v,j)=>v-bundles[other].axis[j]) as V);
+      bundles[i].axis=axis;bundles[other].axis=axis.map(v=>-v) as V;
+      paired.add(i);paired.add(other);
+    }
+    for(const [i,bundle] of bundles.entries()){if((bundle.links.length<2&&!paired.has(i))||shape.bundle<=0)continue;
       const reach=Math.min(.30,...bundle.links.map(d=>d.span*.48));
       for(const link of bundle.links)hubAxes.set(link.route,{axis:norm(mix(link.vector,bundle.axis,shape.bundle)),reach:reach*shape.bundle});
     }
@@ -142,18 +155,20 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
     const samples: V[]=[],gatheringValues:number[]=[];
     for(const piece of pieces) {
       const count=piece.corridor?Math.max(32,Math.ceil(angle(piece.a,piece.b)/(.001*samplingScale))):piece.controls?Math.max(32,Math.ceil(angle(piece.a,piece.b)/(.0005*samplingScale))):piece.control?Math.max(32,Math.ceil((angle(piece.a,piece.control)+angle(piece.control,piece.b))/(.0007*samplingScale))):Math.max(2,Math.ceil(angle(piece.a,piece.b)/(.001*samplingScale)));
+      const controls=piece.controls;
+      const turn=controls?angle(norm(controls[0].map((v,j)=>v-piece.a[j]) as V),norm(piece.b.map((v,j)=>v-controls[controls.length-1][j]) as V)):0;
       for(let k=0;k<count;k++){
         const t=k/count;samples.push(sampleCablePiece(piece,t));
         // Companion strands gather through bends, then fan out with a zero
         // slope into the open-water leg. This also handles intermediate turns.
-        gatheringValues.push(piece.controls||piece.control?1-.86*shape.bundle*Math.sin(Math.PI*t)**4:1);
+        gatheringValues.push(controls||piece.control?1-.78*shape.bundle*Math.min(1,turn/.8)*Math.sin(Math.PI*t)**4:1);
       }
     }
     samples.push(nodes[nodes.length-1]);gatheringValues.push(1);
     const gathering=Float32Array.from(gatheringValues);
     if(samples.length>MAX_CABLE_VERTICES) throw new Error(`Cable preparation budget exceeded: ${path.id}`);
     const group=groups.get(groupKeys[index].key)!;
-    let offset=(group.indexOf(index)-(group.length-1)/2)*(surfaceRadius?.0014:.0010)*groupKeys[index].direction;
+    let offset=(group.indexOf(index)-(group.length-1)/2)*(surfaceRadius?.0038:.0028)*groupKeys[index].direction;
     const lateral=(p: V,k: number): V => {
       const a=samples[Math.max(0,k-1)],b=samples[Math.min(samples.length-1,k+1)];
       const t=b.map((v,j)=>v-a[j]) as V;
@@ -243,20 +258,33 @@ export function marineStrands(paths: readonly SmoothCable[], elevation: Elevatio
    normals.set([nx/n,ny/n,nz/n],i);tapers[k]=Math.sin(Math.PI*path.progress[k])**2*(path.gathering?.[k]??1);
   }
   for(const strand of [1,2,3,4]){
-   let offset=(strand%2?1:-1)*Math.ceil(strand/2)*(surface?.0035:.0022);
-   const candidate=new Float32Array(path.positions.length);
-   const form=()=>{
+   // Open-water fans gain separation with crossing length. Near-coast
+   // routes keep their fine spacing; all offsets still pass the water mask.
+   const spread=Math.min(1,Math.max(0,(path.length-.18)/.9));
+   const offset=(strand%2?1:-1)*Math.ceil(strand/2)*(surface?.004+.007*spread:.0025+.0045*spread);
+   const candidate=new Float32Array(path.positions.length),clearance=new Float64Array(count).fill(1);
+   const ease=(x:number)=>{const t=Math.max(0,Math.min(1,x));return t*t*t*(t*(6*t-15)+10);};
+   let accepted=false;
+   for(let attempt=0;attempt<8;attempt++){
+    const blocked:number[]=[];
     for(let k=0;k<count;k++){
-     const i=k*3,t=offset*tapers[k],x=units[i]+normals[i]*t,y=units[i+1]+normals[i+1]*t,z=units[i+2]+normals[i+2]*t,n=Math.hypot(x,y,z);
-     const q:V=[x/n,y/n,z/n];if(!water(q,elevation,surface))return false;
-     const [lon,lat]=coordinates(q);if(!surface&&networkRadius(elevation(lon,lat))>radii[k]+.000002)return false;
+     const i=k*3,t=offset*tapers[k]*clearance[k],x=units[i]+normals[i]*t,y=units[i+1]+normals[i+1]*t,z=units[i+2]+normals[i+2]*t,n=Math.hypot(x,y,z);
+     const q:V=[x/n,y/n,z/n],[lon,lat]=coordinates(q);
+     if(!water(q,elevation,surface)||!surface&&networkRadius(elevation(lon,lat))>radii[k]+.000002)blocked.push(k);
      candidate.set([q[0]*radii[k],q[1]*radii[k],q[2]*radii[k]],i);
     }
-    return true;
-   };
-   let accepted=false;
-   for(let retry=0;retry<=10&&Math.abs(offset)>.00008;retry++){
-    if(form()){accepted=true;break;}offset*=.5;
+    candidate.set(path.positions.subarray(0,3),0);
+    candidate.set(path.positions.subarray(path.positions.length-3),path.positions.length-3);
+    if(!blocked.length){accepted=true;break;}
+    // A shallow patch gathers only its neighbouring span. Broad quintic
+    // shoulders restore the fan offshore with zero slope at each end. The
+    // complete regenerated geometry is checked again, including the shoulders.
+    const runs:[number,number][]=[];
+    for(const k of blocked){const d=path.distances[k],last=runs[runs.length-1];if(last&&d-last[1]<.025)last[1]=d;else runs.push([d,d]);}
+    for(const [start,end] of runs)for(let k=0;k<count;k++){
+     const distance=Math.max(start-path.distances[k],path.distances[k]-end,0);
+     clearance[k]=Math.min(clearance[k],ease((distance-.008)/.045));
+    }
    }
    if(accepted)result.push({positions:candidate,progress:path.progress,sourceIndex,strand});
   }

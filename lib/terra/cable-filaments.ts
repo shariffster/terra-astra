@@ -75,7 +75,7 @@ void main(){
   float focus=mix(1.0,.12+.88*smoothstep(regionOuter,regionInner,dot(normalize(world),regionFocus)),regionMix);
   float strandGate=smoothstep(max(routeThreshold,routeStrand*.16),max(routeThreshold,routeStrand*.16)+.16,richness);
   float grazing=mix(.24,1.0,smoothstep(.03,.6,dot(normalize(world),normalize(cameraPosition-world))));
-  float hierarchy=routeStrand<.5?1.0:.28;
+  float hierarchy=routeStrand<.5?1.0:mix(.58,.36,smoothstep(1.0,4.0,routeStrand));
   float screenDetail=smoothstep(380.0,1000.0,resolution.x);
   float screenHierarchy=mix(.38+.62*smoothstep(.25,1.4,routeImportance),1.0,screenDetail);
   float junction=mix(.68,1.0,smoothstep(0.0,pathKind>1.5?.09:.07,min(route.x,1.0-route.x)));

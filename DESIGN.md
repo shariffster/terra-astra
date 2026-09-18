@@ -113,3 +113,5 @@ Actions and inputs are nearly rectangular with subtly softened corners; story an
 - Don't replace the authored sky with a generic card grid or decorative background treatment.
 - Don't turn faint interfaces into competing luminous objects.
 - Don't describe imagined interior material or the personal Astra arrangement as measured geography.
+
+The subsequent Indian Ocean network refinement preserves Earth's pearl-and-gold lead while quiet marine strands gather locally and separate offshore; its current composition, evidence and deferred phone rail issue are recorded in [the marine-network surface brief](.impeccable/surfaces/lib-terra-engine-ts.md#v01017-follow-up--indian-ocean-network-richness).

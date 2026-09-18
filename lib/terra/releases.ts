@@ -21,9 +21,11 @@ export const releases = [
       'Indian Ocean and North Atlantic display corridors share smoother offshore approaches, with sustained light across long crossings and quieter branches. Ocean currents drift as soft, discontinuous strokes.',
       'A small pearl-and-gold constellation welcomes you while Earth loads, then yields to the existing birth sequence as soon as it is ready.',
       'The wider ocean pass carries shared approaches into the Pacific, South Atlantic and around southern Africa. Companion strands separate gently across water without adding more travellers.',
+      'Sixteen added shipping connections and sixteen undersea connections enrich the Indian Ocean between existing coastal anchors. The new links are illustrative; traveller counts remain independently controlled.',
+      'Compatible routes flow through shared hub tangents. Fine strands gather near shore and recover their separation offshore, with a broader Cape–Perth curve.',
       'First light now draws a recognizable Earth from the existing geographic star samples, with quiet gold shimmer while the main scene loads.',
     ],
-    review: 'Source network counts and records are unchanged; moving populations are now adjustable. Hub weighting estimates activity from connectivity and authored intensity, not measured traffic. Bundling and light hierarchy are artistic, not traffic measurements or flown tracks. Air data remains historical and marine paths illustrative. The sky is imagined; pause freezes its shimmer. Earlier settings remain compatible. Browser checks do not imply physical-device or subjective audio acceptance.',
+    review: 'Earlier source records remain unchanged. The added Indian Ocean study brings the network to 470 sea paths and 378 cable paths; these are authored illustrations. Moving populations are adjustable. Hub weighting estimates activity from connectivity and authored intensity, not measured traffic. Bundling and light hierarchy are artistic, not traffic measurements or flown tracks. Air data remains historical and marine paths illustrative. The sky is imagined; pause freezes its shimmer. Earlier settings remain compatible. Browser checks do not imply physical-device or subjective audio acceptance.',
   },
   {
     version: '0.10.16',
