@@ -7,7 +7,7 @@ import { marineCorridorWaypoints } from './marine-corridors';
 type V = [number, number, number];
 type Output = { [index: number]: number };
 type Elevation = (lon: number, lat: number) => number;
-export type CableCurvePiece = { a: V; b: V; control?: V; controls?: V[]; corridor?: boolean; sourceLeg?: [V,V] };
+export type CableCurvePiece = { a: V; b: V; control?: V; controls?: V[]; corridor?: boolean; sourceLeg?: [V,V]; gatherStart?: number; gatherEnd?: number };
 export type SmoothCable = {
   id: string; positions: Float32Array; progress: Float32Array;
   distances: Float64Array; length: number; pieces: CableCurvePiece[];
@@ -72,6 +72,44 @@ export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation
     yield;
   }
   const nodesFor=(path:CablePath)=>displayNodes.get(path.id)!;
+  // One graph of exact geographic gates. A crossing without a shared gate is
+  // never turned into a junction. Shared edges use identical cut points, even
+  // when the routes continue into branches of very different lengths.
+  const nodeKey=(p:V)=>p.map(v=>v.toFixed(9)).join(',');
+  const edgeKey=(a:V,b:V)=>[nodeKey(a),nodeKey(b)].sort().join('/');
+  type Port={span:number};
+  type Turn={a:V;b:V;c:V;piece?:CableCurvePiece};
+  const junctions=new Map<string,{ports:Map<string,Port>;turns:Map<string,Turn>;constrained:boolean}>();
+  const edgeUse=new Map<string,Set<string>>();
+  for(const path of paths){const nodes=nodesFor(path);for(let i=0;i<nodes.length;i++){
+    const p=nodes[i],key=nodeKey(p),junction=junctions.get(key)??{ports:new Map<string,Port>(),turns:new Map<string,Turn>(),constrained:false};
+    for(const j of [i-1,i+1])if(j>=0&&j<nodes.length){const q=nodes[j],port=junction.ports.get(nodeKey(q))??{span:angle(p,q)};junction.ports.set(nodeKey(q),port);
+      const edge=edgeKey(p,q),use=edgeUse.get(edge)??new Set<string>();use.add(path.id);edgeUse.set(edge,use);
+    }
+    if(i>0&&i<nodes.length-1){const a=nodes[i-1],c=nodes[i+1],reverse=nodeKey(a)>nodeKey(c),turnKey=[nodeKey(a),nodeKey(c)].sort().join('/');junction.turns.set(turnKey,{a:reverse?c:a,b:p,c:reverse?a:c});}
+    junctions.set(key,junction);
+  }yield;}
+  const sharedGather=(a:V,b:V)=>edgeUse.get(edgeKey(a,b))!.size>1?1-.65*shape.bundle:1;
+  for(const junction of junctions.values()){
+    if(!junction.turns.size)continue;
+    const spans=[...junction.ports.values()].map(p=>p.span).sort((a,b)=>a-b),reach=Math.min(.22,spans[Math.floor(spans.length/2)]*.46)*(.02+.98*shape.roundness);
+    // A coast constraint contracts the whole junction together. Independent
+    // per-route shrinking would break its shared entry/exit geometry again.
+    for(let attempt=0;attempt<18;attempt++){
+      let accepted=true;
+      for(const turn of junction.turns.values()){
+        const {a,b,c}=turn,incoming=angle(a,b),outgoing=angle(b,c),scale=2**-attempt;
+        const before=Math.min(incoming*.46,reach)*scale,after=Math.min(outgoing*.46,reach)*scale;
+        const start=arc(a,b,1-before/incoming),end=arc(b,c,after/outgoing);
+        const piece:CableCurvePiece={a:start,b:end,controls:[arc(start,b,.32),arc(start,b,.64),arc(b,end,.36),arc(b,end,.68)],gatherStart:sharedGather(a,b),gatherEnd:sharedGather(b,c)};
+        if(!waterCurve(piece,256,elevation,!!surfaceRadius)){accepted=false;break;}
+        turn.piece=piece;
+      }
+      if(accepted){junction.constrained=attempt>0;break;}
+      if(attempt===17)throw new Error('Marine junction cannot be rounded within the ocean mask');
+    }
+    yield;
+  }
   const hubLinks=new Map<string,{normal:V;directions:{vector:V;weight:number;route:string;span:number}[]}>();
   paths.forEach(path=>{const nodes=nodesFor(path);for(const end of [0,nodes.length-1]){
     const p=nodes[end],q=nodes[end===0?1:end-1],key=JSON.stringify(path.waypoints[end===0?0:path.waypoints.length-1]);
@@ -103,7 +141,8 @@ export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation
       paired.add(i);paired.add(other);
     }
     for(const [i,bundle] of bundles.entries()){if((bundle.links.length<2&&!paired.has(i))||shape.bundle<=0)continue;
-      const reach=Math.min(.30,...bundle.links.map(d=>d.span*.48));
+      const spans=bundle.links.map(d=>d.span).sort((a,b)=>a-b);
+      const reach=Math.min(.22,spans[Math.floor(spans.length/2)]*.65);
       for(const link of bundle.links)hubAxes.set(link.route,{axis:norm(mix(link.vector,bundle.axis,shape.bundle)),reach:reach*shape.bundle});
     }
   }
@@ -135,23 +174,14 @@ export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation
     const corners = new Map<number,CableCurvePiece>();
     let constrainedCorners=0;
     for(let i=1;i<nodes.length-1;i++) {
-      const a=nodes[i-1], b=nodes[i], c=nodes[i+1], incoming=angle(a,b), outgoing=angle(b,c);
-      let trim=Math.min(incoming*.46,outgoing*.46,.22)*(.02+.98*shape.roundness), accepted: CableCurvePiece|undefined;
-      for(let attempt=0;attempt<18;attempt++) {
-        // Two controls on each adjoining great circle ease curvature into and
-        // out of a bend. Shared legs keep one tangent instead of a visible elbow.
-        const start=arc(a,b,1-trim/incoming),end=arc(b,c,trim/outgoing);
-        const piece:CableCurvePiece={a:start,b:end,controls:[arc(start,b,.32),arc(start,b,.64),arc(b,end,.36),arc(b,end,.68)]};
-        if(waterCurve(piece,256,elevation,!!surfaceRadius)) { accepted=piece; if(attempt)constrainedCorners++; break; }
-        trim*=.5;
-      }
-      // A coast constraint never authorizes a new land crossing.
-      if(!accepted) throw new Error(`Cable bend cannot be rounded within the ocean mask: ${path.id}/${i}`);
-      corners.set(i,accepted);
+      const a=nodes[i-1],b=nodes[i],c=nodes[i+1],junction=junctions.get(nodeKey(b))!,turn=junction.turns.get([nodeKey(a),nodeKey(c)].sort().join('/'))!,piece=turn.piece!;
+      if(junction.constrained)constrainedCorners++;
+      corners.set(i,nodeKey(a)>nodeKey(c)?{...piece,a:piece.b,b:piece.a,controls:[...piece.controls!].reverse(),gatherStart:piece.gatherEnd,gatherEnd:piece.gatherStart}:piece);
     }
     const pieces: CableCurvePiece[]=[];
     for(let i=0;i<nodes.length-1;i++) {
-      pieces.push({a:corners.get(i)?.b??nodes[i],b:corners.get(i+1)?.a??nodes[i+1],sourceLeg:[nodes[i],nodes[i+1]]});
+      const gathering=sharedGather(nodes[i],nodes[i+1]);
+      pieces.push({a:corners.get(i)?.b??nodes[i],b:corners.get(i+1)?.a??nodes[i+1],sourceLeg:[nodes[i],nodes[i+1]],gatherStart:gathering,gatherEnd:gathering});
       const corner=corners.get(i+1); if(corner)pieces.push(corner);
     }
     for(const end of [0,1]){
@@ -165,24 +195,35 @@ export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation
         // the abrupt curvature change of the old cubic starburst.
         const q=arc(hub,other,trim/span);
         const along=(distance:number)=>norm(hub.map((v,i)=>v*Math.cos(distance)+axis[i]*sign*Math.sin(distance)) as V);
-        const candidate:CableCurvePiece={a:hub,b:q,controls:[along(Math.min(trim*.20,reach*.20)),along(Math.min(trim*.40,reach*.40)),arc(hub,other,trim/span*.60),arc(hub,other,trim/span*.80)]};
+        const candidate:CableCurvePiece={a:hub,b:q,controls:[along(trim*.20),along(trim*.40),arc(hub,other,trim/span*.60),arc(hub,other,trim/span*.80)],gatherStart:piece.gatherStart,gatherEnd:piece.gatherEnd};
         if(waterCurve(candidate,128,elevation,!!surfaceRadius)){connector=candidate;break;}trim*=.5;
       }
-      if(connector){if(end){piece.b=connector.b;pieces.push({a:connector.b,b:connector.a,controls:[...connector.controls!].reverse()});}else{piece.a=connector.b;pieces.unshift(connector);}}
+      if(connector){if(end){piece.b=connector.b;pieces.push({...connector,a:connector.b,b:connector.a,controls:[...connector.controls!].reverse()});}else{piece.a=connector.b;pieces.unshift(connector);}}
     }
     // The explicit spine/basin pass already gathers these routes. Pulling its
     // short legs sideways again creates small S-bends between shared gates.
     if(!refined.has(path.id))for(let i=0;i<pieces.length;i++){const p=pieces[i];if(!p.controls&&!p.control)pieces[i]=gatherLeg(p,...(p.sourceLeg??[p.a,p.b]));}
     const samples: V[]=[],gatheringValues:number[]=[];
-    for(const piece of pieces) {
-      const count=piece.corridor?Math.max(32,Math.ceil(angle(piece.a,piece.b)/(.001*samplingScale))):piece.controls?Math.max(32,Math.ceil(angle(piece.a,piece.b)/(.0005*samplingScale))):piece.control?Math.max(32,Math.ceil((angle(piece.a,piece.control)+angle(piece.control,piece.b))/(.0007*samplingScale))):Math.max(2,Math.ceil(angle(piece.a,piece.b)/(.001*samplingScale)));
+    const minimums=pieces.map(p=>p.controls||p.control?32:2);
+    let counts=pieces.map(piece=>piece.corridor?Math.max(32,Math.ceil(angle(piece.a,piece.b)/(.001*samplingScale))):piece.controls?Math.max(32,Math.ceil(angle(piece.a,piece.b)/(.0005*samplingScale))):piece.control?Math.max(32,Math.ceil((angle(piece.a,piece.control)+angle(piece.control,piece.b))/(.0007*samplingScale))):Math.max(2,Math.ceil(angle(piece.a,piece.b)/(.001*samplingScale))));
+    const requested=counts.reduce((a,b)=>a+b,0),minimum=minimums.reduce((a,b)=>a+b,0);
+    if(requested>=MAX_CABLE_VERTICES){
+      // Long, branching routes share the existing vertex budget. Preserve
+      // every curve and join, and distribute the remaining samples by length.
+      if(minimum>=MAX_CABLE_VERTICES)throw new Error(`Too many marine junctions: ${path.id}`);
+      const scale=(MAX_CABLE_VERTICES-1-minimum)/(requested-minimum);
+      counts=counts.map((n,i)=>minimums[i]+Math.floor((n-minimums[i])*scale));
+    }
+    for(const [pieceIndex,piece] of pieces.entries()) {
+      const count=counts[pieceIndex];
       const controls=piece.controls;
       const turn=controls?angle(norm(controls[0].map((v,j)=>v-piece.a[j]) as V),norm(piece.b.map((v,j)=>v-controls[controls.length-1][j]) as V)):0;
       for(let k=0;k<count;k++){
         const t=k/count;samples.push(sampleCablePiece(piece,t));
         // Companion strands gather through bends, then fan out with a zero
         // slope into the open-water leg. This also handles intermediate turns.
-        gatheringValues.push(controls||piece.control?1-.78*shape.bundle*Math.min(1,turn/.8)*Math.sin(Math.PI*t)**4:1);
+        const blend=t*t*t*(t*(6*t-15)+10),gather=(piece.gatherStart??1)*(1-blend)+(piece.gatherEnd??1)*blend;
+        gatheringValues.push(gather*(controls||piece.control?1-.78*shape.bundle*Math.min(1,turn/.8)*Math.sin(Math.PI*t)**4:1));
       }
     }
     samples.push(nodes[nodes.length-1]);gatheringValues.push(1);

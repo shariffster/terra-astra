@@ -42,3 +42,9 @@ The reviewer returned **ship**, with no material fixes required within this scop
 ## v0.10.17 follow-up — Traveller arrival rhythm
 
 After Earth forms, selected satellites arrive across 2.5–6.5 seconds, flights 5–10, ships 8–13 and cable pulses 10–14. Their heads, tails and local guides share an introduction envelope. The selected population sets the spacing; replay captures current counts while live tuning retains the ongoing schedule. Full pathway drawing and the 18-second awakening endpoint remain unchanged. Full Genesis returns on every motion-enabled visit. Local WebGL captures in `output/traveller-arrivals/` and the focused engine harness support this scoped timing change; see [the implementation record](../../docs/TRAVELLER-ARRIVALS-V01017.md) for exact checks and limits. No global material or layout change is introduced.
+
+## v0.10.18 shared-corridor checkpoint
+
+Separate Site explicitly requested; preserve the published v0.10.17 Lab. The marine graph now gives shared gates consistent cut points and smoother long approaches, and forty illustrative connections add regional variety across five study areas. Earth remains the dominant pearl/gold object. Controls, palette, populations and awakening timings are preserved.
+
+Rendered at 1440×900 across Asia, Indian Ocean, Cape, North Atlantic and North Pacific, plus 390×844. Fine crossings remain distinct; Hawaii retains a broad geographic triangle rather than a manufactured single hub. The existing phone control-rail overlap remains outside scope. Live rounding changed and settled correctly. Source, validation and limits: `docs/SHARED-CORRIDORS-V01018.md`; captures: `output/shared-corridors/`.

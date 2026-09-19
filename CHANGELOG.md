@@ -3,6 +3,15 @@
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
 
+## v0.10.18 — Shared ocean corridors · 19 September 2026
+
+- Separate checkpoint requested by the user; preserve the current public v0.10.17 Lab at source `d6d309dda34e4b54681434c5a7a236ebeffe08d8` and Sites revision 31. The new checkout/branch and Site identity are independent.
+- Prepare one shared geographic junction graph for every marine family. Shared edges receive common cut points; coast constraints contract each junction consistently. Reversed paths reuse the same curve; unrelated crossings remain independent.
+- Use longer compatible hub approaches and gradually compress companion strands on shared stems. Keep the existing 3,072-vertex cap with proportional sampling on longer routes, retaining every join.
+- Add 20 illustrative sea connections and 20 illustrative cable connections across Malacca, the Arabian Sea, East Africa, the North Atlantic and Hawaii. Totals: 490 sea paths and 398 cable paths; flights and moving populations remain unchanged.
+- Preserve original source records, endpoints, palette, controls, full Genesis and traveller arrival windows. New Site browser-local settings can be transferred with the existing composition export/import controls.
+- Validation and limitations: `docs/SHARED-CORRIDORS-V01018.md`.
+
 ## v0.10.17 — Gathering into currents · 17 September 2026
 
 - Extend exact v0.10.16 `2ed8a38dddcc4164e31b6de097c04c22142236c6` in `people-choice/v0.10.17-flow-hierarchy`; Lab only.

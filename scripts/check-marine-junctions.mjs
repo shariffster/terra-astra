@@ -10,6 +10,18 @@ const away=(path,end)=>{const p=end?path.pieces.at(-1):path.pieces[0],hub=sample
 const through=prepareSmoothCables([source('incoming',[[-10,-20],[0,0]]),source('outgoing',[[0,0],[-5,20]])],()=>-4000,1.002);
 const a=away(through[0],true),b=away(through[1],false),dot=a.reduce((n,x,i)=>n+x*b[i],0);
 assert.ok(dot<-.999,'Compatible routes share a tangent through their common hub');
+// A short feeder and a long branch must leave their common trunk at the same gate.
+const fork=prepareSmoothCables([
+ source('short',[[0,80],[0,100],[2,103]]),
+ source('long',[[0,80],[0,100],[-10,115]]),
+ source('reverse',[[-10,115],[0,100],[0,80]]),
+],()=>-4000,1.002);
+// Match the actual corner by its number and endpoint; endpoint connectors are separate.
+const corner=p=>p.pieces[2];
+assert.ok(Math.hypot(...corner(fork[0]).a.map((v,i)=>v-corner(fork[1]).a[i]))<1e-12,'Different branch lengths preserve one shared cut point');
+for(let k=0;k<=20;k++)assert.ok(Math.hypot(...sampleCablePiece(corner(fork[1]),k/20).map((x,j)=>x-sampleCablePiece(corner(fork[2]),1-k/20)[j]))<1e-12,'Reversed paths share the same turn');
+const unrelated=prepareSmoothCables([source('east-west',[[0,-10],[0,10]]),source('north-south',[[-10,0],[10,0]])],()=>-4000,1.002);
+assert.ok(unrelated.every(p=>p.cornerCount===0),'Unrelated crossings do not become artificial junctions');
 // A coastal obstacle halfway across a route must not crush the complete fan.
 const obstruction=(lon,lat)=>Math.abs(lon)<1&&Math.abs(lat)>.16?100:-2000;
 const parent=prepareSmoothCables([source('crossing',[[0,-40],[0,40]])],obstruction,1.002)[0];
@@ -26,6 +38,7 @@ for(const path of strands.slice(1)){
  }
 }
 assert.ok(nearshore<.16&&offshore>.45,'Local gathering recovers visible offshore separation');
+const {regionalBranches}=await import('../lib/world/regional-network-data.ts');
 const {indianBranches}=await import('../lib/world/indian-network-data.ts');
 const {atlasMarine}=await import('../lib/world/connection-atlas.ts');
 const {sampleElevation}=await import('../lib/terra/spatial.ts');
@@ -35,7 +48,7 @@ const bytes=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.ur
 const elevation=(lon,lat)=>sampleElevation(grid,1440,720,lon,lat);
 let addedStrandVertices=0;
 for(const surface of [true,false]){
- const paths=prepareSmoothCables(atlasMarine(surface?indianBranches.sea:indianBranches.cables,surface),elevation,surface?1.002:undefined);
+ const paths=prepareSmoothCables(atlasMarine(surface?[...indianBranches.sea,...regionalBranches.sea]:[...indianBranches.cables,...regionalBranches.cables],surface),elevation,surface?1.002:undefined);
  for(const strand of marineStrands(paths,elevation,surface))for(let k=0;k<strand.positions.length;k+=3){
   const [x,y,z]=strand.positions.subarray(k,k+3),radius=Math.hypot(x,y,z),lat=Math.atan2(y,Math.hypot(x,z))*180/Math.PI,lon=Math.atan2(x,z)*180/Math.PI;
   assert.ok(elevation(lon,lat)<.2||schematicPassage(lon,lat)||surface&&schematicCanal(lon,lat),'Added coastal strands stay in water');

@@ -13,8 +13,9 @@ for(const mutate of [v=>v.ships.count=601,v=>v.aircraft.count=10.2,v=>v.cables.s
 const gridB=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.url)),grid=new Int16Array(gridB.buffer,gridB.byteOffset,gridB.byteLength/2);
 const {sampleElevation}=await import('../lib/terra/spatial.ts');const elevation=(lon,lat)=>sampleElevation(grid,1440,720,lon,lat);
 const {atlasMarine}=await import('../lib/world/connection-atlas.ts');const marine=JSON.parse(readFileSync(new URL('../public/data/networks/marine-branches.json',import.meta.url)));
-const {seaLanePaths}=await import('../lib/world/sea-lanes.ts');const {cablePaths}=await import('../lib/world/cables.ts');const {prepareSmoothCables,sampleSmoothCable}=await import('../lib/world/smooth-cables.ts');const {schematicPassage,schematicCanal}=await import('../lib/world/ocean-geography.ts');
+const {seaLanePaths}=await import('../lib/world/sea-lanes.ts');const {cablePaths}=await import('../lib/world/cables.ts');const {prepareSmoothCables,sampleSmoothCable,MAX_CABLE_VERTICES}=await import('../lib/world/smooth-cables.ts');const {schematicPassage,schematicCanal}=await import('../lib/world/ocean-geography.ts');
 const indian=JSON.parse(readFileSync(new URL('../public/data/networks/indian-branches.json',import.meta.url)));for(const family of ['sea','cables'])marine[family].push(...indian[family]);
+const regional=JSON.parse(readFileSync(new URL('../public/data/networks/regional-branches.json',import.meta.url)));for(const family of ['sea','cables'])marine[family].push(...regional[family]);
 let samples=0,acceptedCorridors=0;
 const {marineCorridorWaypoints}=await import('../lib/world/marine-corridors.ts');let refinedPaths=0;
 for(const surface of [true,false]){const sources=[...(surface?seaLanePaths:cablePaths),...atlasMarine(surface?marine.sea:marine.cables,surface)];let previous;const sourceSnapshot=JSON.stringify(sources);refinedPaths+=sources.filter(p=>marineCorridorWaypoints(p.waypoints)!==p.waypoints).length;
@@ -22,7 +23,7 @@ for(const surface of [true,false]){const sources=[...(surface?seaLanePaths:cable
   const paths=prepareSmoothCables(sources,elevation,surface?1.002:undefined,shape),out=new Float64Array(3);
   if(shape.bundle===1)acceptedCorridors+=paths.filter(p=>p.corridorAdjusted).length;
   assert.equal(JSON.stringify(sources),sourceSnapshot,'Display corridors must not mutate source records');assert.equal(paths.length,sources.length);
-  for(const [index,p] of paths.entries()){assert.equal(p.id,sources[index].id);assert.ok(p.positions.every(Number.isFinite));
+  for(const [index,p] of paths.entries()){assert.equal(p.id,sources[index].id);assert.ok(p.positions.every(Number.isFinite));assert.ok(p.progress.length<=MAX_CABLE_VERTICES,'Every route stays inside the existing vertex budget');
    for(const end of [0,1]){sampleSmoothCable(p,end,out);const lon=Math.atan2(out[0],out[2])*180/Math.PI,lat=Math.atan2(out[1],Math.hypot(out[0],out[2]))*180/Math.PI,expected=sources[index].waypoints[end?sources[index].waypoints.length-1:0];assert.ok(Math.abs(lat-expected[0])<.00003&&Math.abs(lon-expected[1])<.00003,`${p.id} preserves endpoint`);}for(let k=0;k<=300;k++){sampleSmoothCable(p,k/300,out);const [x,y,z]=out,lon=Math.atan2(x,z)*180/Math.PI,lat=Math.atan2(y,Math.hypot(x,z))*180/Math.PI;assert.ok(elevation(lon,lat)<.2||schematicPassage(lon,lat)||surface&&schematicCanal(lon,lat),`${p.id} leaves water`);samples++;}}
   if(previous)assert.ok(paths.some((p,i)=>p.positions.length!==previous[i].positions.length||p.positions.some((v,k)=>Math.abs(v-previous[i].positions[k])>.00001)),'Shape controls materially change geometry');previous=paths;
   const even=travellerPool(surface?'ships':'cables',paths,sources,'even'),hubs=travellerPool(surface?'ships':'cables',paths,sources,'hubs');assert.equal(even.length,MAX_TRAVELLERS);assert.notDeepEqual(even.map(t=>t.route),hubs.map(t=>t.route));

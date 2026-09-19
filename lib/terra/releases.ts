@@ -1,7 +1,20 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.17';
+export const currentVersion = '0.10.18';
 
 export const releases = [
+  {
+    version: '0.10.18',
+    date: '2026-09-19',
+    dateLabel: '19 September 2026',
+    title: 'Shared ocean corridors',
+    milestone: 'A separate network checkpoint',
+    changes: [
+      'Connected marine routes now share the same entry and exit points through junctions, with longer compatible approaches and gradual branching. Unrelated crossings remain separate.',
+      'Twenty shipping connections and twenty undersea connections add branches around Malacca, the Arabian Sea, East Africa, the North Atlantic and Hawaii. Traveller counts remain independent.',
+      'The white-gold Earth, live controls and complete awakening remain. The previous v0.10.17 Site stays available as a separate checkpoint.',
+    ],
+    review: '490 sea paths and 398 undersea paths are illustrative, not measured traffic or surveyed cable alignments. Original records and endpoints are preserved. Curves and strands are constrained by the existing coarse ocean mask; narrow passages remain schematic. Shared geometry applies across the marine network; added connections focus on five regions. This separate Site has its own browser-local saved settings; export and import a composition to carry it across.',
+  },
   {
     version: '0.10.17',
     date: '2026-09-17',

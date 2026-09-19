@@ -12,6 +12,7 @@ const {cableFilamentGeometry}=await import('../lib/terra/cable-filaments.ts');
 const read=name=>JSON.parse(readFileSync(new URL('../public/data/networks/'+name+'.json',import.meta.url)));
 const air=read('air-connections'),marine=read('marine-branches');
 const indian=JSON.parse(readFileSync(new URL('../public/data/networks/indian-branches.json',import.meta.url)));for(const family of ['sea','cables'])marine[family].push(...indian[family]);
+const regional=JSON.parse(readFileSync(new URL('../public/data/networks/regional-branches.json',import.meta.url)));for(const family of ['sea','cables'])marine[family].push(...regional[family]);
 assert.equal(new Set(air.map(r=>r.slice(0,2).sort().join('/'))).size,air.length);
 const buffer=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.url)),grid=new Int16Array(buffer.buffer,buffer.byteOffset,buffer.byteLength/2),elevation=(lon,lat)=>sampleElevation(grid,1440,720,lon,lat);
 const {gatherAirCorridors,networkImportance}=await import('../lib/terra/network-composition.ts');

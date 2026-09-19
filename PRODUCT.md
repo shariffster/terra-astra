@@ -22,7 +22,7 @@ Preserve Terra Astra's name, constellated Earth and established pearl-and-gold e
 
 ## Operating Context
 
-The current work is a same-version v0.10.17 follow-up on the existing People's Choice Lab. Preserve the original tag and saved milestone, canonical release, archive and separate Maker's Mark work. Release authority and boundaries are recorded in AGENTS.md.
+The current work is the separately hosted v0.10.18 shared-corridor checkpoint. Preserve the previous v0.10.17 Lab, its original tag and saved milestones, canonical release, archive and separate Maker's Mark work. Release authority and boundaries are recorded in AGENTS.md.
 
 ## Evidence on Hand
 
