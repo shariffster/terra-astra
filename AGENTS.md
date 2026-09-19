@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.17 responsive startup correction (19 September 2026)
+
+The user reports the gathering prelude appears stuck after the approved animation pass. Correct startup work that blocks its animation, using the same branch, semantic version and Lab Site from `bc633514e87713dd7b4daaa8883d84b340990a53`. Preserve route geometry, saved settings, readiness-driven handoff, Genesis, earlier tags, canonical and archive.
+
 ## v0.10.17 gathering clarity authority (19 September 2026)
 
 The user approves clearer incoming light, a closer caption and a more continuous prelude-to-core handoff, plus a subtle repeating left-to-right text shimmer. Keep loading prompt, driven by actual readiness with no minimum hold or animation-cycle wait. Continue from `123f671d896aeeeb38d7dd86384767aa8d44b00c` on the same branch, semantic version and existing Lab Site. Preserve the main reveal and earlier release boundaries.

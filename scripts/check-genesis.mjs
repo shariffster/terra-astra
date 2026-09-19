@@ -76,7 +76,13 @@ console.log('PASS: 3,000 deterministic nucleus/ejection/capture paths; 300k+ uni
 
 // The UI may hold the first rendered core while its lightweight prelude dissolves.
 let readyCount=0;
-const held=await createEarth(host,{querySelector:()=>null},{deferGenesis:true,ready:()=>{assert.ok(rendered);readyCount++;},coordinates:noop,interact:noop,arrival:noop,stage:noop,error:message=>assert.fail(message)},new AbortController().signal);
+const {DEFAULT_LIGHT}=await import('../lib/terra/composition.ts');
+const {cloneTransport}=await import('../lib/terra/transport.ts');
+const savedLight={...DEFAULT_LIGHT,transport:cloneTransport()};
+savedLight.transport.aircraft.bundle=.7;savedLight.transport.ships.bundle=.8;savedLight.transport.cables.roundness=.65;
+
+const held=await createEarth(host,{querySelector:()=>null},{deferGenesis:true,ready:()=>{assert.ok(rendered);readyCount++;},coordinates:noop,interact:noop,arrival:noop,stage:noop,error:message=>assert.fail(message)},new AbortController().signal,savedLight);
+held.configure(savedLight);assert.equal(host.dataset.routeShape,'ready','Saved shape was prepared once; no rebuild during handoff');
 assert.equal(readyCount,0,'Preparation is not a rendered frame');
 tick();assert.equal(readyCount,1,'Ready fires after the first render');
 tick(5000);assert.equal(held.worldState().genesis.progress,0,'Prelude does not consume Genesis time');

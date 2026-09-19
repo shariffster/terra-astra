@@ -70,6 +70,13 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Shorten the readiness-driven dissolve from 800ms to 550ms. No minimum splash time or shimmer-cycle gate. Observed immediate-ready browser handoff: 572ms; motion-off: 7ms. Asset preparation and the existing skippable Genesis sequence remain separate.
 - Continue v0.10.17 on the same branch and Lab; see the appended refinement record in `docs/GATHERING-PRELUDE-V01017.md`.
 
+### Same-version correction — Responsive gathering · 19 September 2026
+
+- Split route shaping, companion strands and ribbon preparation into small batches so the loading stars and caption can keep updating. Check cancellation between batches and release the partial scene on cancellation.
+- Allocate ribbon indexes directly in their final typed buffer, avoiding a large temporary number array and final conversion.
+- Apply saved route shape during initial preparation rather than rebuilding it during the handoff. Restore motion preferences while loading.
+- Preserve geometry and all source records. The readiness-driven 550ms dissolve and subsequent Genesis remain unchanged. Total load time still depends on assets, device performance and graphics setup; this is not a fixed-duration splash.
+
 ## v0.10.16 — A wider web of light · 17 September 2026
 
 - Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.

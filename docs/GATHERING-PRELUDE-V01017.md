@@ -21,3 +21,22 @@ The status has a restrained left-to-right pearl sweep on a 3.6-second loop, with
 The only authored handoff delay is reduced from 800ms to 550ms after the first rendered core. There is no minimum splash duration, enforced repeat or wait for the caption animation. A local browser fixture measured 572ms from immediate readiness to completion, and 7ms with saved motion disabled. These are observed browser timings, not network-load promises. Actual loading still depends on asset and renderer preparation. The existing skippable 10.8-second Genesis sequence is unchanged.
 
 TypeScript and the targeted design scan passed. Browser review covered desktop, 390×844 framing, static text, the fast-ready path and the actual opening. The temporary fixture was removed before production build. Current evidence: `.impeccable/review/gathering-shimmer/`; publication receipt: `output/v017-gathering-shimmer/delivery.json`. Existing device, audio and motion-evidence limitations above still apply.
+
+## Responsive startup correction — 19 September 2026
+
+The owner reported that the approved prelude looked stuck. The Site reached Earth and returned no browser/server errors, but startup constructed all network geometry synchronously on the UI thread. A local profile measured about 4.5 seconds just for marine route smoothing and companion strands, before ribbon construction. Both the Canvas prelude and CSS caption sweep could stop during that work.
+
+The route algorithms now expose checkpoints and a shared startup runner yields real browser tasks on an approximately 8ms work budget. Checkpoints preserve each route's computation and every global grouping; this is not independently bundling smaller subsets. Air gathering, marine corridor validation/smoothing, companion strands, and ribbon density/attributes all use it at startup. Cancellation closes pending work and disposes the partial scene. Earth preparation also yields between larger cloud operations. Ribbon indexes are allocated directly in their final integer buffer.
+
+Saved route shapes now enter initial preparation, avoiding a second synchronous rebuild 350ms into the handoff. Saved motion preferences reach the loading component immediately. Interactive shape tuning retains its prior synchronous behavior; this correction targets startup.
+
+Validation:
+
+- `node scripts/check-preparation.mjs`: full 470 shipping / 378 cable source routes; 2,039 shipping / 1,694 cable visual strands. Synchronous and scheduled outputs have identical path/progress and complete ribbon attribute/index hashes. 1,390 other task turns executed during this local run. Cancellation before work and between batches passes.
+- Independently loaded the exact published `bc633514e87713dd7b4daaa8883d84b340990a53` algorithms from Git and matched those same hashes. Source records, endpoints, geometry and visual richness are unchanged.
+- `node scripts/check-genesis.mjs`: lifecycle, first-render readiness, held core, idempotent handoff, skip/replay, disposal and non-default saved shape without a second rebuild pass. The script uses an inert Canvas, not rendered evidence.
+- TypeScript, focused ESLint, production build and `git diff --check` pass.
+- Actual 390×844 production browser reached Earth with a saved motion-off preference, showed Resume ambient motion, had no horizontal overflow and no browser errors. Evidence: `.impeccable/review/responsive-startup/phone-paused.png`.
+- Actual production-build browser at 1280×720: gathering frame counter reached 301 before handoff; main Earth rendered. Maximum observed loading frame gap was 500ms, compared with multi-second synchronous network blocks in the earlier source. No new browser errors observed.
+
+Limits: this preserves the existing 550ms readiness-driven dissolve and skippable 10.8-second Genesis. It does not impose a minimum loading time. This machine's full local production scene preparation measured about 30 seconds in the recorded run; yielding keeps loading responsive but does not eliminate the substantial data/geometry cost. Asset decoding, individual work items, memory pressure and first graphics setup can still cause short pauses. No fixed load-time or physical-device performance claim is made. DOM startup phase/frame-gap diagnostics remain available for future profiling.

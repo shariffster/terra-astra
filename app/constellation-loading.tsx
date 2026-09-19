@@ -18,6 +18,8 @@ export function ConstellationLoading({ready,motion=true,onComplete}:{ready:boole
   const el=canvas.current,layer=surface.current,ctx=el?.getContext('2d');if(!el||!layer)return;
   const preference=matchMedia('(prefers-reduced-motion: reduce)');
   let frame=0,last=performance.now(),elapsed=0,transfer=0,done=false;
+  let drawnFrames=0,maxFrameGap=0,lastPhase='boot';
+  const slowFrames:{ms:number;from:string;to:string}[]=[];
   let width=0,height=0,unit=0,dpr=1;
   const resize=()=>{
    const w=layer.clientWidth,h=layer.clientHeight;
@@ -32,6 +34,13 @@ export function ConstellationLoading({ready,motion=true,onComplete}:{ready:boole
   const draw=(now:number)=>{
    if(done||document.hidden)return;
    const delta=Math.max(0,(now-last)/1000),dt=Math.min(.06,delta);last=now;
+   maxFrameGap=Math.max(maxFrameGap,delta*1000);drawnFrames++;
+   // Retain loading diagnostics after this overlay leaves, for real-startup QA.
+   if(layer.parentElement){const root=layer.parentElement,phase=root.querySelector<HTMLElement>('[data-startup-phase]')?.dataset.startupPhase??'boot';
+    root.dataset.loadingFrames=String(drawnFrames);root.dataset.loadingMaxGapMs=maxFrameGap.toFixed(0);
+    if(delta>.08){slowFrames.push({ms:Math.round(delta*1000),from:lastPhase,to:phase});slowFrames.sort((a,b)=>b.ms-a.ms);slowFrames.length=Math.min(6,slowFrames.length);root.dataset.loadingSlowFrames=JSON.stringify(slowFrames);}
+    lastPhase=phase;
+   }
    const still=preference.matches||!state.current.motion;
    if(!still)elapsed+=dt;
    // No minimum display time or animation-cycle gate: release on real readiness.

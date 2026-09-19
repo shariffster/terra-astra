@@ -1,3 +1,4 @@
+import { finishPreparation } from './preparation';
 import type { FlightPath } from '../world/flight-paths';
 import { reliefRadius } from './spatial';
 
@@ -48,6 +49,10 @@ export function networkImportance(paths:readonly Path[],sources:readonly Source[
  * stay fixed; a bounded spherical displacement gathers only compatible pairs.
  * Original moving aircraft corridors are deliberately outside this function. */
 export function gatherAirCorridors<T extends FlightPath>(paths:readonly T[],elevation:(lon:number,lat:number)=>number,amount=1,roundness=1):T[] {
+ return finishPreparation(gatherAirCorridorsSteps(paths,elevation,amount,roundness));
+}
+
+export function* gatherAirCorridorsSteps<T extends FlightPath>(paths:readonly T[],elevation:(lon:number,lat:number)=>number,amount=1,roundness=1):Generator<void,T[],void> {
  const result=paths.map(p=>({...p,positions:p.positions.slice()}));
  for(const group of corridorGroups(paths).values()){
   if(group.length<3)continue;
@@ -63,7 +68,7 @@ export function gatherAirCorridors<T extends FlightPath>(paths:readonly T[],elev
     const q=arc(original,centre,blend);p.positions.set(q.map(x=>x*p.radius),k*3);
     const lon=Math.atan2(q[0],q[2])*180/Math.PI,lat=Math.asin(Math.max(-1,Math.min(1,q[1])))*180/Math.PI;
     relief=Math.max(relief,reliefRadius(Math.max(0,elevation(lon,lat))+160)-1);
-   }result[index]={...p,relief};
+   }result[index]={...p,relief};yield;
   }
  }return result;
 }

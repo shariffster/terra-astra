@@ -1,3 +1,4 @@
+import { finishPreparation } from '../terra/preparation';
 import type { CablePath } from './cables';
 import { schematicPassage, schematicCanal } from './ocean-geography';
 import { networkRadius } from '../terra/living-material';
@@ -41,15 +42,22 @@ function water(p: V, elevation: Elevation, surface = false) {
  * bounded depth at each hub. A surface radius selects the shipping treatment.
  * These remain illustrations; rounding is not a new geographic data source. */
 export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elevation, surfaceRadius?: number, shape={bundle:1,roundness:1},samplingScale=1): SmoothCable[] {
+  return finishPreparation(prepareSmoothCablesSteps(paths,elevation,surfaceRadius,shape,samplingScale));
+}
+
+/** The same geometry, with checkpoints between routes for responsive startup. */
+export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation: Elevation, surfaceRadius?: number, shape={bundle:1,roundness:1},samplingScale=1): Generator<void,SmoothCable[],void> {
   const toNodes=(points:readonly (readonly [number,number])[]):V[]=>points.map(([lat,lon])=>[Math.cos(lat*R)*Math.sin(lon*R),Math.sin(lat*R),Math.cos(lat*R)*Math.cos(lon*R)]);
   const refined=new Set<string>();
-  const displayNodes=new Map(paths.map(path=>{
+  const displayNodes=new Map<string,V[]>();
+  for(const path of paths){
     const waypoints=marineCorridorWaypoints(path.waypoints),candidate=toNodes(waypoints);
     // Reject a display spine if a different supplied water mask disallows it.
     const allowed=waypoints===path.waypoints||candidate.every((b,i)=>{if(!i)return true;const count=Math.max(2,Math.ceil(angle(candidate[i-1],b)/.00025));for(let k=0;k<=count;k++)if(!water(arc(candidate[i-1],b,k/count),elevation,!!surfaceRadius))return false;return true;});
     if(allowed&&waypoints!==path.waypoints)refined.add(path.id);
-    return [path.id,allowed?candidate:toNodes(path.waypoints)] as const;
-  }));
+    displayNodes.set(path.id,allowed?candidate:toNodes(path.waypoints));
+    yield;
+  }
   const nodesFor=(path:CablePath)=>displayNodes.get(path.id)!;
   const hubLinks=new Map<string,{normal:V;directions:{vector:V;weight:number;route:string;span:number}[]}>();
   paths.forEach(path=>{const nodes=nodesFor(path);for(const end of [0,nodes.length-1]){
@@ -109,7 +117,7 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
   const groups = new Map<string, number[]>();
   const groupKeys=paths.map(path=>{const nodes=nodesFor(path),forward=JSON.stringify(nodes),reverse=JSON.stringify([...nodes].reverse());return {key:forward<reverse?forward:reverse,direction:forward<reverse?1:-1};});
   groupKeys.forEach(({key},i)=>{const group=groups.get(key)??[];group.push(i);groups.set(key,group);});
-  const prepared=paths.map((path,index) => {
+  const preparePath=(path:CablePath,index:number):SmoothCable => {
     const nodes=nodesFor(path);
     const corners = new Map<number,CableCurvePiece>();
     let constrainedCorners=0;
@@ -213,7 +221,9 @@ export function prepareSmoothCables(paths: readonly CablePath[], elevation: Elev
       positions.set(points[i].map(x=>x*envelope),i*3);
     });
     return {id:path.id,positions,progress,distances,length,pieces,corridorAdjusted:refined.has(path.id),cornerCount:corners.size,constrainedCorners,offset,gathering};
-  });
+  };
+  const prepared:SmoothCable[]=[];
+  for(const [index,path] of paths.entries()){prepared.push(preparePath(path,index));yield;}
   if(!surfaceRadius){
     // Shared depth and zero radial slope at a junction remove vertical V joins.
     // Bounds only lift a path: the result stays above its sampled floor.
@@ -242,10 +252,14 @@ export function sampleSmoothCable(path: SmoothCable, progress: number, out: Outp
  * cables. Their lateral offset and derivative vanish at the shared hubs.
  * Reject offsets on land using the same water mask as the parent geometry. */
 export function marineStrands(paths: readonly SmoothCable[], elevation: Elevation, surface = false) {
+ return finishPreparation(marineStrandsSteps(paths,elevation,surface));
+}
+
+export function* marineStrandsSteps(paths: readonly SmoothCable[], elevation: Elevation, surface = false): Generator<void,{positions:Float32Array;progress:Float32Array;sourceIndex:number;strand:number}[],void> {
  const result: {positions:Float32Array;progress:Float32Array;sourceIndex:number;strand:number}[]=[];
- paths.forEach((path,sourceIndex)=>{
+ for(const [sourceIndex,path] of paths.entries()){
   result.push({...path,sourceIndex,strand:0});
-  if(path.length<.08)return;
+  if(path.length<.08){yield;continue;}
   const count=path.progress.length,units=new Float64Array(count*3),normals=new Float64Array(count*3),radii=new Float64Array(count),tapers=new Float64Array(count);
   // Prepare each tangent once. Offset retries only sample the water constraint;
   // they do not repeatedly allocate vectors or rebuild the same cross products.
@@ -287,7 +301,8 @@ export function marineStrands(paths: readonly SmoothCable[], elevation: Elevatio
     }
    }
    if(accepted)result.push({positions:candidate,progress:path.progress,sourceIndex,strand});
+   yield;
   }
- });
+ }
  return result;
 }

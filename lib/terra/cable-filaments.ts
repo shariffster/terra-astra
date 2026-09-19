@@ -1,3 +1,4 @@
+import { finishPreparation } from './preparation';
 import * as THREE from 'three';
 import type { SmoothCable } from '../world/smooth-cables';
 import type { CablePath } from '../world/cables';
@@ -8,20 +9,29 @@ import { spatialVertexGLSL } from './spatial';
 /** One indexed ribbon batch. Width is in screen pixels: a subpixel lilac core
  * with a restrained two-pixel falloff, independent of camera distance. */
 export function cableFilamentGeometry(paths: readonly (Pick<SmoothCable,'positions'|'progress'>&{relief?:number;sourceIndex?:number;strand?:number})[], sources: readonly (Pick<CablePath,'intensity'>&{tier?:string;threshold?:number;importance?:number})[], onsets: Float32Array) {
+  return finishPreparation(cableFilamentGeometrySteps(paths,sources,onsets));
+}
+
+export function* cableFilamentGeometrySteps(paths: readonly (Pick<SmoothCable,'positions'|'progress'>&{relief?:number;sourceIndex?:number;strand?:number})[], sources: readonly (Pick<CablePath,'intensity'>&{tier?:string;threshold?:number;importance?:number})[], onsets: Float32Array):Generator<void,THREE.BufferGeometry,void> {
   const count=paths.reduce((n,p)=>n+p.progress.length,0),g=new THREE.BufferGeometry();
   // Count distinct strands through coarse cells, not sample vertices. Trilinear
   // interpolation prevents grid bands; crowded approaches share a light budget.
   const density=new Map<string,number>(),cell=(p:Float32Array,k:number)=>{const r=Math.hypot(p[k],p[k+1],p[k+2]);return [p[k]/r*55,p[k+1]/r*55,p[k+2]/r*55];};
-  for(const path of paths){const occupied=new Set<string>();for(let k=0;k<path.positions.length;k+=3){const v=cell(path.positions,k);occupied.add(v.map(Math.round).join(','));}for(const key of occupied)density.set(key,(density.get(key)??0)+1);}
+  for(const path of paths){const occupied=new Set<string>();for(let k=0;k<path.positions.length;k+=3){const v=cell(path.positions,k);occupied.add(v.map(Math.round).join(','));}for(const key of occupied)density.set(key,(density.get(key)??0)+1);yield;}
   const exposureAt=(p:Float32Array,k:number)=>{const v=cell(p,k),base=v.map(Math.floor),t=v.map((n,j)=>n-base[j]);let sum=0;
     for(let x=0;x<2;x++)for(let y=0;y<2;y++)for(let z=0;z<2;z++){const weight=(x?t[0]:1-t[0])*(y?t[1]:1-t[1])*(z?t[2]:1-t[2]);sum+=weight*(density.get([base[0]+x,base[1]+y,base[2]+z].join(','))??1);}
     return 1/Math.sqrt(Math.max(1,sum/3));};
   const routeExposure=new Float32Array(count*2);
   const threshold=new Float32Array(count*2);
   const positions=new Float32Array(count*6),previous=new Float32Array(count*6),next=new Float32Array(count*6);
-  const side=new Float32Array(count*2),route=new Float32Array(count*6),routeIndex=new Float32Array(count*2),routeRelief=new Float32Array(count*2),routeStrand=new Float32Array(count*2),routeImportance=new Float32Array(count*2),indices:number[]=[];
+  const side=new Float32Array(count*2),route=new Float32Array(count*6),routeIndex=new Float32Array(count*2),routeRelief=new Float32Array(count*2),routeStrand=new Float32Array(count*2),routeImportance=new Float32Array(count*2);
+  // Allocate the final index type directly: avoid a large boxed-number array
+  // and its synchronous scan/copy just before the first rendered frame.
+  const indexCount=paths.reduce((n,p)=>n+Math.max(0,p.progress.length-1)*6,0);
+  const indices=count*2-1>=65535?new Uint32Array(indexCount):new Uint16Array(indexCount);
+  let indexOffset=0;
   let base=0;
-  paths.forEach((path,i)=>{
+  for(const [i,path] of paths.entries()){
     const n=path.progress.length;
     for(let k=0;k<n;k++)for(let s=0;s<2;s++){
       const v=(base+k)*2+s;
@@ -30,12 +40,12 @@ export function cableFilamentGeometry(paths: readonly (Pick<SmoothCable,'positio
       const p=Math.max(0,k-1)*3,q=Math.min(n-1,k+1)*3;
       previous.set(path.positions.subarray(p,p+3),v*3);next.set(path.positions.subarray(q,q+3),v*3);
       threshold[v]=sources[path.sourceIndex??i].threshold??0;side[v]=s===0?-1:1;routeIndex[v]=path.sourceIndex??i;routeStrand[v]=path.strand??0;routeImportance[v]=sources[path.sourceIndex??i].importance??(sources[path.sourceIndex??i].tier==='regional'?.70:1);routeRelief[v]=path.relief??0;route.set([path.progress[k],onsets[path.sourceIndex??i],sources[path.sourceIndex??i].intensity],v*3);
-      if(s===0&&k<n-1){const a=v;indices.push(a,a+1,a+2,a+1,a+3,a+2);}
+      if(s===0&&k<n-1){const a=v;indices.set([a,a+1,a+2,a+1,a+3,a+2],indexOffset);indexOffset+=6;}
     }
-    base+=n;
-  });
+    base+=n;yield;
+  }
   for(const [name,array,size] of [['position',positions,3],['previous',previous,3],['next',next,3],['side',side,1],['route',route,3],['routeIndex',routeIndex,1],['routeRelief',routeRelief,1],['routeStrand',routeStrand,1],['routeImportance',routeImportance,1],['routeThreshold',threshold,1],['routeExposure',routeExposure,1]] as const)g.setAttribute(name,new THREE.BufferAttribute(array,size));
-  g.setIndex(indices);return g;
+  g.setIndex(new THREE.BufferAttribute(indices,1));return g;
 }
 
 export const cableFilamentVertex=`

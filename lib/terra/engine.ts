@@ -1,5 +1,6 @@
+import { runPreparation, yieldPreparation } from './preparation';
 import { advanceTransportClock, travellerPulse, travellerPool, travellerProgress, sampleTravellerPath, localPathOffset, localPathLight, MAX_TRAVELLERS, TRANSPORT_FAMILIES, cloneTransport, type TransportFamily, type TravellerPath, type Traveller } from './transport';
-import { gatherAirCorridors, networkImportance } from './network-composition';
+import { gatherAirCorridors, gatherAirCorridorsSteps, networkImportance } from './network-composition';
 import { structureLandLight } from './land-light';
 import * as THREE from 'three';
 import { loadConnectionAtlas, atlasFlights, atlasMarine } from '../world/connection-atlas';
@@ -17,8 +18,8 @@ import { flightPathId, prepareFlightPaths, liftFlight, flightRadius } from '../w
 import { ActivityTransitions, activitySeed, smoothUnit } from './activity-transitions';
 import { createCityContinuation, continuationBandWeight, continuationScale } from '../world/city-continuation';
 import { cablePaths, cableColor, CABLE_SEGMENTS_PER_PATH, cableHubs } from '../world/cables';
-import { prepareSmoothCables, sampleSmoothCable, marineStrands } from '../world/smooth-cables';
-import { cableFilamentGeometry, cableFilamentVertex, cableFilamentFragment, movingPathGeometry, writeMovingPath } from './cable-filaments';
+import { prepareSmoothCables, prepareSmoothCablesSteps, sampleSmoothCable, marineStrands, marineStrandsSteps } from '../world/smooth-cables';
+import { cableFilamentGeometry, cableFilamentGeometrySteps, cableFilamentVertex, cableFilamentFragment, movingPathGeometry, writeMovingPath } from './cable-filaments';
 import { seaLanePaths, seaLaneColor } from '../world/sea-lanes';
 import { createOceanVolume, prepareCurrentPaths, sampleSuspended, currentPaths, CURRENT_PARTICLES, sampleCurrent, oceanExposure } from '../world/ocean-volume';
 import { LIVING_MATERIAL, livingExposure, networkRadius } from './living-material';
@@ -58,7 +59,7 @@ float shellVisibility(vec3 world){if(shell<.5)return 1.0;if(shell>1.5)return smo
 void main(){vec3 world=genesisPosition(openedPosition(spatialPosition(position)));vec2 terrain=terrainLight(position);vec4 p=modelViewMatrix*vec4(world,1.0);gl_Position=projectionMatrix*p;vec3 light=scintillate(time,phase,motion,sparkle,signature);vB=mix(brightness,max(brightness,.24),vMarine)*light.x*terrain.x*shellVisibility(world)*smoothstep(revealAt,revealAt+.18,reveal)*mix(spatialVisibility(world),1.0,genesisEnabled*(1.0-genRamp(.78,1.0,genesis)))*mix(1.0,genesisExposure,genesisEnabled);vB*=1.0+shoreBreath*.85*pow(.5+.5*sin(dot(normalize(position),vec3(24.0,17.0,31.0))-time*.18),5.0);vG=light.y;vP=phase;vB*=mix(1.0,.12+.88*smoothstep(regionOuter,regionInner,dot(normalize(world),regionFocus)),regional*regionMix);gl_PointSize=clamp(starSize*pixelRatio*4.1*zoomFactor*sizeScale*light.z*terrain.y*mix(1.0,genesisSize,genesisEnabled)*mix(1.0,clamp(cameraDistance/max(.01,-p.z),.55,2.6),max(spatial*depthMix,opening)),.75*pixelRatio,40.0*pixelRatio);}`;
 const fragment=`uniform vec3 tint;uniform float opacity;uniform float glow;uniform float soft;varying float vB;varying float vG;varying float vP;
 void main(){vec2 p=gl_PointCoord-.5;float r=length(p);if(r>.5)discard;float core=exp(-r*r*205.0);float halo=exp(-r*r*24.0)*.27*glow;float ray=exp(-abs(p.x)*120.0)*exp(-abs(p.y)*12.0)+exp(-abs(p.y)*120.0)*exp(-abs(p.x)*12.0);float flare=ray*(.035*step(.96,fract(vP*13.37))+.42*vG);float a=mix(core+halo+flare,exp(-r*r*14.0)*.18*glow,soft)*vB*opacity;vec3 color=mix(tint,vec3(1.0),core*.38+min(vG,.8)*.2);gl_FragColor=vec4(color,a);}`;
-export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,callbacks:Callbacks,signal:AbortSignal):Promise<Engine>{
+export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,callbacks:Callbacks,signal:AbortSignal,initialLight?:ViewOptions):Promise<Engine>{
  let renderer:THREE.WebGLRenderer|CanvasStarRenderer;
  try{renderer=new THREE.WebGLRenderer({antialias:false,alpha:false,powerPreference:'high-performance'});}catch{renderer=new CanvasStarRenderer();}
  const fallback=renderer instanceof CanvasStarRenderer;host.dataset.renderer=fallback?'canvas':'webgl';
@@ -93,7 +94,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const personalProjected=[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()];
  const openAltitude=()=>homeAltitude()*1.62;
  const cutNormal=geo(202,-5),cutFacing=geo(112,-5);let elevation=new Int16Array(0);
- let options:ViewOptions={...DEFAULT_LIGHT,motion:!matchMedia('(prefers-reduced-motion: reduce)').matches};
+ let options:ViewOptions={...DEFAULT_LIGHT,...initialLight,transport:initialLight?.transport??cloneTransport(),motion:reducedMotion?false:initialLight?.motion??true};
  const displayedLight={...options};let configuredLight={...options},comparingLight=false;
  let flight:{start:number;duration:number;fromLat:number;fromLon:number;fromAlt:number;toLat:number;toLon:number;toAlt:number;end:Stage;anchorLat:number;anchorLon:number;viaPlanet?:boolean}|null=null;
  let cityReady=false,newYorkReady=false;let newYorkLoading:Promise<void>|null=null;let cityLoading:Promise<void>|null=null;let lastInteraction=0;let lastTime=performance.now(),time=0,lastCoordinate=0,frameCount=0,totalFrame=0,sampleFrames=0,diagnosticStart=performance.now(),diagnosticFrames=0;
@@ -159,7 +160,14 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const openViews=createOpenWorldView({cloud,lines,replaceLines:(batch,data)=>{earth.remove(batch.lines);release(batch.lines.geometry,batch.lines.material as THREE.Material);batch.lines=lines(data,'#a1b6b9');},terrain:(data,kind)=>{const c=spatialCloud(data,kind===1?'#a3a6a0':'#658497');terrainCloud(c,kind,true);return c;},elevation:(x,y)=>sampleElevation(elevation,1440,720,x,y),wake:()=>{stillFrames=0;},notify:context=>{openContext=context??undefined;if(context&&scaleTier==='street'&&!context.detailLoading&&context.detailState!=='DETAILED'&&!context.detailMessage.startsWith('Source-backed')){scaleTier='city';targetAlt=cameraAltitude(activeOpenTarget?.cityRadiusKm??20,host.clientWidth,host.clientHeight);openViews.setTier('city');}notifyWorld();},remove:batch=>{for(const object of [batch.stars.points,batch.lines]){earth.remove(object);release(object.geometry,object.material as THREE.Material);}const i=clouds.indexOf(batch.stars);if(i>=0)clouds.splice(i,1);}});
  const destroy=()=>{if(disposed)return;disposed=true;if(shapeTimer!==null)clearTimeout(shapeTimer);resolverRequest?.abort();openViews?.dispose();awakening.dispose();if(warmupTimer!==null)clearTimeout(warmupTimer);for(const resolve of idleWaiters.splice(0))resolve(false);cancelAnimationFrame(raf);observer.disconnect();host.removeEventListener('pointerdown',down);host.removeEventListener('pointermove',move);host.removeEventListener('pointerup',up);host.removeEventListener('pointercancel',cancel);host.removeEventListener('wheel',wheel);renderer.domElement.removeEventListener('keydown',key);window.removeEventListener('keyup',keyUp);window.removeEventListener('blur',clearHeld);renderer.domElement.removeEventListener('blur',clearHeld);heldKeys.clear();renderer.domElement.removeEventListener('webglcontextlost',contextLost);document.removeEventListener('visibilitychange',visibility);for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const {texture} of gateTextures)texture.dispose();renderer.dispose();renderer.domElement.remove();};
  const contextLost=(e:Event)=>{e.preventDefault();heldKeys.clear();graphicsLost=true;resolverRequest?.abort();openViews.dispose();awakening.dispose();notifyAwakening();for(const resolve of idleWaiters.splice(0))resolve(false);notifyWorld();callbacks.error('Graphics became unavailable. Restart the journey to gather the stars again.',true);cancelAnimationFrame(raf);};renderer.domElement.addEventListener('webglcontextlost',contextLost);
+ const startupStarted=performance.now();
+ async function prepare<T>(phase:string,steps:Generator<void,T,void>):Promise<T>{
+  host.dataset.startupPhase=phase;
+  try{return await runPreparation(steps,signal);}catch(error){destroy();throw error;}
+ }
+ async function breathe(){try{await yieldPreparation(signal);}catch(error){destroy();throw error;}}
  try{
+ host.dataset.startupPhase='assets';
  const humanAbort=new AbortController(),abortHuman=()=>humanAbort.abort();signal.addEventListener('abort',abortHuman,{once:true});
  const humanTimeout=setTimeout(abortHuman,6000);
  const humanRequest=Promise.all([load('human-population',humanAbort.signal),load('human-footprint',humanAbort.signal)]).then(fields=>{
@@ -169,15 +177,16 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const gridRequest=fetch('/data/relief-grid.bin',{signal}).then(async res=>{if(!res.ok)throw new Error('Relief unavailable');const buffer=await res.arrayBuffer();if(buffer.byteLength!==1440*720*2)throw new Error('Invalid relief grid');return new Int16Array(buffer);});
  const [data,grid]=await Promise.all([Promise.all(['land','coast','lights','coast-lines','borders','relief-land','relief-ocean','stellar-body','stellar-interior','stellar-haze','stellar-halo'].map(name=>load(name))),gridRequest]);
  if(signal.aborted){destroy();throw new DOMException('Aborted','AbortError');}elevation=grid;
- land=spatialCloud(lift(data[0]),'#b9b0a0');coast=spatialCloud(lift(data[1]),'#e6dabe');lights=spatialCloud(lift(data[2]),'#eed7a8');coastLines=lines(data[3],'#789dab');borders=lines(data[4],'#89a8b5');
+ host.dataset.startupPhase='earth';await breathe();
+ land=spatialCloud(lift(data[0]),'#b9b0a0');await breathe();coast=spatialCloud(lift(data[1]),'#e6dabe');await breathe();lights=spatialCloud(lift(data[2]),'#eed7a8');coastLines=lines(data[3],'#789dab');borders=lines(data[4],'#89a8b5');
  for(const c of [land,coast,lights]){c.points.userData.sampleBudget=5000;c.points.userData.spatialExposure=1;}
- reliefLand=spatialCloud(data[5],'#8f9598');reliefOcean=spatialCloud(data[6],'#718084');body=spatialCloud(data[7],'#a79a83');interior=spatialCloud(data[8],'#b4a17f');haze=spatialCloud(data[9],'#887f75');halo=spatialCloud(data[10],'#c7d0d6');haze.material.uniforms.soft.value=1;reliefOcean.material.uniforms.seaMotion.value=1;
- terrainCloud(land,1);terrainCloud(coast,3);terrainCloud(lights,4);terrainCloud(reliefLand,1,true);terrainCloud(reliefOcean,2,true);
+ await breathe();reliefLand=spatialCloud(data[5],'#8f9598');reliefOcean=spatialCloud(data[6],'#718084');body=spatialCloud(data[7],'#a79a83');await breathe();interior=spatialCloud(data[8],'#b4a17f');haze=spatialCloud(data[9],'#887f75');await breathe();halo=spatialCloud(data[10],'#c7d0d6');haze.material.uniforms.soft.value=1;reliefOcean.material.uniforms.seaMotion.value=1;
+ await breathe();terrainCloud(land,1);await breathe();terrainCloud(coast,3);terrainCloud(lights,4);await breathe();terrainCloud(reliefLand,1,true);await breathe();terrainCloud(reliefOcean,2,true);await breathe();
  const humanData=await humanRequest;atlas=await atlasRequest;
  host.dataset.networkAtlas=atlas?'ready':'unavailable';
  if(signal.aborted){destroy();throw new DOMException('Aborted','AbortError');}
- if(humanData){for(const data of humanData)structureLandLight(data);
- populationField=spatialCloud(humanData[0],'#8eabc6');footprintField=spatialCloud(humanData[1],'#9786ae');for(const c of [populationField,footprintField]){terrainCloud(c,1);c.points.userData.humanField=true;c.points.userData.shimmer=.06;c.material.uniforms.opacity.value=0;}}
+ if(humanData){for(const data of humanData){structureLandLight(data);await breathe();}
+ populationField=spatialCloud(humanData[0],'#8eabc6');footprintField=spatialCloud(humanData[1],'#9786ae');for(const c of [populationField,footprintField]){terrainCloud(c,1);await breathe();c.points.userData.humanField=true;c.points.userData.shimmer=.06;c.material.uniforms.opacity.value=0;}}
  host.dataset.humanFields=humanData?'ready':'unavailable';
  scene.userData.spatial={depth:1,cut:0,cutNormal,cutFacing};
  }catch(e){destroy();throw e;}
@@ -211,13 +220,13 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const specialViews=specialDestinationViews({load,cloud,lines,urban:createUrbanView,alive:()=>!disposed&&!graphicsLost&&!signal.aborted});
  function updateUrban(nowSeconds:number,visibility:number){for(const [id,v] of urbanViews){const active=targetId===id&&layerFlags.urban&&genesisProgress>=1&&openProgress===0;v.traffic.material.uniforms.opacity.value=active?visibility*1.6:0;v.activity.material.uniforms.opacity.value=active?visibility*2.5:0;if(!active||visibility<.002)continue;v.model.sample(nowSeconds,v.trafficXYZ,v.activityXYZ);const brightness=v.traffic.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;for(let i=0;i<v.model.trafficCount;i++){const x=v.trafficXYZ[i*3],y=v.trafficXYZ[i*3+1],z=v.trafficXYZ[i*3+2],weight=v.feather(Math.atan2(x,z)/R,Math.atan2(y,Math.hypot(x,z))/R);brightness.setX(i,v.model.trafficBrightness[i]*v.model.trafficOpacity[i]*weight);}brightness.needsUpdate=true;const activityBrightness=v.activity.points.geometry.getAttribute('brightness') as THREE.BufferAttribute;for(let i=0;i<v.model.activityCount;i++){const x=v.activityXYZ[i*3],y=v.activityXYZ[i*3+1],z=v.activityXYZ[i*3+2];activityBrightness.setX(i,v.model.activityBrightness[i]*v.feather(Math.atan2(x,z)/R,Math.atan2(y,Math.hypot(x,z))/R));}activityBrightness.needsUpdate=true;v.traffic.points.geometry.getAttribute('position').needsUpdate=true;v.activity.points.geometry.getAttribute('position').needsUpdate=true;}}
  const historicalSource=atlasFlights(atlas?.air.filter((_,i)=>!fallback||i%6===0)??[]);
- let historicalFlights=gatherAirCorridors(historicalSource,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat));
+ let historicalFlights=await prepare('air-corridors',gatherAirCorridorsSteps(historicalSource,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),options.transport.aircraft.bundle,options.transport.aircraft.roundness));
  let flightPaths=[...prepareFlightPaths(aircraftCorridors,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat)),...historicalFlights];
  const allSeaPaths=[...seaLanePaths,...atlasMarine(atlas?.sea??[],true)];
  const allCablePaths=[...cablePaths,...atlasMarine(atlas?.cables??[],false)];
  host.dataset.networkCounts=JSON.stringify({air:flightPaths.length,sea:allSeaPaths.length,cables:allCablePaths.length,aircraft:aircraftSignals.length,ships:shipSignals.length});
- let smoothShipping=prepareSmoothCables(allSeaPaths,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),1.002);
- let smoothCables=prepareSmoothCables(allCablePaths,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat));
+ let smoothShipping=await prepare('shipping-corridors',prepareSmoothCablesSteps(allSeaPaths,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),1.002,options.transport.ships));
+ let smoothCables=await prepare('cable-corridors',prepareSmoothCablesSteps(allCablePaths,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),undefined,options.transport.cables));
  const orbitPaths=satelliteSignals.map(record=>{const positions=new Float32Array(513*3),progress=new Float32Array(513);for(let k=0;k<=512;k++){const angle=k/512*Math.PI*2;progress[k]=k/512;for(let j=0;j<3;j++)positions[k*3+j]=record.radius*(record.basisA[j]*Math.cos(angle)+record.basisB[j]*Math.sin(angle));}return {id:record.id,positions,progress,radius:record.radius};});
  const familyPaths=(layer:TransportFamily):readonly TravellerPath[]=>layer==='aircraft'?flightPaths:layer==='ships'?smoothShipping:layer==='cables'?smoothCables:orbitPaths;
  const familySources=(layer:TransportFamily)=>layer==='aircraft'?flightPaths.map((p,i)=>({intensity:i<40?.72:historicalFlights[i-40]?.intensity??.5})):layer==='ships'?allSeaPaths:layer==='cables'?allCablePaths:orbitPaths.map(()=>({intensity:1}));
@@ -332,30 +341,30 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const airOnsets=Float32Array.from(flightPaths,(_,i)=>signalOnset('aircraft',i,flightPaths.length));
  const shipOnsets=Float32Array.from(smoothShipping,(_,i)=>signalOnset('ships',i,smoothShipping.length));
  type PathGeometry=Pick<ReturnType<typeof prepareSmoothCables>[number],'positions'|'progress'>;
- function ribbon(c:Cloud,paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,kind:number,gates:ActivityTransitions){
+ async function ribbon(c:Cloud,paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,kind:number,gates:ActivityTransitions){
   const original=c.points;earth.remove(original);original.geometry.dispose();geometries.splice(geometries.indexOf(original.geometry),1);
-  const bases=paths.filter(p=>!('strand' in p)||!p.strand) as (PathGeometry&{id:string})[];const importance=networkImportance(bases,sources,kind<1.5);const g=cableFilamentGeometry(paths,sources.map((s,i)=>({...s,importance:importance[i]})),onsets);geometries.push(g);
+  const bases=paths.filter(p=>!('strand' in p)||!p.strand) as (PathGeometry&{id:string})[];const importance=networkImportance(bases,sources,kind<1.5);const g=await prepare('connection-ribbons',cableFilamentGeometrySteps(paths,sources.map((s,i)=>({...s,importance:importance[i]})),onsets));geometries.push(g);
   const columns=Math.min(1024,gates.values.length),rows=Math.ceil(gates.values.length/columns),bytes=new Uint8Array(columns*rows*4).fill(255),texture=new THREE.DataTexture(bytes,columns,rows,THREE.RGBAFormat);texture.needsUpdate=true;texture.minFilter=texture.magFilter=THREE.NearestFilter;gateTextures.push({texture,gates,bytes});
   c.material.vertexShader=cableFilamentVertex;c.material.fragmentShader=cableFilamentFragment;c.material.side=THREE.DoubleSide;Object.assign(c.material.defaultAttributeValues,{localLight:[1]});
   Object.assign(c.material.uniforms,{localPath:{value:0},lineSoftness:{value:.55},resolution:{value:new THREE.Vector2(host.clientWidth,host.clientHeight)},awakeningTime:{value:0},pathKind:{value:kind},routeGate:{value:texture},routeSize:{value:new THREE.Vector2(columns,rows)},richness:{value:DEFAULT_LIGHT.pathVolume},drawDuration:{value:kind===0?AWAKENING.cables.draw:2.2},fadeDuration:{value:kind===0?AWAKENING.cables.fade:1.1}});
   const mesh=new THREE.Mesh(g,c.material);mesh.userData={...original.userData};mesh.frustumCulled=false;earth.add(mesh);c.points=mesh;c.count=g.getAttribute('position').count;
  }
- function pathway(paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,tint:string,kind:number,gates:ActivityTransitions){
+ async function pathway(paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,tint:string,kind:number,gates:ActivityTransitions){
   const data:number[]=[],routeIndices:number[]=[],progress:number[]=[];const importance=networkImportance(paths as (PathGeometry&{id:string})[],sources,kind<1.5);
   if(fallback)paths.forEach((p,i)=>{const count=Math.min(256,p.progress.length);for(let k=0;k<count;k++){const n=Math.round(k*(p.progress.length-1)/(count-1));data.push(...p.positions.subarray(n*3,n*3+3),0,.62,i*.73);routeIndices.push(i);progress.push(p.progress[n]);}});
   const c=cloud(new Float32Array(data),tint);c.material.uniforms.regional.value=1;c.material.uniforms.shell.value=1;
   c.points.userData.shell=kind===2?'air-lanes':'sea-lanes';c.points.userData.rhythm=.15;c.points.userData.shimmer=0;c.points.userData.fallbackExposure=.65;
   const base=fallback?(c.points.geometry.getAttribute('position').array as Float32Array).slice():null;
-  if(!fallback)ribbon(c,kind===1?marineStrands(paths as typeof smoothShipping,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),true):paths,sources,onsets,kind,gates);
+  if(!fallback){const strands=kind===1?await prepare('shipping-strands',marineStrandsSteps(paths as typeof smoothShipping,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),true)):paths;await ribbon(c,strands,sources,onsets,kind,gates);}
   // The material does not move; the travelling light supplies local highlights.
   return {cloud:c,gates,onsets,kind,sources,base,routeIndices,progress,importance};
  }
- const airLanes=pathway(flightPaths,[...aircraftCorridors.map((_,i)=>({intensity:i%13===12?0:.72})),...historicalFlights.map(p=>({intensity:p.intensity,tier:p.tier,threshold:p.threshold}))],airOnsets,signalColors.aircraft,2,airPathGates);
- const seaLaneView=pathway(smoothShipping,allSeaPaths.map((p,i)=>({intensity:i<seaLanePaths.length&&i%19===18?0:p.intensity,tier:p.tier,threshold:i<seaLanePaths.length?0:.10+.66*((i-seaLanePaths.length)/Math.max(1,allSeaPaths.length-seaLanePaths.length))})),shipOnsets,seaLaneColor,1,shipPathGates),seaLanes=seaLaneView.cloud;
+ const airLanes=await pathway(flightPaths,[...aircraftCorridors.map((_,i)=>({intensity:i%13===12?0:.72})),...historicalFlights.map(p=>({intensity:p.intensity,tier:p.tier,threshold:p.threshold}))],airOnsets,signalColors.aircraft,2,airPathGates);
+ const seaLaneView=await pathway(smoothShipping,allSeaPaths.map((p,i)=>({intensity:i<seaLanePaths.length&&i%19===18?0:p.intensity,tier:p.tier,threshold:i<seaLanePaths.length?0:.10+.66*((i-seaLanePaths.length)/Math.max(1,allSeaPaths.length-seaLanePaths.length))})),shipOnsets,seaLaneColor,1,shipPathGates),seaLanes=seaLaneView.cloud;
  seaLanes.points.userData.seaLanes=true;
- const orbitLanes=pathway(orbitPaths,orbitPaths.map(()=>({intensity:.65})),Float32Array.from(orbitPaths,()=>2.5),signalColors.satellites,3,orbitPathGates);
+ const orbitLanes=await pathway(orbitPaths,orbitPaths.map(()=>({intensity:.65})),Float32Array.from(orbitPaths,()=>2.5),signalColors.satellites,3,orbitPathGates);
  orbitLanes.cloud.points.userData.shell='orbit-lanes';
- function updatePathway(view:ReturnType<typeof pathway>,visibility:number){
+ function updatePathway(view:Awaited<ReturnType<typeof pathway>>,visibility:number){
   const c=view.cloud;c.material.uniforms.opacity.value=visibility*Math.min(1,view.gates.average*4);
   if(!fallback){c.material.uniforms.richness.value=displayedLight.pathVolume;c.material.uniforms.awakeningTime.value=awakening.elapsed;c.material.uniforms.resolution.value.set(host.clientWidth,host.clientHeight);return;}
   const b=c.points.geometry.getAttribute('brightness') as THREE.BufferAttribute,p=c.points.geometry.getAttribute('position') as THREE.BufferAttribute;
@@ -392,7 +401,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  for(const hub of cableHubs){const [lat,lon]=hub.point;cableSample.set(geo(lon,lat).toArray());seatNetwork(cableSample);hubStars.push(...cableSample,.55,.75,hub.degree);for(let k=0;k<Math.min(22,4+hub.degree);k++){const radius=.035+.018*Math.sqrt(k),angle=k*2.39996;const latK=lat+Math.sin(angle)*radius,lonK=lon+Math.cos(angle)*radius/Math.max(.3,Math.cos(lat*R));const v=geo(lonK,latK);cableSample.set(v.toArray());seatNetwork(cableSample);hubStars.push(...cableSample,.22+Math.min(.4,hub.degree*.02),.38+(k%4)*.10,k*.71+hub.degree);}}
  const seaHubs=cloud(new Float32Array(hubStars),'#AC98D0');seaHubs.points.userData.hubField=true;
  const seaFilaments:Cloud=cloud(new Float32Array(cableStars),cableColor);
- if(!fallback)ribbon(seaFilaments,marineStrands(smoothCables,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat)),allCablePaths.map((p,i)=>({...p,threshold:i<cablePaths.length?0:.12+.64*((i-cablePaths.length)/Math.max(1,allCablePaths.length-cablePaths.length))})),seaOnsets,0,cablePathGates);
+ if(!fallback)await ribbon(seaFilaments,await prepare('cable-strands',marineStrandsSteps(smoothCables,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat))),allCablePaths.map((p,i)=>({...p,threshold:i<cablePaths.length?0:.12+.64*((i-cablePaths.length)/Math.max(1,allCablePaths.length-cablePaths.length))})),seaOnsets,0,cablePathGates);
  host.dataset.cableStroke=fallback?'smooth-points':'continuous-ribbon';
  host.dataset.cableCurveVertices=String(smoothCables.reduce((n,p)=>n+p.progress.length,0));
  for(const c of [seaFilaments,seaHubs]){
@@ -428,9 +437,9 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   if(fallback)cableBrightness.needsUpdate=true;
   host.dataset.cablesAwake=String(active);host.dataset.cablesFull=String(full);host.dataset.seaLanesFull=String(lanesFull);
  }
- let shapeSignature=JSON.stringify(['aircraft','ships','cables'].map(()=>[1,1]));
+ let shapeSignature=JSON.stringify((['aircraft','ships','cables'] as const).map(f=>[options.transport[f].bundle,options.transport[f].roundness]));
  function replaceGeometry(c:Cloud,g:THREE.BufferGeometry){const old=c.points.geometry;c.points.geometry=g;geometries.splice(geometries.indexOf(old),1);old.dispose();geometries.push(g);c.count=g.getAttribute('position').count;}
- function rebuildPath(view:ReturnType<typeof pathway>,paths:readonly TravellerPath[],surface=false){
+ function rebuildPath(view:Awaited<ReturnType<typeof pathway>>,paths:readonly TravellerPath[],surface=false){
   if(fallback){for(let k=0;k<view.routeIndices.length;k++){sampleTravellerPath(paths[view.routeIndices[k]],view.progress[k],signalOutput);view.base!.set(signalOutput,k*3);}const p=view.cloud.points.geometry.getAttribute('position') as THREE.BufferAttribute;p.array.set(view.base!);p.needsUpdate=true;return;}
   const importance=networkImportance(paths,view.sources,view.kind<1.5),sources=view.sources.map((p,i)=>({...p,importance:importance[i]}));
   replaceGeometry(view.cloud,cableFilamentGeometry(surface?marineStrands(paths as typeof smoothShipping,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),true):paths,sources,view.onsets));
@@ -718,7 +727,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  for(let i=0;i<3;i++)placePersonalLabel(i,!!personalPlaces&&stage==='orbit'&&openProgress>.72&&!morph);
  if(!isBusy())for(const resolve of idleWaiters.splice(0))resolve(true);
  if(genesisProgress>=1&&!isBusy()&&!warmupScheduled){warmupScheduled=true;warmupTimer=setTimeout(()=>{warmupTimer=null;if(disposed||graphicsLost)return;if(isBusy()){warmupScheduled=false;return;}void ensureCity().then(()=>ensureNewYork()).catch(()=>{host.dataset.detailWarmupStatus='retry-on-demand';});},600);}
- renderer.render(scene,camera);if(!firstFrameReady){firstFrameReady=true;callbacks.ready();}diagnosticFrames++;if(!options.motion||now-diagnosticStart>=1000){host.dataset.presentationFocus=presentation.focus;host.dataset.pathwayExposure=JSON.stringify({air:airPathGates.average,sea:shipPathGates.average,cables:cablePathGates.average});host.dataset.travellerExposure=JSON.stringify({satellites:signalViews[0].activity,aircraft:signalViews[1].activity,ships:signalViews[2].activity,cables:cableTravellerGates.average});if(activeOpenTarget){const d=openViews.diagnostics();host.dataset.openEarth=JSON.stringify({...d,resolver:resolverDiagnostics()});host.dataset.openDetail=openContext?.detailState??'INTERPRETIVE';host.dataset.regionRadiusKm=activeOpenTarget.contextRadiusKm.toFixed(0);host.dataset.openLatitude=lat.toFixed(6);host.dataset.openLongitude=wrap(lon).toFixed(6);}else{delete host.dataset.openEarth;delete host.dataset.openDetail;delete host.dataset.regionRadiusKm;}host.dataset.terrainLand=terrain.land.toFixed(3);host.dataset.terrainFloor=terrain.floor.toFixed(3);host.dataset.oceanAwake=awakening.ocean.toFixed(3);host.dataset.renderFps=(diagnosticFrames*1000/(now-diagnosticStart)).toFixed(1);host.dataset.renderFrames=String(frameCount);if(!fallback){const info=(renderer as THREE.WebGLRenderer).info;host.dataset.renderCalls=String(info.render.calls);host.dataset.renderPoints=String(info.render.points);host.dataset.renderTriangles=String(info.render.triangles);host.dataset.renderGeometries=String(info.memory.geometries);}host.dataset.renderFrameMs=((now-diagnosticStart)/diagnosticFrames).toFixed(1);diagnosticStart=now;diagnosticFrames=0;}if(!options.motion||now-lastCoordinate>500){callbacks.coordinates(lat,wrap(lon));lastCoordinate=now;}
+ renderer.render(scene,camera);if(!firstFrameReady){firstFrameReady=true;host.dataset.startupPhase='ready';host.dataset.startupMs=(performance.now()-startupStarted).toFixed(0);callbacks.ready();}diagnosticFrames++;if(!options.motion||now-diagnosticStart>=1000){host.dataset.presentationFocus=presentation.focus;host.dataset.pathwayExposure=JSON.stringify({air:airPathGates.average,sea:shipPathGates.average,cables:cablePathGates.average});host.dataset.travellerExposure=JSON.stringify({satellites:signalViews[0].activity,aircraft:signalViews[1].activity,ships:signalViews[2].activity,cables:cableTravellerGates.average});if(activeOpenTarget){const d=openViews.diagnostics();host.dataset.openEarth=JSON.stringify({...d,resolver:resolverDiagnostics()});host.dataset.openDetail=openContext?.detailState??'INTERPRETIVE';host.dataset.regionRadiusKm=activeOpenTarget.contextRadiusKm.toFixed(0);host.dataset.openLatitude=lat.toFixed(6);host.dataset.openLongitude=wrap(lon).toFixed(6);}else{delete host.dataset.openEarth;delete host.dataset.openDetail;delete host.dataset.regionRadiusKm;}host.dataset.terrainLand=terrain.land.toFixed(3);host.dataset.terrainFloor=terrain.floor.toFixed(3);host.dataset.oceanAwake=awakening.ocean.toFixed(3);host.dataset.renderFps=(diagnosticFrames*1000/(now-diagnosticStart)).toFixed(1);host.dataset.renderFrames=String(frameCount);if(!fallback){const info=(renderer as THREE.WebGLRenderer).info;host.dataset.renderCalls=String(info.render.calls);host.dataset.renderPoints=String(info.render.points);host.dataset.renderTriangles=String(info.render.triangles);host.dataset.renderGeometries=String(info.memory.geometries);}host.dataset.renderFrameMs=((now-diagnosticStart)/diagnosticFrames).toFixed(1);diagnosticStart=now;diagnosticFrames=0;}if(!options.motion||now-lastCoordinate>500){callbacks.coordinates(lat,wrap(lon));lastCoordinate=now;}
  if(!flight&&frameCount>60&&sampleFrames<150){totalFrame+=dt;sampleFrames++;if(sampleFrames===150&&totalFrame/sampleFrames>.034&&renderer.getPixelRatio()>1){renderer.setPixelRatio(1);for(const c of clouds)c.material.uniforms.pixelRatio.value=1;resize();}}
  raf=requestAnimationFrame(frame);
  }
