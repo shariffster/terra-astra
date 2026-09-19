@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.17 gathering clarity authority (19 September 2026)
+
+The user approves clearer incoming light, a closer caption and a more continuous prelude-to-core handoff, plus a subtle repeating left-to-right text shimmer. Keep loading prompt, driven by actual readiness with no minimum hold or animation-cycle wait. Continue from `123f671d896aeeeb38d7dd86384767aa8d44b00c` on the same branch, semantic version and existing Lab Site. Preserve the main reveal and earlier release boundaries.
+
 ## v0.10.17 gathering prelude authority (19 September 2026)
 
 The user approves replacing the early geographic Earth, name and tagline with sparse gathering light and “Gathering the constellation…”. Continue the same branch, version and Lab Site from `19ac38847d9fa7ed2b06b52d010ed3d738b97f3f`. Coordinate a first-render handoff into the existing Genesis core; preserve the subsequent reveal, geography, transport, controls, sound, prior tags, canonical and archive.

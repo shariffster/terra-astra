@@ -1,5 +1,13 @@
-.loading.loading{position:absolute;inset:0;transform:none;background:#03080c;z-index:7;opacity:1;white-space:normal;pointer-events:none}
+.loading.loading{position:absolute;inset:0;transform:none;background:#03070b;z-index:7;opacity:1;white-space:normal;pointer-events:none}
 .light{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;pointer-events:none}
-.status{position:absolute;top:calc(50% + clamp(90px,14vh,145px));left:24px;right:24px;text-align:center;margin:0;font:normal .875rem/1.6 Arial,Helvetica,sans-serif;letter-spacing:.025em;color:#aab9c0;transition:opacity .28s ease}
+.status{position:absolute;top:calc(50% + clamp(70px,11vh,108px));left:24px;right:24px;text-align:center;margin:0;font:normal .875rem/1.6 Arial,Helvetica,sans-serif;letter-spacing:.025em;color:#aab9c0;transition:opacity .20s ease}
+.words{display:inline-block}
+/* An activity cue, not a progress meter. The base letters never fade out. */
+@supports (background-clip:text){
+ .words{color:transparent;background-image:linear-gradient(100deg,#aab9c0 0%,#aab9c0 42%,#ecdfbf 50%,#aab9c0 58%,#aab9c0 100%);background-size:300% 100%;background-position:100% 0;background-clip:text;animation:starlightSweep 3.6s linear infinite}
+}
+@keyframes starlightSweep{0%,12%{background-position:100% 0}70%,100%{background-position:0% 0}}
 .loading[data-phase=handoff] .status{opacity:0}
-@media(prefers-reduced-motion:reduce){.status{transition:none}}
+.loading[data-phase=handoff] .words,.loading[data-hidden=true] .words{animation-play-state:paused}
+.loading[data-still=true] .words{animation:none;background:none;color:#aab9c0}
+@media(prefers-reduced-motion:reduce){.status{transition:none}.words{animation:none;background:none;color:#aab9c0}}

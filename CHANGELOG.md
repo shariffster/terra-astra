@@ -63,6 +63,13 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Pause the prelude while hidden; saved motion-off and reduced-motion preferences keep it still and bypass the spatial handoff. Dispose its animation and observer on completion/unmount. Existing failure/retry UI remains.
 - See `docs/GATHERING-PRELUDE-V01017.md` for evidence and limits. Same version, branch and Lab; historical tags and releases remain preserved.
 
+### Same-version follow-up — Clearer gathering and loading shimmer · 19 September 2026
+
+- Strengthen a few arriving stars, match the fine core's proportions and warm pearl centre to Genesis, and bring the loading caption closer. Keep the Earth and branding reserved for the reveal.
+- Add a gentle left-to-right caption shimmer with a pause between sweeps. Keep the words readable; stop the effect for still/reduced motion, hidden documents and handoff.
+- Shorten the readiness-driven dissolve from 800ms to 550ms. No minimum splash time or shimmer-cycle gate. Observed immediate-ready browser handoff: 572ms; motion-off: 7ms. Asset preparation and the existing skippable Genesis sequence remain separate.
+- Continue v0.10.17 on the same branch and Lab; see the appended refinement record in `docs/GATHERING-PRELUDE-V01017.md`.
+
 ## v0.10.16 — A wider web of light · 17 September 2026
 
 - Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.

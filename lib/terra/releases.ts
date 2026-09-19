@@ -25,6 +25,7 @@ export const releases = [
       'Compatible routes flow through shared hub tangents. Fine strands gather near shore and recover their separation offshore, with a broader Cape–Perth curve.',
       'The earlier first-light Earth is now replaced by a gathering prelude: sparse pearl and gold light, with the original Gathering the constellation wording. Earth and its name stay reserved for the reveal.',
       'The gathering light dissolves into the first rendered opening core before the introduction begins. Reduced motion and saved motion-off settings use a still arrival.',
+      'Clearer gathering stars, a closer caption and a gentle shimmer across the words make loading easier to read. The handoff now takes just over half a second after readiness, with no minimum wait or need to finish a shimmer cycle.',
     ],
     review: 'Earlier source records remain unchanged. The added Indian Ocean study brings the network to 470 sea paths and 378 cable paths; these are authored illustrations. Moving populations are adjustable. Hub weighting estimates activity from connectivity and authored intensity, not measured traffic. Bundling and light hierarchy are artistic, not traffic measurements or flown tracks. Air data remains historical and marine paths illustrative. The sky is imagined; pause freezes its shimmer. Earlier settings remain compatible. Browser checks do not imply physical-device or subjective audio acceptance.',
   },
