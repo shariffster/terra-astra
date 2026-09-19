@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.17 smoother preparation authority (19 September 2026)
+
+From `073419db5f7eb7de631809e0f508c4e4a4bf3ab4`, smooth the remaining preparation pauses. Keep the complete Genesis on every visit and all existing awakening timings; report the actual per-family reveal timing rather than retuning it. Continue the same branch/version/Lab and preserve earlier releases.
+
 ## v0.10.17 startup performance authority (19 September 2026)
 
 The user asks to approximately halve the observed 14-second preparation. Optimize the existing computation from `7f5ede74b64ece2b8773f44d86d2e91dedb95343`, preserving the full network, exact geometry/light output, loading responsiveness and opening sequence. Continue the same branch, version and Lab; record measurements honestly and preserve all earlier release boundaries.

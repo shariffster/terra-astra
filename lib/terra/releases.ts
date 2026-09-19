@@ -28,6 +28,7 @@ export const releases = [
       'Clearer gathering stars, a closer caption and a gentle shimmer across the words make loading easier to read. The handoff now takes just over half a second after readiness, with no minimum wait or need to finish a shimmer cycle.',
       'Startup now prepares the network in smaller batches, allowing gathering light to keep moving. Saved route shapes are prepared once before the reveal.',
       'Network preparation now does less repeated work, shortening the gathering wait while keeping the same routes, fine strands and light. The opening starts as soon as the scene is ready.',
+      'Earth light and terrain preparation also yield in smaller steps for smoother gathering. Every visit retains the full Earth reveal and the existing staggered awakening of its connections.',
     ],
     review: 'Earlier source records remain unchanged. The added Indian Ocean study brings the network to 470 sea paths and 378 cable paths; these are authored illustrations. Moving populations are adjustable. Hub weighting estimates activity from connectivity and authored intensity, not measured traffic. Bundling and light hierarchy are artistic, not traffic measurements or flown tracks. Air data remains historical and marine paths illustrative. The sky is imagined; pause freezes its shimmer. Earlier settings remain compatible. Browser checks do not imply physical-device or subjective audio acceptance.',
   },

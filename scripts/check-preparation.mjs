@@ -11,6 +11,7 @@ const {prepareSmoothCables,prepareSmoothCablesSteps,marineStrands,marineStrandsS
 const {sampleElevation}=await import('../lib/terra/spatial.ts');
 const {gatherAirCorridors,gatherAirCorridorsSteps}=await import('../lib/terra/network-composition.ts');
 const {cableFilamentGeometry,cableFilamentGeometrySteps}=await import('../lib/terra/cable-filaments.ts');
+const {structureLandLight,structureLandLightSteps}=await import('../lib/terra/land-light.ts');
 const read=name=>JSON.parse(readFileSync(new URL('../public/data/networks/'+name+'.json',import.meta.url)));
 const air=read('air-connections'),marine=read('marine-branches'),indian=read('indian-branches');for(const f of ['sea','cables'])marine[f].push(...indian[f]);
 const buf=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.url)),grid=new Int16Array(buf.buffer,buf.byteOffset,buf.byteLength/2),elevation=(lon,lat)=>sampleElevation(grid,1440,720,lon,lat);
@@ -19,6 +20,12 @@ const hashGeometry=g=>{const h=createHash('sha256');for(const [name,attribute] o
 let ticks=0,last=performance.now(),maxGap=0;
 const start=()=>{last=performance.now();return setInterval(()=>{const now=performance.now();maxGap=Math.max(maxGap,now-last);last=now;ticks++;},0);};
 const signal=new AbortController().signal,report=[];
+for(const name of ['human-population','human-footprint']){
+ const buf=readFileSync(new URL('../public/data/'+name+'.bin',import.meta.url));
+ const source=new Float32Array(buf.buffer,buf.byteOffset,buf.byteLength/4),expected=structureLandLight(source.slice());
+ const before=ticks,timer=start();const actual=await runPreparation(structureLandLightSteps(source.slice()),signal);clearInterval(timer);
+ assert.deepEqual(actual,expected);assert.ok(ticks>before,'Land-light batches let other tasks run');
+}
 const airSource=atlasFlights(air),airExpected=hashPaths(gatherAirCorridors(airSource,elevation));
 let timer=start();const flights=await runPreparation(gatherAirCorridorsSteps(airSource,elevation),signal);clearInterval(timer);assert.equal(hashPaths(flights),airExpected);
 for(const surface of [true,false]){

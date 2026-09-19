@@ -84,6 +84,12 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Retain all routes, companion strands, source data and traveller settings. Keep responsive preparation, the readiness-driven 550ms dissolve and existing skippable Genesis.
 - Full-network byte parity and cancellation checks pass. See `docs/FASTER-STARTUP-V01017.md` for measured preparation times and limits.
 
+### Same-version follow-up — Smoother preparation · 19 September 2026
+
+- Break Earth particle attributes, relief lifting, terrain normals and geographic land-light remapping into bounded batches. Give the browser a task boundary between preparation stages and traveller families.
+- Batch connection hierarchy work and reuse the already-computed hierarchy when building ribbons. Preserve all computed visual attributes and the complete network.
+- Preserve the full Genesis on every visit, the 550ms handoff and all awakening times. Record the actual default per-family introduction windows in `docs/SMOOTHER-PREPARATION-V01017.md`; user settings affect the moving populations.
+
 ## v0.10.16 — A wider web of light · 17 September 2026
 
 - Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.

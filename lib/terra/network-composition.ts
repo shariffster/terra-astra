@@ -26,6 +26,9 @@ function corridorGroups(paths:readonly Path[]) {
  * Each geographic pair has a lead and quieter companions, with regional detail
  * subordinate to crossings. No source record is removed or duplicated. */
 export function networkImportance(paths:readonly Path[],sources:readonly Source[],marine=false):number[] {
+ return finishPreparation(networkImportanceSteps(paths,sources,marine));
+}
+export function* networkImportanceSteps(paths:readonly Path[],sources:readonly Source[],marine=false):Generator<void,number[],void> {
  const values=paths.map(()=>.25);
  for(const group of corridorGroups(paths).values()){
   group.sort((a,b)=>sources[b.index].intensity-sources[a.index].intensity||paths[a.index].id.localeCompare(paths[b.index].id));
@@ -40,7 +43,7 @@ export function networkImportance(paths:readonly Path[],sources:readonly Source[
     const sustained=.48+.78*smooth((length-.12)/.65);
     values[index]=rank===0?Math.max(sustained,group.length>=3?1.5:0):rank<3?.86:.46;
    }else values[index]=(rank===0?lead:rank<3?.72:.26)*(regional?.60:1);
-  });
+  });yield;
  }return values;
 }
 

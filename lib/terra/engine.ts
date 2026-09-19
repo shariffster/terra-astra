@@ -1,7 +1,7 @@
-import { runPreparation, yieldPreparation } from './preparation';
+import { finishPreparation, runPreparation, yieldPreparation } from './preparation';
 import { advanceTransportClock, travellerPulse, travellerPool, travellerProgress, sampleTravellerPath, localPathOffset, localPathLight, MAX_TRAVELLERS, TRANSPORT_FAMILIES, cloneTransport, type TransportFamily, type TravellerPath, type Traveller } from './transport';
-import { gatherAirCorridors, gatherAirCorridorsSteps, networkImportance } from './network-composition';
-import { structureLandLight } from './land-light';
+import { gatherAirCorridors, gatherAirCorridorsSteps, networkImportance, networkImportanceSteps } from './network-composition';
+import { structureLandLightSteps } from './land-light';
 import * as THREE from 'three';
 import { loadConnectionAtlas, atlasFlights, atlasMarine } from '../world/connection-atlas';
 import { compositionFraming, type PanelBounds } from './composition-framing';
@@ -100,14 +100,16 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  let cityReady=false,newYorkReady=false;let newYorkLoading:Promise<void>|null=null;let cityLoading:Promise<void>|null=null;let lastInteraction=0;let lastTime=performance.now(),time=0,lastCoordinate=0,frameCount=0,totalFrame=0,sampleFrames=0,diagnosticStart=performance.now(),diagnosticFrames=0;
  const setStage=(s:Stage)=>{stage=s;callbacks.stage(s);notifyWorld();};
  function geometry(positions:number[]|Float32Array){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometries.push(g);return g;}
- function cloud(data:Float32Array,tint:string,feather:boolean|((lon:number,lat:number)=>number)=false){const count=data.length/6;const p=new Float32Array(count*3),b=new Float32Array(count),s=new Float32Array(count),ph=new Float32Array(count);for(let i=0;i<count;i++){p.set(data.subarray(i*6,i*6+3),i*3);b[i]=data[i*6+3]*(feather?(typeof feather==='function'?feather:cityFeather)(Math.atan2(p[i*3],p[i*3+2])/R,Math.atan2(p[i*3+1],Math.hypot(p[i*3],p[i*3+2]))/R):1);s[i]=data[i*6+4];ph[i]=data[i*6+5];}
- const g=geometry(p);const ids=new Float32Array(count),seeds=new Float32Array(count*3);for(let i=0;i<count;i++){ids[i]=particleOffset+i+1;seeds.set([genesisSeed(ids[i],1),genesisSeed(ids[i],2),genesisSeed(ids[i],3)],i*3);}particleOffset+=count;g.setAttribute('particleId',new THREE.BufferAttribute(ids,1));g.setAttribute('genesisSeed',new THREE.BufferAttribute(seeds,3));g.setAttribute('brightness',new THREE.BufferAttribute(b,1));g.setAttribute('starSize',new THREE.BufferAttribute(s,1));g.setAttribute('phase',new THREE.BufferAttribute(ph,1));g.setAttribute('revealAt',new THREE.BufferAttribute(new Float32Array(count),1));
+ function cloud(data:Float32Array,tint:string,feather:boolean|((lon:number,lat:number)=>number)=false){return finishPreparation(cloudSteps(data,tint,feather));}
+ function* cloudSteps(data:Float32Array,tint:string,feather:boolean|((lon:number,lat:number)=>number)=false):Generator<void,Cloud & {points:THREE.Points},void>{const count=data.length/6;const p=new Float32Array(count*3),b=new Float32Array(count),s=new Float32Array(count),ph=new Float32Array(count);for(let i=0;i<count;i++){p.set(data.subarray(i*6,i*6+3),i*3);b[i]=data[i*6+3]*(feather?(typeof feather==='function'?feather:cityFeather)(Math.atan2(p[i*3],p[i*3+2])/R,Math.atan2(p[i*3+1],Math.hypot(p[i*3],p[i*3+2]))/R):1);s[i]=data[i*6+4];ph[i]=data[i*6+5];if((i+1)%2048===0)yield;}
+ const g=geometry(p);const ids=new Float32Array(count),seeds=new Float32Array(count*3);for(let i=0;i<count;i++){ids[i]=particleOffset+i+1;seeds.set([genesisSeed(ids[i],1),genesisSeed(ids[i],2),genesisSeed(ids[i],3)],i*3);if((i+1)%2048===0)yield;}particleOffset+=count;g.setAttribute('particleId',new THREE.BufferAttribute(ids,1));g.setAttribute('genesisSeed',new THREE.BufferAttribute(seeds,3));g.setAttribute('brightness',new THREE.BufferAttribute(b,1));g.setAttribute('starSize',new THREE.BufferAttribute(s,1));g.setAttribute('phase',new THREE.BufferAttribute(ph,1));g.setAttribute('revealAt',new THREE.BufferAttribute(new Float32Array(count),1));
  const m=new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader:fragment,uniforms:{shoreBreath:{value:0},genesis:{value:1},genesisEnabled:{value:0},genesisExposure:{value:1},genesisSize:{value:1},tint:{value:new THREE.Color(tint)},opacity:{value:1},glow:{value:1},time:{value:0},motion:{value:1},pixelRatio:{value:renderer.getPixelRatio()},zoomFactor:{value:1},sizeScale:{value:1},reveal:{value:1},sparkle:{value:1},signature:{value:-1},shell:{value:0},opening:{value:0},openingFrame:{value:openFrame},personalStar:{value:0},terrainKind:{value:0},terrainLand:{value:1},terrainFloor:{value:1},terrainStudy:{value:0},terrainReady:{value:0},seaMotion:{value:0},spatial:{value:0},depthMix:{value:0},cutaway:{value:0},cutNormal:{value:cutNormal},cutFacing:{value:cutFacing},cameraDistance:{value:3},soft:{value:0},regional:{value:0},regionMix:{value:0},regionFocus:{value:new THREE.Vector3(0,0,1)},regionOuter:{value:.78},regionInner:{value:.975}},transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending});Object.assign(m.defaultAttributeValues,{terrainData:[0,0,0,0]});materials.push(m);const points=new THREE.Points(g,m);points.frustumCulled=false;earth.add(points);const c={points,material:m,count};clouds.push(c);return c;}
  function lines(data:Float32Array|number[],color:string,feather:boolean|((lon:number,lat:number)=>number)=false){const m=new THREE.LineBasicMaterial({color,transparent:true,opacity:.2,depthWrite:false,blending:THREE.AdditiveBlending});materials.push(m);const o=new THREE.LineSegments(geometry(data),m);o.frustumCulled=false;earth.add(o);if(feather){const a=o.geometry.getAttribute('position'),colors=new Float32Array(a.count*3);for(let i=0;i<a.count;i++){const w=(typeof feather==='function'?feather:cityFeather)(Math.atan2(a.getX(i),a.getZ(i))/R,Math.atan2(a.getY(i),Math.hypot(a.getX(i),a.getZ(i)))/R);colors.set([w,w,w],i*3);}o.geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));m.vertexColors=true;}return o;}
  async function load(name:string,requestSignal=signal){const res=await fetch('/data/'+name+'.bin',{signal:requestSignal});if(!res.ok)throw new Error('Could not load '+name);const b=await res.arrayBuffer();if(b.byteLength%4)throw new Error('Invalid geographic data');return new Float32Array(b);}
  function spatialCloud(data:Float32Array,tint:string){const c=cloud(data,tint);c.material.uniforms.spatial.value=1;c.points.userData.spatial=true;c.points.userData.sampleBudget=22000;c.points.userData.spatialExposure=1.8;return c;}
  // One-time slope attributes from the existing coarse grid. No per-frame terrain buffer uploads.
- function terrainCloud(c:Cloud,kind:number,gradients=false){
+ function terrainCloud(c:Cloud,kind:number,gradients=false){finishPreparation(terrainCloudSteps(c,kind,gradients));}
+ function* terrainCloudSteps(c:Cloud,kind:number,gradients=false):Generator<void,void,void>{
   c.material.uniforms.terrainKind.value=kind;c.points.userData.terrainKind=kind;
   if(!gradients)return;
   const p=c.points.geometry.getAttribute('position'),field=new Float32Array(p.count*4);
@@ -121,11 +123,11 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
    const e=clamp(east,-1.2,1.2),n=clamp(north,-1.2,1.2);
    const ax=x/r-e*ex-n*nx,ay=y/r-n*ny,az=z/r-e*ez-n*nz,len=Math.hypot(ax,ay,az);
    const metres=kind===2?-11000*Math.pow(Math.max(0,(1-r)/.070),1/.65):h;
-   field.set([ax/len,ay/len,az/len,metres/11000],i*4);
+   field.set([ax/len,ay/len,az/len,metres/11000],i*4);if((i+1)%512===0)yield;
   }
   c.points.geometry.setAttribute('terrainData',new THREE.BufferAttribute(field,4));
  }
- function lift(data:Float32Array){const out=data.slice();for(let i=0;i<out.length;i+=6){const v=new THREE.Vector3(out[i],out[i+1],out[i+2]);const h=sampleElevation(elevation,1440,720,Math.atan2(v.x,v.z)/R,Math.atan2(v.y,Math.hypot(v.x,v.z))/R);v.normalize().multiplyScalar(reliefRadius(Math.max(0,h))+.00004);out.set(v.toArray(),i);}return out;}
+ function* liftSteps(data:Float32Array):Generator<void,Float32Array,void>{const out=data.slice();for(let i=0;i<out.length;i+=6){const v=new THREE.Vector3(out[i],out[i+1],out[i+2]);const h=sampleElevation(elevation,1440,720,Math.atan2(v.x,v.z)/R,Math.atan2(v.y,Math.hypot(v.x,v.z))/R);v.normalize().multiplyScalar(reliefRadius(Math.max(0,h))+.00004);out.set(v.toArray(),i);if((i/6+1)%1024===0)yield;}return out;}
  const sphereG=new THREE.SphereGeometry(1,96,64);geometries.push(sphereG);const sphereM=new THREE.MeshBasicMaterial({color:0x020609});materials.push(sphereM);const sphere=new THREE.Mesh(sphereG,sphereM);earth.add(sphere);
  // A very restrained atmospheric edge; its surface fades away during descent.
  const edgeG=new THREE.SphereGeometry(1.001,80,48);geometries.push(edgeG);const edgeM=new THREE.ShaderMaterial({uniforms:{opacity:{value:1}},vertexShader:`varying vec3 n;varying vec3 v;void main(){vec4 p=modelViewMatrix*vec4(position,1.0);n=normalize(normalMatrix*normal);v=normalize(-p.xyz);gl_Position=projectionMatrix*p;}`,fragmentShader:`varying vec3 n;varying vec3 v;uniform float opacity;void main(){float f=pow(1.0-max(0.0,dot(normalize(n),normalize(v))),5.0);gl_FragColor=vec4(.20,.40,.51,f*.13*opacity);}`,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});materials.push(edgeM);earth.add(new THREE.Mesh(edgeG,edgeM));
@@ -163,9 +165,10 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const startupStarted=performance.now();
  async function prepare<T>(phase:string,steps:Generator<void,T,void>):Promise<T>{
   host.dataset.startupPhase=phase;
-  try{return await runPreparation(steps,signal);}catch(error){destroy();throw error;}
+  try{await yieldPreparation(signal);return await runPreparation(steps,signal);}catch(error){destroy();throw error;}
  }
  async function breathe(){try{await yieldPreparation(signal);}catch(error){destroy();throw error;}}
+ async function prepareCloud(data:Float32Array,tint:string){const c=await prepare('earth-particles',cloudSteps(data,tint));c.material.uniforms.spatial.value=1;c.points.userData.spatial=true;c.points.userData.sampleBudget=22000;c.points.userData.spatialExposure=1.8;return c;}
  try{
  host.dataset.startupPhase='assets';
  const humanAbort=new AbortController(),abortHuman=()=>humanAbort.abort();signal.addEventListener('abort',abortHuman,{once:true});
@@ -178,15 +181,21 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const [data,grid]=await Promise.all([Promise.all(['land','coast','lights','coast-lines','borders','relief-land','relief-ocean','stellar-body','stellar-interior','stellar-haze','stellar-halo'].map(name=>load(name))),gridRequest]);
  if(signal.aborted){destroy();throw new DOMException('Aborted','AbortError');}elevation=grid;
  host.dataset.startupPhase='earth';await breathe();
- land=spatialCloud(lift(data[0]),'#b9b0a0');await breathe();coast=spatialCloud(lift(data[1]),'#e6dabe');await breathe();lights=spatialCloud(lift(data[2]),'#eed7a8');coastLines=lines(data[3],'#789dab');borders=lines(data[4],'#89a8b5');
+ land=await prepareCloud(await prepare('land-relief',liftSteps(data[0])),'#b9b0a0');
+ coast=await prepareCloud(await prepare('coast-relief',liftSteps(data[1])),'#e6dabe');
+ lights=await prepareCloud(await prepare('city-relief',liftSteps(data[2])),'#eed7a8');
+ coastLines=lines(data[3],'#789dab');borders=lines(data[4],'#89a8b5');
  for(const c of [land,coast,lights]){c.points.userData.sampleBudget=5000;c.points.userData.spatialExposure=1;}
- await breathe();reliefLand=spatialCloud(data[5],'#8f9598');reliefOcean=spatialCloud(data[6],'#718084');body=spatialCloud(data[7],'#a79a83');await breathe();interior=spatialCloud(data[8],'#b4a17f');haze=spatialCloud(data[9],'#887f75');await breathe();halo=spatialCloud(data[10],'#c7d0d6');haze.material.uniforms.soft.value=1;reliefOcean.material.uniforms.seaMotion.value=1;
- await breathe();terrainCloud(land,1);await breathe();terrainCloud(coast,3);terrainCloud(lights,4);await breathe();terrainCloud(reliefLand,1,true);await breathe();terrainCloud(reliefOcean,2,true);await breathe();
+ reliefLand=await prepareCloud(data[5],'#8f9598');reliefOcean=await prepareCloud(data[6],'#718084');body=await prepareCloud(data[7],'#a79a83');
+ interior=await prepareCloud(data[8],'#b4a17f');haze=await prepareCloud(data[9],'#887f75');halo=await prepareCloud(data[10],'#c7d0d6');
+ haze.material.uniforms.soft.value=1;reliefOcean.material.uniforms.seaMotion.value=1;
+ terrainCloud(land,1);terrainCloud(coast,3);terrainCloud(lights,4);
+ await prepare('land-normals',terrainCloudSteps(reliefLand,1,true));await prepare('ocean-normals',terrainCloudSteps(reliefOcean,2,true));
  const humanData=await humanRequest;atlas=await atlasRequest;
  host.dataset.networkAtlas=atlas?'ready':'unavailable';
  if(signal.aborted){destroy();throw new DOMException('Aborted','AbortError');}
- if(humanData){for(const data of humanData){structureLandLight(data);await breathe();}
- populationField=spatialCloud(humanData[0],'#8eabc6');footprintField=spatialCloud(humanData[1],'#9786ae');for(const c of [populationField,footprintField]){terrainCloud(c,1);await breathe();c.points.userData.humanField=true;c.points.userData.shimmer=.06;c.material.uniforms.opacity.value=0;}}
+ if(humanData){for(const data of humanData)await prepare('land-light',structureLandLightSteps(data));
+ populationField=await prepareCloud(humanData[0],'#8eabc6');footprintField=await prepareCloud(humanData[1],'#9786ae');for(const c of [populationField,footprintField]){terrainCloud(c,1);await breathe();c.points.userData.humanField=true;c.points.userData.shimmer=.06;c.material.uniforms.opacity.value=0;}}
  host.dataset.humanFields=humanData?'ready':'unavailable';
  scene.userData.spatial={depth:1,cut:0,cutNormal,cutFacing};
  }catch(e){destroy();throw e;}
@@ -262,7 +271,9 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   const gates=new ActivityTransitions(records.map(r=>r.id),'travellers'),localGates=new ActivityTransitions(records.map(r=>r.id),'pathways',false),tailGates=new ActivityTransitions(records.map(r=>r.id),'travellers');
   return {clock:{travel:0,pulse:0},lastTime:0,pulseMix:options.transport[layer].pulse?1:0,records,cloud:c,window:movingWindow(layer,localGates),positions:c.points.geometry.getAttribute('position').array as Float32Array,brightness:c.points.geometry.getAttribute('brightness') as THREE.BufferAttribute,onsets,trailCount:TRAIL_SAMPLES,layer,gates,localGates,tailGates,population:new Float32Array(MAX_TRAVELLERS),distribution:options.transport[layer].distribution,activity:0,drawCount:0};
  }
- const signalViews=[signalView('satellites'),signalView('aircraft'),signalView('ships'),signalView('cables')],signalOutput=new Float64Array(3),windowXYZ=new Float32Array(WINDOW_SAMPLES*3),windowLight=new Float32Array(WINDOW_SAMPLES);
+ const signalViews:ReturnType<typeof signalView>[]=[];
+ for(const family of ['satellites','aircraft','ships','cables'] as const){await breathe();signalViews.push(signalView(family));}
+ const signalOutput=new Float64Array(3),windowXYZ=new Float32Array(WINDOW_SAMPLES*3),windowLight=new Float32Array(WINDOW_SAMPLES);
  const cableView=signalViews[3],seaPulses=cableView.cloud;
  function sampleTraveller(view:typeof signalViews[number],record:Traveller,seconds:number,out:Float64Array){
   const path=familyPaths(view.layer)[record.route];sampleTravellerPath(path,travellerProgress(record,seconds),out);
@@ -300,7 +311,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   v.activity=v.activity>.999999?1:v.activity;v.drawCount=last*TRAIL_SAMPLES;v.cloud.points.geometry.setDrawRange(0,v.drawCount);v.brightness.needsUpdate=true;v.cloud.points.geometry.getAttribute('position').needsUpdate=true;
   v.window.points.geometry.setDrawRange(0,windowActive?last*(fallback?WINDOW_SAMPLES:(WINDOW_SAMPLES-1)*6):0);
   for(const name of windowActive?(fallback?['position','brightness']:['position','previous','next','localLight']):[])v.window.points.geometry.getAttribute(name).needsUpdate=true;
-  host.dataset[v.layer+'Awake']=String(active);host.dataset[v.layer+'Full']=String(full);host.dataset[v.layer+'TravellerCount']=String(active);
+  host.dataset[v.layer+'Awake']=String(active);host.dataset[v.layer+'Full']=String(full);host.dataset[v.layer+'TravellersFull']=String(full);host.dataset[v.layer+'TravellerCount']=String(active);
   if(v.layer==='cables')host.dataset.cablePulseJourneys=String(Math.round(active*v.gates.average));
  }}
 
@@ -341,21 +352,21 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const airOnsets=Float32Array.from(flightPaths,(_,i)=>signalOnset('aircraft',i,flightPaths.length));
  const shipOnsets=Float32Array.from(smoothShipping,(_,i)=>signalOnset('ships',i,smoothShipping.length));
  type PathGeometry=Pick<ReturnType<typeof prepareSmoothCables>[number],'positions'|'progress'>;
- async function ribbon(c:Cloud,paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,kind:number,gates:ActivityTransitions){
+ async function ribbon(c:Cloud,paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,kind:number,gates:ActivityTransitions,preparedImportance?:number[]){
   const original=c.points;earth.remove(original);original.geometry.dispose();geometries.splice(geometries.indexOf(original.geometry),1);
-  const bases=paths.filter(p=>!('strand' in p)||!p.strand) as (PathGeometry&{id:string})[];const importance=networkImportance(bases,sources,kind<1.5);const g=await prepare('connection-ribbons',cableFilamentGeometrySteps(paths,sources.map((s,i)=>({...s,importance:importance[i]})),onsets));geometries.push(g);
+  const bases=paths.filter(p=>!('strand' in p)||!p.strand) as (PathGeometry&{id:string})[];const importance=preparedImportance??await prepare('connection-hierarchy',networkImportanceSteps(bases,sources,kind<1.5));const g=await prepare('connection-ribbons',cableFilamentGeometrySteps(paths,sources.map((s,i)=>({...s,importance:importance[i]})),onsets));geometries.push(g);
   const columns=Math.min(1024,gates.values.length),rows=Math.ceil(gates.values.length/columns),bytes=new Uint8Array(columns*rows*4).fill(255),texture=new THREE.DataTexture(bytes,columns,rows,THREE.RGBAFormat);texture.needsUpdate=true;texture.minFilter=texture.magFilter=THREE.NearestFilter;gateTextures.push({texture,gates,bytes});
   c.material.vertexShader=cableFilamentVertex;c.material.fragmentShader=cableFilamentFragment;c.material.side=THREE.DoubleSide;Object.assign(c.material.defaultAttributeValues,{localLight:[1]});
   Object.assign(c.material.uniforms,{localPath:{value:0},lineSoftness:{value:.55},resolution:{value:new THREE.Vector2(host.clientWidth,host.clientHeight)},awakeningTime:{value:0},pathKind:{value:kind},routeGate:{value:texture},routeSize:{value:new THREE.Vector2(columns,rows)},richness:{value:DEFAULT_LIGHT.pathVolume},drawDuration:{value:kind===0?AWAKENING.cables.draw:2.2},fadeDuration:{value:kind===0?AWAKENING.cables.fade:1.1}});
   const mesh=new THREE.Mesh(g,c.material);mesh.userData={...original.userData};mesh.frustumCulled=false;earth.add(mesh);c.points=mesh;c.count=g.getAttribute('position').count;
  }
  async function pathway(paths:readonly PathGeometry[],sources:readonly {intensity:number}[],onsets:Float32Array,tint:string,kind:number,gates:ActivityTransitions){
-  const data:number[]=[],routeIndices:number[]=[],progress:number[]=[];const importance=networkImportance(paths as (PathGeometry&{id:string})[],sources,kind<1.5);
+  const data:number[]=[],routeIndices:number[]=[],progress:number[]=[];const importance=await prepare('connection-hierarchy',networkImportanceSteps(paths as (PathGeometry&{id:string})[],sources,kind<1.5));
   if(fallback)paths.forEach((p,i)=>{const count=Math.min(256,p.progress.length);for(let k=0;k<count;k++){const n=Math.round(k*(p.progress.length-1)/(count-1));data.push(...p.positions.subarray(n*3,n*3+3),0,.62,i*.73);routeIndices.push(i);progress.push(p.progress[n]);}});
   const c=cloud(new Float32Array(data),tint);c.material.uniforms.regional.value=1;c.material.uniforms.shell.value=1;
   c.points.userData.shell=kind===2?'air-lanes':'sea-lanes';c.points.userData.rhythm=.15;c.points.userData.shimmer=0;c.points.userData.fallbackExposure=.65;
   const base=fallback?(c.points.geometry.getAttribute('position').array as Float32Array).slice():null;
-  if(!fallback){const strands=kind===1?await prepare('shipping-strands',marineStrandsSteps(paths as typeof smoothShipping,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),true)):paths;await ribbon(c,strands,sources,onsets,kind,gates);}
+  if(!fallback){const strands=kind===1?await prepare('shipping-strands',marineStrandsSteps(paths as typeof smoothShipping,(lon,lat)=>sampleElevation(elevation,1440,720,lon,lat),true)):paths;await ribbon(c,strands,sources,onsets,kind,gates,importance);}
   // The material does not move; the travelling light supplies local highlights.
   return {cloud:c,gates,onsets,kind,sources,base,routeIndices,progress,importance};
  }
