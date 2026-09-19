@@ -17,7 +17,7 @@ Both use existing local restore, named compositions, comparison and JSON import/
 
 Live shape changes now yield between preparation batches and cancel stale work. The previous network remains on screen until all requested family geometry is ready. The replacement and corresponding traveller samplers commit together. Spread-only changes reuse the existing centreline, preserving traveller positions and populations.
 
-Narrow desktop framing gives Earth more width. Phone framing leaves more space beside the control rail; control-panel fitting remains based on measured bounds.
+Narrow desktop framing gives Earth more width. Phone framing leaves more space beside the control rail; control-panel fitting uses measured panel bounds and reserves the right-hand tool rail.
 
 ## Passage treatment and further candidates
 
