@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.17 startup performance authority (19 September 2026)
+
+The user asks to approximately halve the observed 14-second preparation. Optimize the existing computation from `7f5ede74b64ece2b8773f44d86d2e91dedb95343`, preserving the full network, exact geometry/light output, loading responsiveness and opening sequence. Continue the same branch, version and Lab; record measurements honestly and preserve all earlier release boundaries.
+
 ## v0.10.17 responsive startup correction (19 September 2026)
 
 The user reports the gathering prelude appears stuck after the approved animation pass. Correct startup work that blocks its animation, using the same branch, semantic version and Lab Site from `bc633514e87713dd7b4daaa8883d84b340990a53`. Preserve route geometry, saved settings, readiness-driven handoff, Genesis, earlier tags, canonical and archive.

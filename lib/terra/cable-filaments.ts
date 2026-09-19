@@ -16,11 +16,26 @@ export function* cableFilamentGeometrySteps(paths: readonly (Pick<SmoothCable,'p
   const count=paths.reduce((n,p)=>n+p.progress.length,0),g=new THREE.BufferGeometry();
   // Count distinct strands through coarse cells, not sample vertices. Trilinear
   // interpolation prevents grid bands; crowded approaches share a light budget.
-  const density=new Map<string,number>(),cell=(p:Float32Array,k:number)=>{const r=Math.hypot(p[k],p[k+1],p[k+2]);return [p[k]/r*55,p[k+1]/r*55,p[k+2]/r*55];};
-  for(const path of paths){const occupied=new Set<string>();for(let k=0;k<path.positions.length;k+=3){const v=cell(path.positions,k);occupied.add(v.map(Math.round).join(','));}for(const key of occupied)density.set(key,(density.get(key)??0)+1);yield;}
-  const exposureAt=(p:Float32Array,k:number)=>{const v=cell(p,k),base=v.map(Math.floor),t=v.map((n,j)=>n-base[j]);let sum=0;
-    for(let x=0;x<2;x++)for(let y=0;y<2;y++)for(let z=0;z<2;z++){const weight=(x?t[0]:1-t[0])*(y?t[1]:1-t[1])*(z?t[2]:1-t[2]);sum+=weight*(density.get([base[0]+x,base[1]+y,base[2]+z].join(','))??1);}
-    return 1/Math.sqrt(Math.max(1,sum/3));};
+  // All normalized coordinates lie in [-55,55]. A one-cell halo covers
+  // interpolation neighbours. Numeric slots avoid millions of string keys
+  // and short-lived arrays without changing the density or interpolation.
+  const width=114,plane=width*width,offset=56,density=new Uint32Array(width*plane);
+  const slot=(x:number,y:number,z:number)=>(x+offset)*plane+(y+offset)*width+z+offset;
+  for(const path of paths){
+    const occupied=new Set<number>(),p=path.positions;
+    for(let k=0;k<p.length;k+=3){const r=Math.hypot(p[k],p[k+1],p[k+2]);occupied.add(slot(Math.round(p[k]/r*55),Math.round(p[k+1]/r*55),Math.round(p[k+2]/r*55)));}
+    for(const key of occupied)density[key]++;yield;
+  }
+  const exposureAt=(p:Float32Array,k:number)=>{
+    const r=Math.hypot(p[k],p[k+1],p[k+2]),x=p[k]/r*55,y=p[k+1]/r*55,z=p[k+2]/r*55;
+    const bx=Math.floor(x),by=Math.floor(y),bz=Math.floor(z),tx=x-bx,ty=y-by,tz=z-bz,base=slot(bx,by,bz);
+    let sum=0;
+    for(let dx=0;dx<2;dx++)for(let dy=0;dy<2;dy++)for(let dz=0;dz<2;dz++){
+      const weight=(dx?tx:1-tx)*(dy?ty:1-ty)*(dz?tz:1-tz);
+      sum+=weight*(density[base+dx*plane+dy*width+dz]||1);
+    }
+    return 1/Math.sqrt(Math.max(1,sum/3));
+  };
   const routeExposure=new Float32Array(count*2);
   const threshold=new Float32Array(count*2);
   const positions=new Float32Array(count*6),previous=new Float32Array(count*6),next=new Float32Array(count*6);
@@ -32,15 +47,19 @@ export function* cableFilamentGeometrySteps(paths: readonly (Pick<SmoothCable,'p
   let indexOffset=0;
   let base=0;
   for(const [i,path] of paths.entries()){
-    const n=path.progress.length;
-    for(let k=0;k<n;k++)for(let s=0;s<2;s++){
-      const v=(base+k)*2+s;
-      routeExposure[v]=s?routeExposure[v-1]:exposureAt(path.positions,k*3);
-      positions.set(path.positions.subarray(k*3,k*3+3),v*3);
-      const p=Math.max(0,k-1)*3,q=Math.min(n-1,k+1)*3;
-      previous.set(path.positions.subarray(p,p+3),v*3);next.set(path.positions.subarray(q,q+3),v*3);
-      threshold[v]=sources[path.sourceIndex??i].threshold??0;side[v]=s===0?-1:1;routeIndex[v]=path.sourceIndex??i;routeStrand[v]=path.strand??0;routeImportance[v]=sources[path.sourceIndex??i].importance??(sources[path.sourceIndex??i].tier==='regional'?.70:1);routeRelief[v]=path.relief??0;route.set([path.progress[k],onsets[path.sourceIndex??i],sources[path.sourceIndex??i].intensity],v*3);
-      if(s===0&&k<n-1){const a=v;indices.set([a,a+1,a+2,a+1,a+3,a+2],indexOffset);indexOffset+=6;}
+    const n=path.progress.length,p=path.positions,sourceIndex=path.sourceIndex??i,source=sources[sourceIndex];
+    const onset=onsets[sourceIndex],intensity=source.intensity,routeThreshold=source.threshold??0;
+    const importance=source.importance??(source.tier==='regional'?.70:1),relief=path.relief??0,strand=path.strand??0;
+    for(let k=0;k<n;k++){
+      const j=k*3,prev=Math.max(0,k-1)*3,after=Math.min(n-1,k+1)*3,exposure=exposureAt(p,j);
+      for(let s=0;s<2;s++){
+        const v=(base+k)*2+s,target=v*3;
+        routeExposure[v]=exposure;
+        for(let axis=0;axis<3;axis++){positions[target+axis]=p[j+axis];previous[target+axis]=p[prev+axis];next[target+axis]=p[after+axis];}
+        threshold[v]=routeThreshold;side[v]=s===0?-1:1;routeIndex[v]=sourceIndex;routeStrand[v]=strand;routeImportance[v]=importance;routeRelief[v]=relief;
+        route[target]=path.progress[k];route[target+1]=onset;route[target+2]=intensity;
+        if(s===0&&k<n-1){indices[indexOffset++]=v;indices[indexOffset++]=v+1;indices[indexOffset++]=v+2;indices[indexOffset++]=v+1;indices[indexOffset++]=v+3;indices[indexOffset++]=v+2;}
+      }
     }
     base+=n;yield;
   }

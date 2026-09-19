@@ -77,6 +77,13 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Apply saved route shape during initial preparation rather than rebuilding it during the handoff. Restore motion preferences while loading.
 - Preserve geometry and all source records. The readiness-driven 550ms dissolve and subsequent Genesis remain unchanged. Total load time still depends on assets, device performance and graphics setup; this is not a fixed-duration splash.
 
+### Same-version optimization — Faster gathering · 19 September 2026
+
+- Replace per-vertex string-key density lookups and temporary vector arrays with numeric lattice slots and direct ribbon buffer writes. Preserve the exact overlap brightness calculation.
+- Evaluate marine curves with one scratch buffer per sample; stop water validation once a candidate is rejected. Accepted curves retain every coast check and identical output.
+- Retain all routes, companion strands, source data and traveller settings. Keep responsive preparation, the readiness-driven 550ms dissolve and existing skippable Genesis.
+- Full-network byte parity and cancellation checks pass. See `docs/FASTER-STARTUP-V01017.md` for measured preparation times and limits.
+
 ## v0.10.16 — A wider web of light · 17 September 2026
 
 - Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.

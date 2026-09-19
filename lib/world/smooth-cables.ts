@@ -26,13 +26,26 @@ function arc(a: V, b: V, t: number): V {
   return a.map((v,i) => v*x+b[i]*y) as V;
 }
 export function sampleCablePiece(piece: CableCurvePiece, t: number): V {
-  if(piece.controls){let points=[piece.a,...piece.controls,piece.b];while(points.length>1)points=points.slice(0,-1).map((p,i)=>mix(p,points[i+1],t));return norm(points[0]);}
+  if(piece.controls){
+    // De Casteljau with one scratch array, retaining the original operation
+    // order instead of allocating a new vector tree at every curve sample.
+    const count=piece.controls.length+2,points=new Float64Array(count*3);
+    for(let i=0;i<count;i++){const p=i===0?piece.a:i===count-1?piece.b:piece.controls[i-1];for(let j=0;j<3;j++)points[i*3+j]=p[j];}
+    for(let remaining=count-1;remaining>0;remaining--)for(let i=0;i<remaining*3;i++)points[i]=points[i]+(points[i+3]-points[i])*t;
+    return norm([points[0],points[1],points[2]]);
+  }
   return piece.control ? norm(mix(mix(piece.a,piece.control,t),mix(piece.control,piece.b,t),t)) : arc(piece.a,piece.b,t);
 }
 const coordinates = (p: V) => [Math.atan2(p[0],p[2])/R, Math.atan2(p[1],Math.hypot(p[0],p[2]))/R];
 function water(p: V, elevation: Elevation, surface = false) {
   const [lon,lat] = coordinates(p);
   return elevation(lon,lat)<-5 || schematicPassage(lon,lat) || surface && schematicCanal(lon,lat);
+}
+function waterCurve(piece:CableCurvePiece,segments:number,elevation:Elevation,surface:boolean){
+  // A rejected candidate needs no further samples. Accepted curves still
+  // pass every one of the same coast checks, including both endpoints.
+  for(let k=0;k<=segments;k++)if(!water(sampleCablePiece(piece,k/segments),elevation,surface))return false;
+  return true;
 }
 
 /** Water-constrained spherical fillets. The normalized quadratic meets each great-circle
@@ -111,7 +124,7 @@ export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation
     for(let attempt=0;attempt<8;attempt++){
       const shift=(t:number)=>{const p=arc(piece.a,piece.b,t),q=arc(start,end,t);return arc(p,q,Math.min(.94,.025/Math.max(.00001,angle(p,q)))*shape.bundle*2**-attempt);};
       const candidate:CableCurvePiece={...piece,corridor:true,controls:[arc(piece.a,piece.b,.125),arc(piece.a,piece.b,.25),shift(.375),shift(.625),arc(piece.a,piece.b,.75),arc(piece.a,piece.b,.875)]};
-      if(Array.from({length:257},(_,k)=>water(sampleCablePiece(candidate,k/256),elevation,!!surfaceRadius)).every(Boolean))return candidate;
+      if(waterCurve(candidate,256,elevation,!!surfaceRadius))return candidate;
     }return piece;
   };
   const groups = new Map<string, number[]>();
@@ -129,7 +142,7 @@ export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation
         // out of a bend. Shared legs keep one tangent instead of a visible elbow.
         const start=arc(a,b,1-trim/incoming),end=arc(b,c,trim/outgoing);
         const piece:CableCurvePiece={a:start,b:end,controls:[arc(start,b,.32),arc(start,b,.64),arc(b,end,.36),arc(b,end,.68)]};
-        if(Array.from({length:257},(_,k)=>water(sampleCablePiece(piece,k/256),elevation,!!surfaceRadius)).every(Boolean)) { accepted=piece; if(attempt)constrainedCorners++; break; }
+        if(waterCurve(piece,256,elevation,!!surfaceRadius)) { accepted=piece; if(attempt)constrainedCorners++; break; }
         trim*=.5;
       }
       // A coast constraint never authorizes a new land crossing.
@@ -153,7 +166,7 @@ export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation
         const q=arc(hub,other,trim/span);
         const along=(distance:number)=>norm(hub.map((v,i)=>v*Math.cos(distance)+axis[i]*sign*Math.sin(distance)) as V);
         const candidate:CableCurvePiece={a:hub,b:q,controls:[along(Math.min(trim*.20,reach*.20)),along(Math.min(trim*.40,reach*.40)),arc(hub,other,trim/span*.60),arc(hub,other,trim/span*.80)]};
-        if(Array.from({length:129},(_,k)=>water(sampleCablePiece(candidate,k/128),elevation,!!surfaceRadius)).every(Boolean)){connector=candidate;break;}trim*=.5;
+        if(waterCurve(candidate,128,elevation,!!surfaceRadius)){connector=candidate;break;}trim*=.5;
       }
       if(connector){if(end){piece.b=connector.b;pieces.push({a:connector.b,b:connector.a,controls:[...connector.controls!].reverse()});}else{piece.a=connector.b;pieces.unshift(connector);}}
     }
