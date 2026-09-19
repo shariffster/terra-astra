@@ -25,7 +25,7 @@ import { createOceanVolume, prepareCurrentPaths, sampleSuspended, currentPaths, 
 import { LIVING_MATERIAL, livingExposure, networkRadius } from './living-material';
 import { createUrbanActivity, type UrbanActivity } from '../world/urban-activity';
 import { GENESIS_DURATION, genesisGLSL, genesisSeed, genesisLight, genesisState } from './genesis';
-import { AwakeningTimeline, AWAKENING, awakeningOrder, signalOnset, signalReveal, cableOnsets, cableReveal } from './awakening';
+import { AwakeningTimeline, AWAKENING, awakeningOrder, signalOnset, signalReveal, cableOnsets, cableReveal, travellerArrivals } from './awakening';
 import { WORLD_TARGETS, DEFAULT_PRESENTATION, validateWorldCommand, type WorldPresentation, type GenesisState, type WorldState, type WorldCommand, type WorldCommandResult, type ScaleTier, type WorldLayer } from '../world/commands';
 import { stories, type Story } from './stories';
 import { CanvasStarRenderer } from './canvas-renderer';
@@ -257,9 +257,9 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   return c;
  }
  function signalView(layer:TransportFamily){
-  const records=travellerPool(layer,familyPaths(layer),familySources(layer),options.transport[layer].distribution,satelliteSignals),data=new Float32Array(MAX_TRAVELLERS*TRAIL_SAMPLES*6),onsets=new Float32Array(MAX_TRAVELLERS);
+  const records=travellerPool(layer,familyPaths(layer),familySources(layer),options.transport[layer].distribution,satelliteSignals),data=new Float32Array(MAX_TRAVELLERS*TRAIL_SAMPLES*6),arrival=travellerArrivals(layer,options.transport[layer].count*options.travellerVolume,MAX_TRAVELLERS);
   const material=materialFor(layer);
-  for(let i=0;i<MAX_TRAVELLERS;i++){onsets[i]=layer==='cables'?10+i/MAX_TRAVELLERS*3:signalOnset(layer,i,MAX_TRAVELLERS);for(let k=0;k<TRAIL_SAMPLES;k++)data.set([0,0,1,0,k===0?material.size:(layer==='ships'?1.25:.85)*(1-k/TRAIL_SAMPLES),i*.73%6.28],(i*TRAIL_SAMPLES+k)*6);}
+  for(let i=0;i<MAX_TRAVELLERS;i++){for(let k=0;k<TRAIL_SAMPLES;k++)data.set([0,0,1,0,k===0?material.size:(layer==='ships'?1.25:.85)*(1-k/TRAIL_SAMPLES),i*.73%6.28],(i*TRAIL_SAMPLES+k)*6);}
   const c=cloud(data,familyTint(layer));
   // Soften tails independently: the bright moving head stays recognisable.
   const trailPart=Float32Array.from({length:MAX_TRAVELLERS*TRAIL_SAMPLES},(_,i)=>i%TRAIL_SAMPLES===0?0:1);
@@ -269,7 +269,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   c.points.userData.shell=layer;c.points.userData.rhythm=material.rhythm;c.points.userData.shimmer=0;c.material.uniforms.shell.value=layer==='cables'?2:1;c.points.userData.fallbackExposure=1.4;
   if(layer==='cables'){c.points.userData.seaBackbone=true;c.points.userData.network=true;c.points.userData.spatial=true;c.material.uniforms.spatial.value=1;terrainCloud(c,4);}
   const gates=new ActivityTransitions(records.map(r=>r.id),'travellers'),localGates=new ActivityTransitions(records.map(r=>r.id),'pathways',false),tailGates=new ActivityTransitions(records.map(r=>r.id),'travellers');
-  return {clock:{travel:0,pulse:0},lastTime:0,pulseMix:options.transport[layer].pulse?1:0,records,cloud:c,window:movingWindow(layer,localGates),positions:c.points.geometry.getAttribute('position').array as Float32Array,brightness:c.points.geometry.getAttribute('brightness') as THREE.BufferAttribute,onsets,trailCount:TRAIL_SAMPLES,layer,gates,localGates,tailGates,population:new Float32Array(MAX_TRAVELLERS),distribution:options.transport[layer].distribution,activity:0,drawCount:0};
+  return {clock:{travel:0,pulse:0},lastTime:0,pulseMix:options.transport[layer].pulse?1:0,records,cloud:c,window:movingWindow(layer,localGates),positions:c.points.geometry.getAttribute('position').array as Float32Array,brightness:c.points.geometry.getAttribute('brightness') as THREE.BufferAttribute,arrival,trailCount:TRAIL_SAMPLES,layer,gates,localGates,tailGates,population:new Float32Array(MAX_TRAVELLERS),distribution:options.transport[layer].distribution,activity:0,drawCount:0};
  }
  const signalViews:ReturnType<typeof signalView>[]=[];
  for(const family of ['satellites','aircraft','ships','cables'] as const){await breathe();signalViews.push(signalView(family));}
@@ -293,7 +293,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   const count=cfg.count*displayedLight.travellerVolume;let active=0,full=0,last=0;v.activity=0;
   for(let i=0;i<v.records.length;i++){
    const target=smoothUnit(count-i),population=v.population[i]+(target-v.population[i])*(reducedMotion||!options.motion?1:1-Math.exp(-dt*(1.4+activitySeed(v.records[i].id)*2)));v.population[i]=population;
-   const age=awakening.elapsed-v.onsets[i],reveal=smoothUnit(age/(v.layer==='cables'?.9:AWAKENING[v.layer].fade)),weight=population*reveal;
+   const age=awakening.elapsed-v.arrival.onsets[i],reveal=smoothUnit(age/v.arrival.fade),weight=population*reveal;
    if(weight<.0001){for(let k=0;k<TRAIL_SAMPLES;k++)v.brightness.setX(i*TRAIL_SAMPLES+k,0);continue;}
    active++;if(reveal>=1)full++;last=i+1;const record=v.records[i],pulse=travellerPulse(v.clock.pulse,record.phase,cfg.pulseDepth*v.pulseMix),gate=v.gates.values[i]*weight;
    v.activity+=gate/Math.max(1,cfg.count);
@@ -473,7 +473,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
    }catch(error){host.dataset.routeShape='error';window.dispatchEvent?.(new CustomEvent('terra-route-shape',{detail:'error'}));console.error('Route shaping could not finish',error);}
   },350);
  }
- function resetAwakening(){awakening.reset();time=0;currentSeconds=0;lastCurrentTime=0;lastWaterTime=-Infinity;for(const v of signalViews){v.clock={travel:0,pulse:0};v.lastTime=0;v.cloud.points.geometry.setDrawRange(0,0);v.cloud.material.uniforms.opacity.value=0;v.brightness.array.fill(0);v.brightness.needsUpdate=true;}updateSea(0,0);updateWater(0,0);notifyAwakening();}
+ function resetAwakening(){awakening.reset();time=0;currentSeconds=0;lastCurrentTime=0;lastWaterTime=-Infinity;for(const v of signalViews){v.clock={travel:0,pulse:0};v.lastTime=0;v.arrival=travellerArrivals(v.layer,options.transport[v.layer].count*options.travellerVolume,MAX_TRAVELLERS);v.population.fill(0);v.cloud.points.geometry.setDrawRange(0,0);v.cloud.material.uniforms.opacity.value=0;v.brightness.array.fill(0);v.brightness.needsUpdate=true;}updateSea(0,0);updateWater(0,0);notifyAwakening();}
  let navigationHighlight:Cloud|null=null,highlightedTargetId:string|null=null;
  function highlight(id:string|null){
   highlightedTargetId=id;const target=activeOpenTarget?.id===id?activeOpenTarget:WORLD_TARGETS.find(t=>t.id===id);

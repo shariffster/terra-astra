@@ -90,6 +90,12 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Batch connection hierarchy work and reuse the already-computed hierarchy when building ribbons. Preserve all computed visual attributes and the complete network.
 - Preserve the full Genesis on every visit, the 550ms handoff and all awakening times. Record the actual default per-family introduction windows in `docs/SMOOTHER-PREPARATION-V01017.md`; user settings affect the moving populations.
 
+### Same-version follow-up — A calmer awakening · 19 September 2026
+
+- Spread selected satellites across 2.5–6.5s, flights across 5–10s, ships across 8–13s and cable pulses across 10–14s after Earth forms. Counts no longer compress the arrival into the first part of a 600-slot schedule.
+- Keep the schedule stable while tuning live. Replay captures the newly selected count; fractional density and later additions retain their existing gentle population fades.
+- Preserve full Genesis on every visit, readiness-driven loading, full-path drawing times and the 18-second awakening. See `docs/TRAVELLER-ARRIVALS-V01017.md`.
+
 ## v0.10.16 — A wider web of light · 17 September 2026
 
 - Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.

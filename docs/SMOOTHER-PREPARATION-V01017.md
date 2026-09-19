@@ -4,7 +4,9 @@ Continue exact `073419db5f7eb7de631809e0f508c4e4a4bf3ab4` on the existing v0.10.
 
 Particle attributes, relief lifting, terrain normals and population/footprint remapping now expose smaller work checkpoints. Preparation starts at a real browser task boundary, including between traveller-family buffers. Network hierarchy is batched and the already-computed hierarchy is reused for ribbons. Synchronous wrappers preserve on-demand/detail callers. Data order, particle IDs, geometry, light arithmetic and sampling remain unchanged.
 
-## Current timing
+## Timing at this preparation milestone
+
+The subsequent approved arrival pass supersedes the traveller timings below; see [A calmer awakening](TRAVELLER-ARRIVALS-V01017.md). This table preserves the measurements from the preparation-only change.
 
 The gathering loader ends on actual readiness, followed by its 550ms dissolve. The complete Genesis lasts 10.8 seconds. The following clock starts **after Earth finishes forming**, with motion enabled, no navigation and default settings. "Full" means all selected lights have completed their introduction; far-side occlusion, artistic brightness and pulse phases remain.
 

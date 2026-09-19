@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.17 traveller arrival authority (19 September 2026)
+
+From `fcd5e28b8dbb4765e66264c67afd52c97365c7ff`, the user approves arrival windows of 2.5–6.5s for satellites, 5–10s for flights, 8–13s for ships and 10–14s for cable pulses, measured after Earth forms. Fit these windows to the selected population. Preserve pathway timings, full Genesis on every visit and the 18-second awakening. Continue the same branch/version/Lab and retry publication of the completed preparation improvements together with this follow-up; preserve earlier releases.
+
 ## v0.10.17 smoother preparation authority (19 September 2026)
 
 From `073419db5f7eb7de631809e0f508c4e4a4bf3ab4`, smooth the remaining preparation pauses. Keep the complete Genesis on every visit and all existing awakening timings; report the actual per-family reveal timing rather than retuning it. Continue the same branch/version/Lab and preserve earlier releases.

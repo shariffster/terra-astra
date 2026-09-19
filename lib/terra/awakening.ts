@@ -1,4 +1,5 @@
 import type { SignalLayer, WorldSignal } from '../world/signals';
+import type { TransportFamily } from './transport';
 
 /** Seconds after the exact geographic endpoint. One engine-owned, active-frame
  * clock drives populations, trails, ocean motion, idle turn and discovery. */
@@ -16,6 +17,26 @@ export const awakeningEase = (value: number) => {
   const t = Math.max(0, Math.min(1, value));
   return t * t * (3 - 2 * t);
 };
+
+/** Travellers have their own arrival windows; full pathway drawing is unchanged. */
+export const TRAVELLER_ARRIVAL = Object.freeze({
+  satellites: AWAKENING.satellites,
+  aircraft: AWAKENING.aircraft,
+  ships: AWAKENING.ships,
+  cables: { start: 10, end: 14, fade: .9 },
+});
+
+/** Snapshot the selected population for this introduction. Keep the schedule
+ * stable during live tuning; replay takes a new snapshot. Extra slots share the
+ * final onset and still use the existing population fade when added later. */
+export function travellerArrivals(layer: TransportFamily, population: number, capacity: number) {
+  const phase = TRAVELLER_ARRIVAL[layer];
+  const count = Math.max(1, Math.min(capacity, Math.ceil(population)));
+  const fade = count === 1 ? phase.end - phase.start : phase.fade;
+  const onsets = Float64Array.from({ length: capacity }, (_, i) =>
+    phase.start + Math.min(i, count - 1) / Math.max(1, count - 1) * (phase.end - phase.start - fade));
+  return { onsets, fade };
+}
 
 export class AwakeningTimeline {
   elapsed = 0;
