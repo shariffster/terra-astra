@@ -325,6 +325,19 @@ export function* marineStrandsSteps(paths: readonly SmoothCable[], elevation: El
    const nx=y*tz-z*ty,ny=z*tx-x*tz,nz=x*ty-y*tx,n=Math.max(1e-12,Math.hypot(nx,ny,nz));
    normals.set([nx/n,ny/n,nz/n],i);tapers[k]=Math.sin(Math.PI*path.progress[k])**2*(path.gathering?.[k]??1);
   }
+  // An offset wider than the local bend radius folds back on itself. Limit
+  // the inside fan before that happens, with long shoulders instead of a
+  // repeated pinch at every fine curve sample. No change to the centreline.
+  const bendLimits=new Float64Array(count).fill(Infinity);
+  for(let k=1;k<count-1;k++){
+   const a=(k-1)*3,b=(k+1)*3,ds=path.distances[k+1]-path.distances[k-1];
+   const turn=Math.acos(Math.max(-1,Math.min(1,normals[a]*normals[b]+normals[a+1]*normals[b+1]+normals[a+2]*normals[b+2])));
+   if(turn>1e-5)bendLimits[k]=.30*ds/turn;
+  }
+  // A two-sided slope envelope is conservative: it can only narrow a fan.
+  // It also removes abrupt local changes caused by uneven sample spacing.
+  for(let k=1;k<count;k++)bendLimits[k]=Math.min(bendLimits[k],bendLimits[k-1]+.22*(path.distances[k]-path.distances[k-1]));
+  for(let k=count-2;k>=0;k--)bendLimits[k]=Math.min(bendLimits[k],bendLimits[k+1]+.22*(path.distances[k+1]-path.distances[k]));
   for(const strand of [1,2,3,4]){
    // Open-water fans gain separation with crossing length. Near-coast
    // routes keep their fine spacing; all offsets still pass the water mask.
@@ -336,7 +349,9 @@ export function* marineStrandsSteps(paths: readonly SmoothCable[], elevation: El
    for(let attempt=0;attempt<8;attempt++){
     const blocked:number[]=[];
     for(let k=0;k<count;k++){
-     const i=k*3,t=offset*tapers[k]*clearance[k],x=units[i]+normals[i]*t,y=units[i+1]+normals[i+1]*t,z=units[i+2]+normals[i+2]*t,n=Math.hypot(x,y,z);
+     // A smooth minimum rounds the shoulder while staying below both bounds.
+     const requested=Math.abs(offset)*tapers[k],limit=bendLimits[k],bounded=Number.isFinite(limit)?requested/Math.pow(1+(requested/Math.max(1e-9,limit))**4,.25):requested;
+     const i=k*3,t=Math.sign(offset)*bounded*clearance[k],x=units[i]+normals[i]*t,y=units[i+1]+normals[i+1]*t,z=units[i+2]+normals[i+2]*t,n=Math.hypot(x,y,z);
      const q:V=[x/n,y/n,z/n],[lon,lat]=coordinates(q);
      if(!water(q,elevation,surface)||!surface&&networkRadius(elevation(lon,lat))>radii[k]+.000002)blocked.push(k);
      candidate.set([q[0]*radii[k],q[1]*radii[k],q[2]*radii[k]],i);

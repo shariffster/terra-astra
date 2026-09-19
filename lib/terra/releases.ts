@@ -12,6 +12,7 @@ export const releases = [
       'Connected marine routes now share the same entry and exit points through junctions, with longer compatible approaches and gradual branching. Unrelated crossings remain separate.',
       'Twenty shipping connections and twenty undersea connections add branches around Malacca, the Arabian Sea, East Africa, the North Atlantic and Hawaii. Traveller counts remain independent.',
       'Same-version refinement: finer marine strands are more visible, with independent offshore spread and secondary-light controls. Hormuz and Bab al-Mandab approaches are smoother, and narrow-window framing gives Earth more presence.',
+      'The Sunda and Java Sea branches now take clearer shared approaches. Australian and Pacific connections turn more gradually, existing northern crossings retain varied bows, and fine strands gather through tight bends without folding back.',
       'The white-gold Earth, live controls and complete awakening remain. The previous v0.10.17 Site stays available as a separate checkpoint.',
     ],
     review: '490 sea paths and 398 undersea paths are illustrative, not measured traffic or surveyed cable alignments. Original records and endpoints are preserved. Curves and strands are constrained by the existing coarse ocean mask; narrow passages remain schematic. Shared geometry applies across the marine network; added connections focus on five regions. This separate Site has its own browser-local saved settings; export and import a composition to carry it across.',

@@ -1,3 +1,7 @@
+# v0.10.18 branching and convergence follow-up (19 September 2026)
+
+The user approves the critique of `fe6bce739633bddd3b86abb803180d42bde5fab5`: refine Singapore–Indonesia–Australia and then Pacific junctions, with varied branching, longer smooth convergence and steady traveller counts. Continue this same v0.10.18 checkpoint and branch; publish a new saved revision after geometry and rendered checks. Preserve source identities/endpoints, water/depth constraints, settings, palette, opening and awakening, previous native revisions and tags, the v0.10.17 Site, canonical and archive.
+
 # v0.10.18 strand and passage follow-up (19 September 2026)
 
 The user approves finer, clearer marine strands, independent spread/visibility controls and narrow-window framing, and adds the Hormuz and Bab al-Mandab/Red Sea approaches. Continue this same checkpoint Site and branch from `4596f95c2c5dad2223eb94b09c98c21dd3ab68e4`. Preserve the v0.10.18 tag and native revision 1, the v0.10.17 Site, canonical and archive. Save and publish a new native revision on this checkpoint only. No new route counts or traveller budgets are needed. Treat other channels as coverage recommendations, not an automatic global expansion.

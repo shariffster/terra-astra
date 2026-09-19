@@ -21,6 +21,14 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Increase Earth's presence on narrow desktop views and reserve more breathing space on phones. Keep the full opening and awakening intact.
 - Preserve the original v0.10.18 tag and native revision 1; this is a new saved revision on the same checkpoint Site. See `docs/STRAND-LEGIBILITY-V01018.md`.
 
+### Same-version follow-up — Branching and convergence · 19 September 2026
+
+- Replace the display detour from Singapore toward Sunda through the Bali/Lombok area with a direct water-checked Sunda approach; give Java Sea and Lombok feeders shared approaches and smoother separation.
+- Broaden the western and southern Australian approaches, Hawaii feeders and Guam connections. Existing parallel Japan crossings retain distinct broad bows and common coastal stems.
+- Limit companion spread by the local bend radius so fine strands gather before a tight turn instead of folding into loops. Keep zero-spread centrelines and all traveller populations unchanged.
+- Preserve source records and endpoints, settings, colours, opening and awakening, previous revisions and the original v0.10.18 tag. This is a new native revision on the same checkpoint Site.
+- Evidence and limits: `docs/BRANCH-CONVERGENCE-V01018.md`.
+
 ## v0.10.17 — Gathering into currents · 17 September 2026
 
 - Extend exact v0.10.16 `2ed8a38dddcc4164e31b6de097c04c22142236c6` in `people-choice/v0.10.17-flow-hierarchy`; Lab only.

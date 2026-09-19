@@ -52,3 +52,9 @@ Rendered at 1440×900 across Asia, Indian Ocean, Cape, North Atlantic and North 
 ## 19 September 2026 — Strand legibility follow-up
 
 User-approved same-checkpoint refinement: thinner, more legible fine marine strands; independent saved spread/light controls; yielding and cancellable live preparation; narrow framing; Hormuz and Bab al-Mandab approaches. Preserve white-gold land dominance, travellers and original route provenance. Review and geographic limitations: `docs/STRAND-LEGIBILITY-V01018.md`.
+
+## 19 September 2026 — Branching and convergence follow-up
+
+User-approved geometry pass through Singapore, Indonesia and Australia, followed by Pacific junctions. Shared Java Sea stems separate gradually toward Sunda and Lombok; Pacific crossings retain distinct broad bows and common coastal approaches. Companion fans narrow ahead of tight bends to avoid inner-strand loops. Preserve traveller counts, white/gold land dominance, settings and the complete opening.
+
+One rendered review batch at 1440×900 and 390×844 identified an abrupt Java Sea split; the bounded correction and final confirmation improved that shoulder. Final evidence: `output/branch-convergence/{indonesia-close,pacific-final,mobile-final}.png`. Existing independent crossings and schematic hub structure remain; this is selected geographic refinement, not global route accuracy. Geometry checks and evidence limits are in `docs/BRANCH-CONVERGENCE-V01018.md`.
