@@ -12,6 +12,15 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Preserve original source records, endpoints, palette, controls, full Genesis and traveller arrival windows. New Site browser-local settings can be transferred with the existing composition export/import controls.
 - Validation and limitations: `docs/SHARED-CORRIDORS-V01018.md`.
 
+### Same-version follow-up — Clearer strands and narrow passages · 19 September 2026
+
+- Strengthen fine marine strands with thinner cores and less narrow-screen attenuation. Retain overlap attenuation at busy convergences.
+- Add independent saved Offshore strand spread (0–2×) and Secondary-strand visibility (0–2×) controls. Older compositions receive the new defaults; all previous choices survive.
+- Prepare live route changes in yielding, cancellable batches and swap complete geometry atomically. Existing routes remain visible during preparation.
+- Refine existing Hormuz and Bab al-Mandab/Red Sea display approaches, sharing the eastern Hormuz approach with coastal feeders. Original records, endpoints, route counts and traveller budgets remain.
+- Increase Earth's presence on narrow desktop views and reserve more breathing space on phones. Keep the full opening and awakening intact.
+- Preserve the original v0.10.18 tag and native revision 1; this is a new saved revision on the same checkpoint Site. See `docs/STRAND-LEGIBILITY-V01018.md`.
+
 ## v0.10.17 — Gathering into currents · 17 September 2026
 
 - Extend exact v0.10.16 `2ed8a38dddcc4164e31b6de097c04c22142236c6` in `people-choice/v0.10.17-flow-hierarchy`; Lab only.

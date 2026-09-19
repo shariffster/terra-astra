@@ -4,7 +4,7 @@ import { DEFAULT_PRESENTATION, validateWorldCommand, type WorldPresentation, typ
 export const LIGHT_RANGES = {
  skyLight: [0, 1.5, .01], skyShimmer: [0, 2, .01], skyDust: [0, 1, .01], glow: [.25, 2, .01], shimmer: [0, 2, .01], threads: [0, 1.4, .01], density: [.2, 1, .01],
  nightLights: [0, 2, .01], warmth: [0, 1, .01], oceanLight: [0, 2, .01], shoreBreath:[0,1,.01], currentLight:[0,3,.01], currentSpeed:[0,3,.05],
- pathLight: [0, 2, .01], pathVolume: [0, 1, .01], travellerLight: [0, 2, .01], travellerVolume: [0, 1, .01],
+ strandSpread: [0, 2, .05], strandLight: [0, 2, .01], pathLight: [0, 2, .01], pathVolume: [0, 1, .01], travellerLight: [0, 2, .01], travellerVolume: [0, 1, .01],
  airLight: [0, 2, .01], seaLight: [0, 2, .01], cableLight: [0, 2, .01], orbitLight: [0, 2, .01],
  population: [0, 1.5, .01], footprint: [0, 1.5, .01], fieldDensity: [.1, 1, .01], colour: [0, 1, .01],
 } as const;
@@ -12,7 +12,7 @@ export type LightNumber = keyof typeof LIGHT_RANGES;
 export type LightOptions = Record<LightNumber, number> & { depth: boolean; borders: boolean; motion: boolean; transport: TransportOptions };
 export const DEFAULT_LIGHT: LightOptions = Object.freeze({
  transport: cloneTransport(), skyLight: .7, skyShimmer: .75, skyDust: 0, glow: 1.15, shimmer: 1.1, depth: true, threads: .55, density: .85, borders: false, motion: true,
- shoreBreath:.35,currentLight:1,currentSpeed:1, nightLights: 1.15, warmth: .65, oceanLight: .8, pathLight: 1, pathVolume: .85, travellerLight: 1, travellerVolume: .85,
+ shoreBreath:.35,currentLight:1,currentSpeed:1, nightLights: 1.15, warmth: .65, oceanLight: .8, strandSpread: 1.35, strandLight: 1.25, pathLight: 1, pathVolume: .85, travellerLight: 1, travellerVolume: .85,
  airLight: .9, seaLight: 1, cableLight: .85, orbitLight: 1, population: .55, footprint: .38, fieldDensity: .75, colour: .6,
 });
 export type Composition = { schema: 'terra-astra-composition'; version: 1; name: string; light: LightOptions; presentation: WorldPresentation; layers: Record<WorldLayer, boolean> };
@@ -29,7 +29,7 @@ export function validateComposition(value: unknown): Composition | null {
  if(!c.light || typeof c.light !== 'object' || !c.layers || typeof c.layers !== 'object') return null;
  const light = c.light as Record<string, unknown>, layers = c.layers as Record<string, unknown>, clean = {...DEFAULT_LIGHT};
  for(const key of Object.keys(LIGHT_RANGES) as LightNumber[]) {
-  const v = (['skyLight','skyDust','skyShimmer','shoreBreath','currentLight','currentSpeed'].includes(key)) && light[key] === undefined ? DEFAULT_LIGHT[key] : light[key], [min,max] = LIGHT_RANGES[key];
+  const v = (['skyLight','skyDust','skyShimmer','shoreBreath','currentLight','currentSpeed','strandSpread','strandLight'].includes(key)) && light[key] === undefined ? DEFAULT_LIGHT[key] : light[key], [min,max] = LIGHT_RANGES[key];
   if(typeof v !== 'number' || !Number.isFinite(v) || v < min || v > max) return null;
   clean[key] = Math.round(v * 100) / 100;
  }

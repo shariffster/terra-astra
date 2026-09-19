@@ -48,3 +48,7 @@ After Earth forms, selected satellites arrive across 2.5–6.5 seconds, flights 
 Separate Site explicitly requested; preserve the published v0.10.17 Lab. The marine graph now gives shared gates consistent cut points and smoother long approaches, and forty illustrative connections add regional variety across five study areas. Earth remains the dominant pearl/gold object. Controls, palette, populations and awakening timings are preserved.
 
 Rendered at 1440×900 across Asia, Indian Ocean, Cape, North Atlantic and North Pacific, plus 390×844. Fine crossings remain distinct; Hawaii retains a broad geographic triangle rather than a manufactured single hub. The existing phone control-rail overlap remains outside scope. Live rounding changed and settled correctly. Source, validation and limits: `docs/SHARED-CORRIDORS-V01018.md`; captures: `output/shared-corridors/`.
+
+## 19 September 2026 — Strand legibility follow-up
+
+User-approved same-checkpoint refinement: thinner, more legible fine marine strands; independent saved spread/light controls; yielding and cancellable live preparation; narrow framing; Hormuz and Bab al-Mandab approaches. Preserve white-gold land dominance, travellers and original route provenance. Review and geographic limitations: `docs/STRAND-LEGIBILITY-V01018.md`.

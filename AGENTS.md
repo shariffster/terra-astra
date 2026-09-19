@@ -1,3 +1,7 @@
+# v0.10.18 strand and passage follow-up (19 September 2026)
+
+The user approves finer, clearer marine strands, independent spread/visibility controls and narrow-window framing, and adds the Hormuz and Bab al-Mandab/Red Sea approaches. Continue this same checkpoint Site and branch from `4596f95c2c5dad2223eb94b09c98c21dd3ab68e4`. Preserve the v0.10.18 tag and native revision 1, the v0.10.17 Site, canonical and archive. Save and publish a new native revision on this checkpoint only. No new route counts or traveller budgets are needed. Treat other channels as coverage recommendations, not an automatic global expansion.
+
 # v0.10.18 separate checkpoint authority (19 September 2026)
 
 The user explicitly requests a separate Site URL, preserving the current live v0.10.17 Lab. Continue the approved five-region marine convergence and branching work in this isolated v0.10.18 checkout from d6d309dda34e4b54681434c5a7a236ebeffe08d8. Create and publish a new Site checkpoint. The existing Lab, earlier tags, canonical and archive remain unchanged. Preserve palette, original route records and endpoints, traveller populations, settings capabilities and the complete opening/awakening timings. This instruction supersedes the earlier same-Site and same-version follow-up boundaries below.

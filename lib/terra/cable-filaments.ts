@@ -71,9 +71,9 @@ export const cableFilamentVertex=`
 attribute vec3 previous;attribute vec3 next;attribute float side;attribute vec3 route;attribute float routeIndex;attribute float routeRelief;attribute float routeStrand;attribute float routeImportance;attribute float routeThreshold;attribute float routeExposure;
 uniform vec2 resolution;uniform float awakeningTime;uniform float motion;uniform float time;
 attribute float localLight;uniform float localPath;uniform float lineSoftness;
-uniform float pathKind;uniform sampler2D routeGate;uniform vec2 routeSize;uniform float drawDuration;uniform float fadeDuration;uniform float richness;
+uniform float pathKind;uniform sampler2D routeGate;uniform vec2 routeSize;uniform float drawDuration;uniform float fadeDuration;uniform float richness;uniform float secondaryLight;
 uniform float regionMix;uniform vec3 regionFocus;uniform float regionOuter;uniform float regionInner;
-varying float vAcross;varying float vLight;varying float vImportance;
+varying float vAcross;varying float vLight;varying float vImportance;varying float vStrand;
 const float phase=0.0;
 ${transformationGLSL}
 ${terrainVertexGLSL}
@@ -96,7 +96,7 @@ void main(){
   tangent/=max(.00001,length(tangent));
   vec2 normal=vec2(-tangent.y,tangent.x);
   p.xy+=normal*side*2.2*2.0/resolution*p.w;
-  gl_Position=p;vAcross=side*2.2;vImportance=routeImportance;
+  gl_Position=p;vAcross=side*2.2;vImportance=routeImportance;vStrand=routeStrand;
   float front=pathKind<.5?smoothstep(-.02,.08,dot(normalize(world),normalize(cameraPosition-world))):surfaceVisibility(world);
   float age=awakeningTime-route.y;
   float reveal=smoothstep(0.0,1.0,(age-route.x*drawDuration)/fadeDuration);
@@ -104,22 +104,25 @@ void main(){
   float focus=mix(1.0,.12+.88*smoothstep(regionOuter,regionInner,dot(normalize(world),regionFocus)),regionMix);
   float strandGate=smoothstep(max(routeThreshold,routeStrand*.16),max(routeThreshold,routeStrand*.16)+.16,richness);
   float grazing=mix(.24,1.0,smoothstep(.03,.6,dot(normalize(world),normalize(cameraPosition-world))));
-  float hierarchy=routeStrand<.5?1.0:mix(.58,.36,smoothstep(1.0,4.0,routeStrand));
+  float hierarchy=routeStrand<.5?1.0:secondaryLight*mix(.88,.62,smoothstep(1.0,4.0,routeStrand));
   float screenDetail=smoothstep(380.0,1000.0,resolution.x);
-  float screenHierarchy=mix(.38+.62*smoothstep(.25,1.4,routeImportance),1.0,screenDetail);
+  float screenHierarchy=mix((pathKind<1.5?.68:.38)+(pathKind<1.5?.32:.62)*smoothstep(.25,1.4,routeImportance),1.0,screenDetail);
   float junction=mix(.68,1.0,smoothstep(0.0,pathKind>1.5?.09:.07,min(route.x,1.0-route.x)));
   if(localPath>.5){vLight=localLight*front*(pathKind<.5?spatialVisibility(world):1.0)*focus;return;}
   // Let a selected marine backbone retain its core through convergences. The
   // fine companions still share the full density budget, avoiding blown knots.
   float exposure=pathKind<1.5&&routeStrand<.5?max(routeExposure,.42*smoothstep(.6,1.35,routeImportance)):routeExposure;
+  // Companion light shares a stricter budget where many strands coincide.
+  if(pathKind<1.5&&routeStrand>.5)exposure*=mix(.65,1.0,smoothstep(.12,.5,routeExposure));
   vLight=screenHierarchy*route.z*exposure*mix(routeImportance,sqrt(routeImportance),regionMix)*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
 }`;
 export const cableFilamentFragment=`
 uniform vec3 tint;uniform float opacity;uniform float glow;uniform float regionMix;uniform float pathKind;uniform float lineSoftness;
-varying float vAcross;varying float vLight;varying float vImportance;
+varying float vAcross;varying float vLight;varying float vImportance;varying float vStrand;
 void main(){
   float distance=abs(vAcross),aa=max(mix(.18,.95,lineSoftness),fwidth(vAcross));
   float radius=(pathKind>1.5?mix(.13,.27,regionMix):mix(.19,.34,regionMix))*mix(.70,1.25,vImportance);
+  radius*=vStrand>.5?.78:1.0;
   float core=1.0-smoothstep(radius-aa*.5,radius+aa*.5,distance);
   float halo=exp(-distance*distance*mix(3.5,1.0,lineSoftness))*mix(.01,.16,lineSoftness)*glow;
   float fade=1.0-smoothstep(1.65,2.2,distance);

@@ -305,15 +305,15 @@ export function sampleSmoothCable(path: SmoothCable, progress: number, out: Outp
 /** Additional visual strands follow the existing corridors; they are not new
  * cables. Their lateral offset and derivative vanish at the shared hubs.
  * Reject offsets on land using the same water mask as the parent geometry. */
-export function marineStrands(paths: readonly SmoothCable[], elevation: Elevation, surface = false) {
- return finishPreparation(marineStrandsSteps(paths,elevation,surface));
+export function marineStrands(paths: readonly SmoothCable[], elevation: Elevation, surface = false, strandSpread = 1.35) {
+ return finishPreparation(marineStrandsSteps(paths,elevation,surface,strandSpread));
 }
 
-export function* marineStrandsSteps(paths: readonly SmoothCable[], elevation: Elevation, surface = false): Generator<void,{positions:Float32Array;progress:Float32Array;sourceIndex:number;strand:number}[],void> {
+export function* marineStrandsSteps(paths: readonly SmoothCable[], elevation: Elevation, surface = false, strandSpread = 1.35): Generator<void,{positions:Float32Array;progress:Float32Array;sourceIndex:number;strand:number}[],void> {
  const result: {positions:Float32Array;progress:Float32Array;sourceIndex:number;strand:number}[]=[];
  for(const [sourceIndex,path] of paths.entries()){
   result.push({...path,sourceIndex,strand:0});
-  if(path.length<.08){yield;continue;}
+  if(path.length<.08||strandSpread<=0){yield;continue;}
   const count=path.progress.length,units=new Float64Array(count*3),normals=new Float64Array(count*3),radii=new Float64Array(count),tapers=new Float64Array(count);
   // Prepare each tangent once. Offset retries only sample the water constraint;
   // they do not repeatedly allocate vectors or rebuild the same cross products.
@@ -329,7 +329,7 @@ export function* marineStrandsSteps(paths: readonly SmoothCable[], elevation: El
    // Open-water fans gain separation with crossing length. Near-coast
    // routes keep their fine spacing; all offsets still pass the water mask.
    const spread=Math.min(1,Math.max(0,(path.length-.18)/.9));
-   const offset=(strand%2?1:-1)*Math.ceil(strand/2)*(surface?.004+.007*spread:.0025+.0045*spread);
+   const offset=Math.max(0,Math.min(2,strandSpread))*(strand%2?1:-1)*Math.ceil(strand/2)*(surface?.004+.007*spread:.0025+.0045*spread);
    const candidate=new Float32Array(path.positions.length),clearance=new Float64Array(count).fill(1);
    const ease=(x:number)=>{const t=Math.max(0,Math.min(1,x));return t*t*t*(t*(6*t-15)+10);};
    let accepted=false;
