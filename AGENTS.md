@@ -1,5 +1,9 @@
 # Terra Astra release continuity
 
+## v0.10.17 gathering prelude authority (19 September 2026)
+
+The user approves replacing the early geographic Earth, name and tagline with sparse gathering light and “Gathering the constellation…”. Continue the same branch, version and Lab Site from `19ac38847d9fa7ed2b06b52d010ed3d738b97f3f`. Coordinate a first-render handoff into the existing Genesis core; preserve the subsequent reveal, geography, transport, controls, sound, prior tags, canonical and archive.
+
 ## v0.10.17 network richness and junction authority (18 September 2026)
 
 From exact `af2782ae74cf53fe43c435bd27c8e2ea6c2dd3c9`, the user authorizes richer marine branching and remaining junction refinement, led by the Indian Ocean–Singapore and Cape regions. Continue the same branch, version and Lab Site. Preserve source identities, endpoints, water constraints, saved controls, traveller populations, restored satellites and the white-gold Earth. Compare Atlantic and Pacific views. Loading and phone layout are outside this pass; preserve earlier tags, canonical, archive and Maker’s Mark.

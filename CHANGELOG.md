@@ -56,6 +56,13 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Strengthen secondary marine strokes and vary companion spacing with crossing length. Preserve the palette, white-gold hierarchy, default traveller budgets, saved controls, restored satellites, loading sequence and earlier releases.
 - See `docs/INDIAN-NETWORK-V01017.md` for reproducible data generation, checks, rendered comparisons and limits.
 
+### Same-version follow-up — Gathering prelude · 19 September 2026
+
+- Replace the early Earth, name and tagline with asset-free pearl/gold grains and sparse inward-curving arrivals. Restore the singular “Gathering the constellation…”. The Earth and brand reveal remain in the main experience.
+- Match the prelude to the opening core's centre and camera scale. Begin the 800ms dissolve only after the first actual scene render; hold Genesis at its core until the handoff finishes. Keep the subsequent 10.8-second introduction, skip and replay intact.
+- Pause the prelude while hidden; saved motion-off and reduced-motion preferences keep it still and bypass the spatial handoff. Dispose its animation and observer on completion/unmount. Existing failure/retry UI remains.
+- See `docs/GATHERING-PRELUDE-V01017.md` for evidence and limits. Same version, branch and Lab; historical tags and releases remain preserved.
+
 ## v0.10.16 — A wider web of light · 17 September 2026
 
 - Extend exact v0.10.15 `2149441e990affa1da8eefe6060805fcf01c8606` in `people-choice/v0.10.16-network-richness`; People's Choice Lab only.

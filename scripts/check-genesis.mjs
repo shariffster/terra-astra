@@ -73,3 +73,15 @@ engine.configure({glow:1.15,shimmer:1.1,depth:true,threads:.55,density:.85,borde
 await engine.descend();tick();assert.equal(stages.at(-1),'city','Singapore retained');engine.orbit();tick();assert.equal(stages.at(-1),'orbit');
 engine.configure({glow:1.15,shimmer:1.1,depth:true,threads:.55,density:.85,borders:false,motion:true});engine.replayGenesis();const disposedCommand=engine.command({type:'resetView'});await Promise.resolve();engine.dispose();assert.equal((await disposedCommand).ok,false,'Dispose settles pending command');assert.equal(frame,null);
 console.log('PASS: 3,000 deterministic nucleus/ejection/capture paths; 300k+ unique stable IDs; exact geographic endpoints and unchanged arrays; auto genesis, resize, replay, skip, reduced motion, queued command/disposal and Singapore lifecycle. Inert Canvas, not pixel evidence.');
+
+// The UI may hold the first rendered core while its lightweight prelude dissolves.
+let readyCount=0;
+const held=await createEarth(host,{querySelector:()=>null},{deferGenesis:true,ready:()=>{assert.ok(rendered);readyCount++;},coordinates:noop,interact:noop,arrival:noop,stage:noop,error:message=>assert.fail(message)},new AbortController().signal);
+assert.equal(readyCount,0,'Preparation is not a rendered frame');
+tick();assert.equal(readyCount,1,'Ready fires after the first render');
+tick(5000);assert.equal(held.worldState().genesis.progress,0,'Prelude does not consume Genesis time');
+held.beginGenesis();tick(500);const heldProgress=held.worldState().genesis.progress;
+assert.ok(heldProgress>0&&heldProgress<.1);
+held.beginGenesis();tick(500);assert.ok(held.worldState().genesis.progress>heldProgress,'Handoff is idempotent');
+assert.equal(readyCount,1,'Ready is delivered once');held.skipGenesis();tick();assert.equal(held.worldState().genesis.phase,'complete');held.dispose();assert.equal(frame,null);
+console.log('PASS: first-render readiness, deferred core, idempotent handoff, skip and disposal.');

@@ -19,15 +19,15 @@ Selected long connections retain a bounded luminous core; finer companions remai
 
 The preceding current treatment remains: four soft, discontinuous strokes per existing basin across eight basins, preserving the 1,536-point budget. Current light/speed, pause and reduced-motion controls remain. Existing cyan satellites and smaller round pearl background stars retain their separate identities.
 
-## Loading and handover
+## Loading and handover — 19 September gathering prelude
 
-Inline SVG draws 406 projected samples from the bundled Natural Earth and NASA 2016 point fields: 145 coast, 215 land and 46 night-light points. Pearl geography and selected gold light describe a recognizable small Earth. The samples form a decorative geographic illustration, not a quantitative map, and need no external loading asset.
+The approved follow-up replaces the early Earth, name and tagline with 620 fine pearl/gold core grains and 42 sparse inward-curving arrivals. No geography is visible. The only copy is “Gathering the constellation…”, exposed as a status. A bounded Canvas 2D surface needs no downloaded image or WebGL engine. The warm core sits at the viewport centre, with scale derived from the same home framing and 42-degree camera as Genesis. Status uses 14px Arial with the existing cool secondary ink.
 
-The centered composition retains the warm Georgia name, “Earth, constellated.” subtitle and “Gathering the constellations…” status. The illustration is decorative; the text exposes a status role. The SVG is 270px wide, reducing to 235px at 600px and below. The name scales from 32–42px.
+Readiness now means the main renderer has drawn its first frame. Genesis can hold at progress zero while the prelude dissolves over 800ms, then begins its unchanged 10.8-second sequence. There is no minimum loading hold. The text fades earlier in the handoff. Reduced-motion and saved motion-off keep the prelude still and bypass the dissolve; hidden tabs suspend its clock. Completion/unmount disposes its animation and resize observer.
 
-Gold samples shimmer independently while pearl geography remains still. Readiness starts the 400ms opacity fade immediately; removal follows at 450ms without a minimum wait or synthetic progress. Reduced motion disables shimmer and the fade transition. Genesis remains unchanged.
+Visual evidence: `.impeccable/review/gathering-prelude/` contains native Zen desktop, 390×844 responsive viewport, still-mode, consecutive handoff frames and actual application boot frames. The temporary review route holds the real prelude over the real engine; it is removed before build. Actual boot is separately checked. These are local rendered checks, not physical-phone, subjective listening or sustained performance acceptance. In-app browser automation was unavailable in this run; native browser inspection was used instead. Lifecycle checks cover first-render readiness, deferred core, idempotent start, skip, replay, reduced motion and disposal.
 
-## Current evidence and limits
+## Earlier wider-ocean evidence and limits
 
 The fresh independent finish reviewer returned **ship**, validating all eight required captures with no material fixes for this narrow refinement. Captures in ../review/wide-oceans/: pacific.png, atlantic.png, indian-cape.png, mobile.png, user-1036.png, loading-desktop.png, loading-mobile.png and loading-user-1036.png. They support composition, panel fit and loading layout at 1280×720, 390×844 and 1036×998.
 
