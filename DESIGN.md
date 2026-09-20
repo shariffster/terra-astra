@@ -89,7 +89,7 @@ Actions and inputs are nearly rectangular with subtly softened corners; story an
 - **Story sheet:** a compact translucent reading panel with a serif name and quotation. Longer biography and place details reveal on request; mobile placement preserves space for the city.
 - **View rail and stage bar:** small functional icons and quiet orientation text frame the canvas. Preserve accessible names, visible focus, and existing disabled states during movement.
 
-## Do's and Don'ts
+## Dos and Don'ts
 
 - Do keep the globe and transformed volume visually dominant.
 - Do preserve the cool geographic / warm human relationship and the Georgia / Arial pairing.
