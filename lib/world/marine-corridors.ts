@@ -1,3 +1,4 @@
+import { europeSpines } from './europe-corridors';
 type Location = readonly [number, number];
 
 /** Display spines in the existing ETOPO water mask, not surveyed alignments.
@@ -72,6 +73,7 @@ const spines: readonly (readonly Location[])[] = [
  // the conspicuous Perth elbow without moving either offshore endpoint.
  [[-10.125,115.125],[-13,113],[-17,111],[-21,110],[-26,111.8],[-29.5,112.6],[-32.125,113.125]],
  [[-10.125,115.125],[-13,113],[-17,111],[-21,110],[-26,111.8],[-31,113],[-34.5,114.5],[-37,118],[-38,126],[-39,136],[-39,144],[-39.375,148.375],[-37,151],[-34.125,153.125]],
+ ...europeSpines,
 ];
 const equal=(a:Location,b:Location)=>a[0]===b[0]&&a[1]===b[1];
 
@@ -109,6 +111,14 @@ export function marineCorridorWaypoints(original:readonly Location[]):readonly L
  * rather than duplicating one curve with a constant sideways offset. Original
  * intermediate latitudes choose the bow, so reversing a route is identical. */
 function crossingBranch(spine:readonly Location[],original:readonly Location[]):readonly Location[] {
+ // Preserve the different western Mediterranean crossings as broad bows,
+ // with identical Gibraltar and Sicily approaches. Source latitude supplies
+ // stable variation; no random wiggle or fictitious endpoint is introduced.
+ if(equal(spine[0],[35.875,-6.375])&&equal(spine[spine.length-1],[35.375,14.125])){
+  const mids=original.filter(p=>p[1]>2&&p[1]<8),latitude=mids.length?mids.reduce((n,p)=>n+p[0],0)/mids.length:37.375;
+  const band=Math.max(-1,Math.min(1,(latitude-37.375)/.5));
+  return spine.map((p,i)=>i<7||i>11?p:[p[0]+.38*band*Math.sin(Math.PI*(i-6)/6)**2,p[1]] as Location);
+ }
  if(!equal(spine[0],[33.875,142.125]))return spine;
  const end=spine[spine.length-1],hawaii=equal(end,[21.875,-156.875]);
  if(!hawaii&&!equal(end,[36.875,-124.875]))return spine;

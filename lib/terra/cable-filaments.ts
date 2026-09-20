@@ -6,6 +6,21 @@ import { transformationGLSL } from './transformation';
 import { terrainVertexGLSL } from './terrain-material';
 import { spatialVertexGLSL } from './spatial';
 
+/** Feather the crowding budget along distance, not vertex count. Averaging
+ * both directions keeps a reversed connection identical and softens the light
+ * shoulder before it reaches a luminous convergence. */
+export function featherMarineExposure(values:Float32Array,positions:Float32Array) {
+  const n=values.length,forward=values.slice(),backward=values.slice(),blend=new Float64Array(n);
+  for(let k=1;k<n;k++){
+    const i=k*3,j=i-3;
+    const distance=Math.hypot(positions[i]-positions[j],positions[i+1]-positions[j+1],positions[i+2]-positions[j+2]);
+    blend[k]=1-Math.exp(-distance/.012);
+    forward[k]=forward[k-1]+(values[k]-forward[k-1])*blend[k];
+  }
+  for(let k=n-2;k>=0;k--)backward[k]=backward[k+1]+(values[k]-backward[k+1])*blend[k+1];
+  return Float32Array.from(values,(_,k)=>(forward[k]+backward[k])*.5);
+}
+
 /** One indexed ribbon batch. Width is in screen pixels: a subpixel lilac core
  * with a restrained two-pixel falloff, independent of camera distance. */
 export function cableFilamentGeometry(paths: readonly (Pick<SmoothCable,'positions'|'progress'>&{relief?:number;sourceIndex?:number;strand?:number})[], sources: readonly (Pick<CablePath,'intensity'>&{tier?:string;threshold?:number;importance?:number})[], onsets: Float32Array) {
@@ -50,8 +65,10 @@ export function* cableFilamentGeometrySteps(paths: readonly (Pick<SmoothCable,'p
     const n=path.progress.length,p=path.positions,sourceIndex=path.sourceIndex??i,source=sources[sourceIndex];
     const onset=onsets[sourceIndex],intensity=source.intensity,routeThreshold=source.threshold??0;
     const importance=source.importance??(source.tier==='regional'?.70:1),relief=path.relief??0,strand=path.strand??0;
+    const sampledExposure=Float32Array.from(path.progress,(_,k)=>exposureAt(p,k*3));
+    const exposures=path.strand===undefined?sampledExposure:featherMarineExposure(sampledExposure,p);
     for(let k=0;k<n;k++){
-      const j=k*3,prev=Math.max(0,k-1)*3,after=Math.min(n-1,k+1)*3,exposure=exposureAt(p,j);
+      const j=k*3,prev=Math.max(0,k-1)*3,after=Math.min(n-1,k+1)*3,exposure=exposures[k];
       for(let s=0;s<2;s++){
         const v=(base+k)*2+s,target=v*3;
         routeExposure[v]=exposure;
@@ -111,9 +128,9 @@ void main(){
   if(localPath>.5){vLight=localLight*front*(pathKind<.5?spatialVisibility(world):1.0)*focus;return;}
   // Let a selected marine backbone retain its core through convergences. The
   // fine companions still share the full density budget, avoiding blown knots.
-  float exposure=pathKind<1.5&&routeStrand<.5?max(routeExposure,.42*smoothstep(.6,1.35,routeImportance)):routeExposure;
+  float exposure=pathKind<1.5&&routeStrand<.5?max(routeExposure,.28*smoothstep(.6,1.35,routeImportance)):routeExposure;
   // Companion light shares a stricter budget where many strands coincide.
-  if(pathKind<1.5&&routeStrand>.5)exposure*=mix(.65,1.0,smoothstep(.12,.5,routeExposure));
+  if(pathKind<1.5&&routeStrand>.5)exposure*=mix(.78,1.0,smoothstep(.12,.5,routeExposure));
   vLight=screenHierarchy*route.z*exposure*mix(routeImportance,sqrt(routeImportance),regionMix)*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
 }`;
 export const cableFilamentFragment=`

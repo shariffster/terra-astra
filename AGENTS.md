@@ -1,3 +1,7 @@
+# v0.10.18 European branching follow-up (20 September 2026)
+
+The user approves the critique of `8042982bf76e38e6c6fc1a4d70dc54c30c225fed`: refine Mediterranean–Gibraltar–English Channel approaches, add distinct coastal feeder connections, smooth remaining pointed junctions and rebalance main/fine marine light. Continue the same checkpoint Site and branch with a saved native revision. Preserve original source records/endpoints, water constraints, traveller populations, palette, settings, full opening and awakening, earlier revisions/tags, the v0.10.17 Site, canonical and archive. Added connections are illustrative, not surveyed or measured traffic.
+
 # v0.10.18 branching and convergence follow-up (19 September 2026)
 
 The user approves the critique of `fe6bce739633bddd3b86abb803180d42bde5fab5`: refine Singapore–Indonesia–Australia and then Pacific junctions, with varied branching, longer smooth convergence and steady traveller counts. Continue this same v0.10.18 checkpoint and branch; publish a new saved revision after geometry and rendered checks. Preserve source identities/endpoints, water/depth constraints, settings, palette, opening and awakening, previous native revisions and tags, the v0.10.17 Site, canonical and archive.

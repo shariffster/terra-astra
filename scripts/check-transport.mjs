@@ -16,6 +16,7 @@ const {atlasMarine}=await import('../lib/world/connection-atlas.ts');const marin
 const {seaLanePaths}=await import('../lib/world/sea-lanes.ts');const {cablePaths}=await import('../lib/world/cables.ts');const {prepareSmoothCables,sampleSmoothCable,MAX_CABLE_VERTICES}=await import('../lib/world/smooth-cables.ts');const {schematicPassage,schematicCanal}=await import('../lib/world/ocean-geography.ts');
 const indian=JSON.parse(readFileSync(new URL('../public/data/networks/indian-branches.json',import.meta.url)));for(const family of ['sea','cables'])marine[family].push(...indian[family]);
 const regional=JSON.parse(readFileSync(new URL('../public/data/networks/regional-branches.json',import.meta.url)));for(const family of ['sea','cables'])marine[family].push(...regional[family]);
+const european=JSON.parse(readFileSync(new URL('../public/data/networks/european-branches.json',import.meta.url)));for(const family of ['sea','cables'])marine[family].push(...european[family]);
 let samples=0,acceptedCorridors=0;
 const {marineCorridorWaypoints}=await import('../lib/world/marine-corridors.ts');let refinedPaths=0;
 for(const surface of [true,false]){const sources=[...(surface?seaLanePaths:cablePaths),...atlasMarine(surface?marine.sea:marine.cables,surface)];let previous;const sourceSnapshot=JSON.stringify(sources);refinedPaths+=sources.filter(p=>marineCorridorWaypoints(p.waypoints)!==p.waypoints).length;

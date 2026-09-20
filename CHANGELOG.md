@@ -29,6 +29,13 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Preserve source records and endpoints, settings, colours, opening and awakening, previous revisions and the original v0.10.18 tag. This is a new native revision on the same checkpoint Site.
 - Evidence and limits: `docs/BRANCH-CONVERGENCE-V01018.md`.
 
+### Same-version follow-up — European coastal branches · 20 September 2026
+
+- Add twelve distinct illustrative shipping connections and twelve cable connections between existing European/North African offshore anchors. Totals: 502 sea paths and 410 cable paths; moving-light populations stay independent and unchanged.
+- Refine Mediterranean, Gibraltar, Iberian, Channel and northern British display approaches using 29 water-checked spines. Western Mediterranean crossings retain distinct offshore bows and shared approaches.
+- Soften brightness changes through crowded marine junctions, lower the minimum main-route emphasis and give fine strands more presence. Keep luminous convergence, existing colours and the white-gold Earth.
+- Preserve original route records, settings, full opening/awakening, prior revisions and tags. Evidence and geographic limits: `docs/EUROPEAN-BRANCHES-V01018.md`.
+
 ## v0.10.17 — Gathering into currents · 17 September 2026
 
 - Extend exact v0.10.16 `2ed8a38dddcc4164e31b6de097c04c22142236c6` in `people-choice/v0.10.17-flow-hierarchy`; Lab only.
