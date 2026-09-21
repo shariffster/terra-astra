@@ -1,3 +1,7 @@
+# v0.10.18 extended approaches follow-up (21 September 2026)
+
+The user approves the focused structural pass from `237ba9635809645826804d354a0be88af248dc4d`: longer, staggered joins at Gibraltar, Sicily and the Channel, more convincing coastal approaches and balanced bundle light. Continue the same checkpoint Site and branch; save and publish a new native revision. Preserve source identities/endpoints and counts, traveller budgets, water constraints, settings, palette, full opening/awakening, original tag, earlier saved revisions and all other Sites. Do not claim surveyed geography or global completion.
+
 # v0.10.18 European branching follow-up (20 September 2026)
 
 The user approves the critique of `8042982bf76e38e6c6fc1a4d70dc54c30c225fed`: refine Mediterranean–Gibraltar–English Channel approaches, add distinct coastal feeder connections, smooth remaining pointed junctions and rebalance main/fine marine light. Continue the same checkpoint Site and branch with a saved native revision. Preserve original source records/endpoints, water constraints, traveller populations, palette, settings, full opening and awakening, earlier revisions/tags, the v0.10.17 Site, canonical and archive. Added connections are illustrative, not surveyed or measured traffic.

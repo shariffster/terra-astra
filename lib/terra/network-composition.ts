@@ -40,8 +40,11 @@ export function* networkImportanceSteps(paths:readonly Path[],sources:readonly S
     // tier alone cannot decide whether the connecting strand remains visible.
     let length=0;const p=paths[index];
     for(let k=3;k<p.positions.length;k+=3)length+=Math.hypot(p.positions[k]-p.positions[k-3],p.positions[k+1]-p.positions[k-2],p.positions[k+2]-p.positions[k-1]);
-    const sustained=.48+.78*smooth((length-.12)/.65);
-    values[index]=rank===0?Math.max(sustained,group.length>=3?1.5:0):rank<3?.86:.46;
+    // Give short feeders enough presence to participate in the same bundle.
+    // Long leading routes remain stronger, without turning into a bright rope
+    // above nearly invisible branches. Counts and source intensity stay intact.
+    const sustained=.60+.58*smooth((length-.12)/.65);
+    values[index]=rank===0?Math.max(sustained,group.length>=3?1.32:0):rank<3?.94:.60;
    }else values[index]=(rank===0?lead:rank<3?.72:.26)*(regional?.60:1);
   });yield;
  }return values;

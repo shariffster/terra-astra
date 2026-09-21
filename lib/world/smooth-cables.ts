@@ -3,11 +3,12 @@ import type { CablePath } from './cables';
 import { schematicPassage, schematicCanal } from './ocean-geography';
 import { networkRadius } from '../terra/living-material';
 import { marineCorridorWaypoints } from './marine-corridors';
+import { marineApproachReach } from './marine-approach';
 
 type V = [number, number, number];
 type Output = { [index: number]: number };
 type Elevation = (lon: number, lat: number) => number;
-export type CableCurvePiece = { a: V; b: V; control?: V; controls?: V[]; corridor?: boolean; sourceLeg?: [V,V]; gatherStart?: number; gatherEnd?: number };
+export type CableCurvePiece = { a: V; b: V; control?: V; controls?: V[]; corridor?: boolean; sourceLeg?: [V,V]; gatherStart?: number; gatherEnd?: number; approachReach?: number };
 export type SmoothCable = {
   id: string; positions: Float32Array; progress: Float32Array;
   distances: Float64Array; length: number; pieces: CableCurvePiece[];
@@ -46,6 +47,35 @@ function waterCurve(piece:CableCurvePiece,segments:number,elevation:Elevation,su
   // pass every one of the same coast checks, including both endpoints.
   for(let k=0;k<=segments;k++)if(!water(sampleCablePiece(piece,k/segments),elevation,surface))return false;
   return true;
+}
+
+const reversePiece=(p:CableCurvePiece):CableCurvePiece=>({...p,a:p.b,b:p.a,controls:p.controls?[...p.controls].reverse():undefined,sourceLeg:p.sourceLeg?[p.sourceLeg[1],p.sourceLeg[0]]:undefined,gatherStart:p.gatherEnd,gatherEnd:p.gatherStart});
+
+/** Join at distance along an approach, rather than confining every connection
+ * to its tiny first leg. The retained straight leg supplies the exit tangent;
+ * two collinear controls at either end give a gradual curvature transition.
+ * Each candidate is water checked and contracts independently when necessary. */
+function extendedApproach(pieces:CableCurvePiece[],axis:V,reach:number,elevation:Elevation,surface:boolean):CableCurvePiece[]|undefined {
+  const hub=pieces[0].a,total=pieces.reduce((n,p)=>n+angle(p.a,p.b),0);
+  const firstSpan=angle(pieces[0].a,pieces[0].b);
+  for(let attempt=0;attempt<8;attempt++){
+    const target=Math.min(reach,total*.36)*.78**attempt;
+    if(target<=firstSpan*.90)break;
+    let travelled=0;
+    for(let i=0;i<pieces.length;i++){
+      const p=pieces[i],span=angle(p.a,p.b),available=travelled+span;
+      if(available>=target&&!p.controls&&!p.control&&span>1e-7){
+        const trim=Math.max(span*.12,Math.min(span*.88,target-travelled)),q=arc(p.a,p.b,trim/span),distance=angle(hub,q);
+        if(distance<firstSpan*.90)break;
+        const tangent=norm(p.b.map((v,j)=>v-q[j]*dot(q,p.b)) as V);
+        const along=(origin:V,direction:V,d:number)=>norm(origin.map((v,j)=>v*Math.cos(d)+direction[j]*Math.sin(d)) as V);
+        const candidate:CableCurvePiece={a:hub,b:q,controls:[along(hub,axis,distance*.20),along(hub,axis,distance*.40),along(q,tangent,-distance*.40),along(q,tangent,-distance*.20)],gatherStart:pieces[0].gatherStart,gatherEnd:p.gatherStart,approachReach:travelled+trim};
+        if(waterCurve(candidate,Math.max(256,Math.ceil(distance/.00015)),elevation,surface))return [candidate,{...p,a:q},...pieces.slice(i+1)];
+        break;
+      }
+      travelled=available;
+    }
+  }
 }
 
 /** Water-constrained spherical fillets. The normalized quadratic meets each great-circle
@@ -178,7 +208,7 @@ export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation
       if(junction.constrained)constrainedCorners++;
       corners.set(i,nodeKey(a)>nodeKey(c)?{...piece,a:piece.b,b:piece.a,controls:[...piece.controls!].reverse(),gatherStart:piece.gatherEnd,gatherEnd:piece.gatherStart}:piece);
     }
-    const pieces: CableCurvePiece[]=[];
+    let pieces: CableCurvePiece[]=[];
     for(let i=0;i<nodes.length-1;i++) {
       const gathering=sharedGather(nodes[i],nodes[i+1]);
       pieces.push({a:corners.get(i)?.b??nodes[i],b:corners.get(i+1)?.a??nodes[i+1],sourceLeg:[nodes[i],nodes[i+1]],gatherStart:gathering,gatherEnd:gathering});
@@ -187,6 +217,17 @@ export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation
     for(const end of [0,1]){
       const piece=end?pieces[pieces.length-1]:pieces[0],hub=end?piece.b:piece.a,other=end?piece.a:piece.b;
       const bundle=hubAxes.get(path.id+':'+end);if(!bundle)continue;const {axis,reach}=bundle;
+      const approach=marineApproachReach(path.waypoints[end?path.waypoints.length-1:0]);
+      if(approach&&shape.roundness>0){
+        // Different bearings join at different distances while retaining the
+        // same hub tangent. This avoids an identical shoulder across a fan.
+        const direction=norm(other.map((v,i)=>v-hub[i]*dot(hub,other)) as V);
+        const alignment=Math.max(0,dot(axis,direction));
+        const requested=approach*(.68+.32*alignment)*shape.bundle*shape.roundness;
+        const outward=end?[...pieces].reverse().map(reversePiece):pieces;
+        const extended=extendedApproach(outward,axis,requested,elevation,!!surfaceRadius);
+        if(extended){pieces=end?extended.reverse().map(reversePiece):extended;continue;}
+      }
       const span=angle(hub,other),direction=norm(other.map((v,i)=>v-hub[i]*dot(hub,other)) as V),sign=dot(axis,direction)<0?-1:1;
       let trim=Math.min(span*.88,reach*1.6),connector:CableCurvePiece|undefined;
       for(let attempt=0;attempt<18&&trim>1e-8;attempt++){

@@ -41,7 +41,7 @@ export function* cableFilamentGeometrySteps(paths: readonly (Pick<SmoothCable,'p
     for(let k=0;k<p.length;k+=3){const r=Math.hypot(p[k],p[k+1],p[k+2]);occupied.add(slot(Math.round(p[k]/r*55),Math.round(p[k+1]/r*55),Math.round(p[k+2]/r*55)));}
     for(const key of occupied)density[key]++;yield;
   }
-  const exposureAt=(p:Float32Array,k:number)=>{
+  const exposureAt=(p:Float32Array,k:number,marine:boolean)=>{
     const r=Math.hypot(p[k],p[k+1],p[k+2]),x=p[k]/r*55,y=p[k+1]/r*55,z=p[k+2]/r*55;
     const bx=Math.floor(x),by=Math.floor(y),bz=Math.floor(z),tx=x-bx,ty=y-by,tz=z-bz,base=slot(bx,by,bz);
     let sum=0;
@@ -49,7 +49,7 @@ export function* cableFilamentGeometrySteps(paths: readonly (Pick<SmoothCable,'p
       const weight=(dx?tx:1-tx)*(dy?ty:1-ty)*(dz?tz:1-tz);
       sum+=weight*(density[base+dx*plane+dy*width+dz]||1);
     }
-    return 1/Math.sqrt(Math.max(1,sum/3));
+    return 1/Math.pow(Math.max(1,sum/3),marine?.58:.5);
   };
   const routeExposure=new Float32Array(count*2);
   const threshold=new Float32Array(count*2);
@@ -65,7 +65,7 @@ export function* cableFilamentGeometrySteps(paths: readonly (Pick<SmoothCable,'p
     const n=path.progress.length,p=path.positions,sourceIndex=path.sourceIndex??i,source=sources[sourceIndex];
     const onset=onsets[sourceIndex],intensity=source.intensity,routeThreshold=source.threshold??0;
     const importance=source.importance??(source.tier==='regional'?.70:1),relief=path.relief??0,strand=path.strand??0;
-    const sampledExposure=Float32Array.from(path.progress,(_,k)=>exposureAt(p,k*3));
+    const sampledExposure=Float32Array.from(path.progress,(_,k)=>exposureAt(p,k*3,path.strand!==undefined));
     const exposures=path.strand===undefined?sampledExposure:featherMarineExposure(sampledExposure,p);
     for(let k=0;k<n;k++){
       const j=k*3,prev=Math.max(0,k-1)*3,after=Math.min(n-1,k+1)*3,exposure=exposures[k];
@@ -128,7 +128,7 @@ void main(){
   if(localPath>.5){vLight=localLight*front*(pathKind<.5?spatialVisibility(world):1.0)*focus;return;}
   // Let a selected marine backbone retain its core through convergences. The
   // fine companions still share the full density budget, avoiding blown knots.
-  float exposure=pathKind<1.5&&routeStrand<.5?max(routeExposure,.28*smoothstep(.6,1.35,routeImportance)):routeExposure;
+  float exposure=pathKind<1.5&&routeStrand<.5?max(routeExposure,.20*smoothstep(.6,1.35,routeImportance)):routeExposure;
   // Companion light shares a stricter budget where many strands coincide.
   if(pathKind<1.5&&routeStrand>.5)exposure*=mix(.78,1.0,smoothstep(.12,.5,routeExposure));
   vLight=screenHierarchy*route.z*exposure*mix(routeImportance,sqrt(routeImportance),regionMix)*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
