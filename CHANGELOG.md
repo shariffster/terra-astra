@@ -43,6 +43,13 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Reduce the brightness gap between major corridors and fine feeders and share crowded marine light more conservatively. Preserve luminous convergence, colours, controls and the full awakening.
 - Same checkpoint, branch and semantic version; previous saved revisions and tags remain intact. See `docs/APPROACH-ZONES-V01018.md` for checks and limitations.
 
+### Same-version follow-up — Pacific and northern approaches · 21 September 2026
+
+- Extend selected approach treatment to Japan, Hawaii, California and Guam cable routes, plus the North Sea and west of Ireland. Wider route bearings stagger branch shoulders, with identical reverse-travel geometry and conservative water-checked fallback.
+- Route the Rotterdam–Atlantic feeder through Dover instead of around Scotland; western Scottish feeders share smoother northern/offshore shoulders. Add display spines for Guam–Japan and the California offshore connection, preserving route records and endpoints.
+- Fine marine strands gain up to 32% additional exposure as the camera approaches where crowding allows it. Dense knots retain their existing budget; traveller guides, flights and palette are unchanged.
+- Source totals stay 502 shipping routes and 410 cable routes, with the same traveller settings and full opening. Evidence and limits: `docs/PACIFIC-APPROACHES-V01018.md`.
+
 ## v0.10.17 — Gathering into currents · 17 September 2026
 
 - Extend exact v0.10.16 `2ed8a38dddcc4164e31b6de097c04c22142236c6` in `people-choice/v0.10.17-flow-hierarchy`; Lab only.

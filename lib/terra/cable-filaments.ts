@@ -131,6 +131,10 @@ void main(){
   float exposure=pathKind<1.5&&routeStrand<.5?max(routeExposure,.20*smoothstep(.6,1.35,routeImportance)):routeExposure;
   // Companion light shares a stricter budget where many strands coincide.
   if(pathKind<1.5&&routeStrand>.5)exposure*=mix(.78,1.0,smoothstep(.12,.5,routeExposure));
+  // As the camera approaches, give already-separated marine strands a little
+  // more light. Dense knots retain their budget, and distant views stay calm.
+  float approachDetail=1.0-smoothstep(1.65,3.2,cameraDistance);
+  if(pathKind<1.5&&routeStrand>.5)exposure*=1.0+.32*approachDetail*smoothstep(.18,.65,routeExposure);
   vLight=screenHierarchy*route.z*exposure*mix(routeImportance,sqrt(routeImportance),regionMix)*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
 }`;
 export const cableFilamentFragment=`

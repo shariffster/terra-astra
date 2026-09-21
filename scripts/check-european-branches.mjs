@@ -33,6 +33,12 @@ for(const surface of [true,false]){
  for(const p of prepared)if(required.includes(p.id)){assert.ok(p.corridorAdjusted,p.id+' must use its corrected display approach');refined++;}
 }
 assert.equal(refined,required.length);
+const rotterdam=atlas.sea.find(p=>p.id==='coastal-ne-1159149457-ireland');
+const channelApproach=marineCorridorWaypoints(rotterdam.waypoints);
+assert.ok(Math.max(...channelApproach.map(p=>p[0]))<53,'Rotterdam Atlantic feeder uses Dover instead of rounding Scotland');
+assert.deepEqual([...marineCorridorWaypoints([...rotterdam.waypoints].reverse())].reverse(),channelApproach);
+const scottish=atlas.sea.find(p=>p.id==='coastal-ne-1159150591-northsea');
+assert.ok(Math.max(...marineCorridorWaypoints(scottish.waypoints).map(p=>p[0]))>59,'Western Scotland retains its northern passage');
 const medSources=seaLanePaths.filter(p=>p.id==='sea-gibraltar-sicily'||p.id.startsWith('bundle-gibraltar-sicily-'));
 assert.equal(medSources.length,3);
 const medBows=medSources.map(p=>marineCorridorWaypoints(p.waypoints));

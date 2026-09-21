@@ -56,17 +56,19 @@ const reversePiece=(p:CableCurvePiece):CableCurvePiece=>({...p,a:p.b,b:p.a,contr
  * two collinear controls at either end give a gradual curvature transition.
  * Each candidate is water checked and contracts independently when necessary. */
 function extendedApproach(pieces:CableCurvePiece[],axis:V,reach:number,elevation:Elevation,surface:boolean):CableCurvePiece[]|undefined {
-  const hub=pieces[0].a,total=pieces.reduce((n,p)=>n+angle(p.a,p.b),0);
-  const firstSpan=angle(pieces[0].a,pieces[0].b);
+  const hub=pieces[0].a;
   for(let attempt=0;attempt<8;attempt++){
-    const target=Math.min(reach,total*.36)*.78**attempt;
-    if(target<=firstSpan*.90)break;
+    const target=reach*.78**attempt;
+    if(target<.0005)break;
     let travelled=0;
     for(let i=0;i<pieces.length;i++){
       const p=pieces[i],span=angle(p.a,p.b),available=travelled+span;
       if(available>=target&&!p.controls&&!p.control&&span>1e-7){
-        const trim=Math.max(span*.12,Math.min(span*.88,target-travelled)),q=arc(p.a,p.b,trim/span),distance=angle(hub,q);
-        if(distance<firstSpan*.90)break;
+        // A long rounded corner may cover the requested exit. Contract rather
+        // than jumping past that corner to a distant, unrelated straight leg.
+        if(travelled>target*1.4)break;
+        const trim=Math.max(1e-7,Math.min(span-1e-7,target-travelled)),q=arc(p.a,p.b,trim/span),distance=angle(hub,q);
+        if(distance<.0005)break;
         const tangent=norm(p.b.map((v,j)=>v-q[j]*dot(q,p.b)) as V);
         const along=(origin:V,direction:V,d:number)=>norm(origin.map((v,j)=>v*Math.cos(d)+direction[j]*Math.sin(d)) as V);
         const candidate:CableCurvePiece={a:hub,b:q,controls:[along(hub,axis,distance*.20),along(hub,axis,distance*.40),along(q,tangent,-distance*.40),along(q,tangent,-distance*.20)],gatherStart:pieces[0].gatherStart,gatherEnd:p.gatherStart,approachReach:travelled+trim};
@@ -214,22 +216,30 @@ export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation
       pieces.push({a:corners.get(i)?.b??nodes[i],b:corners.get(i+1)?.a??nodes[i+1],sourceLeg:[nodes[i],nodes[i+1]],gatherStart:gathering,gatherEnd:gathering});
       const corner=corners.get(i+1); if(corner)pieces.push(corner);
     }
+    // Reserve each end against the same unmodified route length. Processing
+    // the opposite end first must not change its available approach distance.
+    const approachLimit=pieces.reduce((n,p)=>n+angle(p.a,p.b),0)*.24;
+    const extendedEnds=!!(marineApproachReach(path.waypoints[0])||marineApproachReach(path.waypoints[path.waypoints.length-1]));
     for(const end of [0,1]){
       const piece=end?pieces[pieces.length-1]:pieces[0],hub=end?piece.b:piece.a,other=end?piece.a:piece.b;
       const bundle=hubAxes.get(path.id+':'+end);if(!bundle)continue;const {axis,reach}=bundle;
       const approach=marineApproachReach(path.waypoints[end?path.waypoints.length-1:0]);
       if(approach&&shape.roundness>0){
-        // Different bearings join at different distances while retaining the
-        // same hub tangent. This avoids an identical shoulder across a fan.
-        const direction=norm(other.map((v,i)=>v-hub[i]*dot(hub,other)) as V);
-        const alignment=Math.max(0,dot(axis,direction));
-        const requested=approach*(.68+.32*alignment)*shape.bundle*shape.roundness;
         const outward=end?[...pieces].reverse().map(reversePiece):pieces;
+        // Read the wider approach, beyond a shared first segment. Signed
+        // bearing and available distance stagger the peel-off naturally;
+        // identical routes retain identical geometry, without seeded wiggles.
+        let remaining=Math.min(approach*2,approachLimit*1.8),look=other;
+        for(const p of outward){const span=angle(p.a,p.b);look=sampleCablePiece(p,Math.min(1,remaining/Math.max(span,1e-8)));remaining-=span;if(remaining<=0)break;}
+        const direction=norm(look.map((v,i)=>v-hub[i]*dot(hub,look)) as V);
+        const side:V=[hub[1]*axis[2]-hub[2]*axis[1],hub[2]*axis[0]-hub[0]*axis[2],hub[0]*axis[1]-hub[1]*axis[0]];
+        const alignment=Math.max(0,dot(axis,direction)),bearing=dot(side,direction);
+        const requested=Math.min(approachLimit,approach*(.72+.22*alignment+.24*bearing))*shape.bundle*shape.roundness;
         const extended=extendedApproach(outward,axis,requested,elevation,!!surfaceRadius);
         if(extended){pieces=end?extended.reverse().map(reversePiece):extended;continue;}
       }
       const span=angle(hub,other),direction=norm(other.map((v,i)=>v-hub[i]*dot(hub,other)) as V),sign=dot(axis,direction)<0?-1:1;
-      let trim=Math.min(span*.88,reach*1.6),connector:CableCurvePiece|undefined;
+      let trim=Math.min(span*.88,reach*1.6,extendedEnds?approachLimit:Infinity),connector:CableCurvePiece|undefined;
       for(let attempt=0;attempt<18&&trim>1e-8;attempt++){
         // Two controls follow the common axis before separating. Matching the
         // first two and last two controls to each great-circle plane removes

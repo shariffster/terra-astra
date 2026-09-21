@@ -1,3 +1,7 @@
+# v0.10.18 Pacific and northern approaches follow-up (21 September 2026)
+
+The user approves the focused follow-up from `e17c218d352e425dafddc4bbdb06965b8c9b6a8d`: extend longer staggered approaches into busy Pacific hubs, refine remaining northern European bows, and improve fine-strand legibility with zoom. Keep source route records/endpoints and traveller populations unchanged. Continue the same checkpoint Site/branch with a new saved native revision; preserve previous revisions/tags, settings, palette, opening and all other Sites. Geographic curves remain illustrative.
+
 # v0.10.18 extended approaches follow-up (21 September 2026)
 
 The user approves the focused structural pass from `237ba9635809645826804d354a0be88af248dc4d`: longer, staggered joins at Gibraltar, Sicily and the Channel, more convincing coastal approaches and balanced bundle light. Continue the same checkpoint Site and branch; save and publish a new native revision. Preserve source identities/endpoints and counts, traveller budgets, water constraints, settings, palette, full opening/awakening, original tag, earlier saved revisions and all other Sites. Do not claim surveyed geography or global completion.

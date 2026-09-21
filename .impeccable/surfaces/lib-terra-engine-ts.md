@@ -70,3 +70,9 @@ One desktop/mobile review batch found a pointed northern approach and overly sim
 The approved structural pass spans multiple display segments at Gibraltar, Sicily and the Channel, preserving endpoint bearings and smooth tangents where approaches rejoin the retained route. North Sea/Irish Sea and southern Mediterranean feeders receive revised water-checked spines. Marine light gives finer feeders more presence beside major connections; white/gold Earth and the existing palette still lead. Source route and traveller counts, settings, opening and awakening stay fixed.
 
 Desktop close views and a phone viewport confirm softer central Mediterranean joins and more balanced supporting light, while several schematic crossings remain visible. A North Sea feeder now uses the Channel instead of wrapping around Britain. Screenshots: `output/approach-zones/`. This is selected illustrative refinement, not global geographic accuracy or physical-device/performance acceptance. Validation and limitations: `docs/APPROACH-ZONES-V01018.md`.
+
+## 21 September 2026 — Pacific and northern approaches
+
+Same-checkpoint refinement extends selected hub curves into the Pacific and northern Europe, varying branch shoulders by wider route bearing and retaining reverse parity. Northern European feeders share clearer coastal passages; secondary marine strands gain restrained exposure as the camera approaches, without adding travellers or competing with pearl/gold land light. Existing palette, controls and full awakening remain.
+
+Desktop Pacific/northern-Europe and phone review found a material compilation error, corrected before the final rendered check. Fine Pacific bows remain distinguishable; Scotland retains a schematic northern passage. Evidence, exact scope and limitations: `docs/PACIFIC-APPROACHES-V01018.md`; captures: `output/pacific-approaches/`.
