@@ -57,7 +57,7 @@ Sites version 7 was deployed successfully on 13 September 2026 at 11:41:33 SGT. 
 
 The v0.4 globe, prepared geography, Singapore stories, depth layers, and remembered-life return were built before the hackathon. Their exact source is retained under `v0.4` and `pre-hackathon` at `9b9e2ec4ef3534b463e20d4d08c4ae3de444843d`. Earlier tags and v0.4.1 are retained too.
 
-Astra is used as the engineering collaborator in Codex: source investigation, isolated implementation tracks, integration, and verification. No runtime model call is required or claimed. Today's changes and their evidence are documented separately.
+Astra is used as the engineering collaborator in Codex: source investigation, isolated implementation tracks, integration, and verification. No runtime model call is required or claimed. Hackathon changes and their evidence are documented separately.
 
 ## Data and interpretation
 
