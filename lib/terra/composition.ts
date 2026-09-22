@@ -2,7 +2,7 @@ import { cloneTransport, validateTransport, sameTransport, type TransportOptions
 import { DEFAULT_PRESENTATION, validateWorldCommand, type WorldPresentation, type WorldLayer } from '../world/commands';
 
 export const LIGHT_RANGES = {
- rotationSpeed: [0, 2, .01], rotationDelay: [0, 20, .5], nebulaLight: [0, 1.5, .01], moonLight: [0, 2, .01], moonSize: [.5, 2, .05], sunLight: [0, 2, .01], sunSize: [.5, 2, .05],
+ skyMotion: [0, 2, .05], rotationSpeed: [0, 2, .01], rotationDelay: [0, 20, .5], nebulaLight: [0, 1.5, .01], moonLight: [0, 2, .01], moonSize: [.5, 2, .05], sunLight: [0, 2, .01], sunSize: [.5, 2, .05],
  skyLight: [0, 1.5, .01], skyShimmer: [0, 2, .01], skyDust: [0, 1, .01], glow: [.25, 2, .01], shimmer: [0, 2, .01], threads: [0, 1.4, .01], density: [.2, 1, .01],
  nightLights: [0, 2, .01], warmth: [0, 1, .01], oceanLight: [0, 2, .01], shoreBreath:[0,1,.01], currentLight:[0,3,.01], currentSpeed:[0,3,.05],
  strandSpread: [0, 2, .05], strandLight: [0, 2, .01], pathLight: [0, 2, .01], pathVolume: [0, 1, .01], travellerLight: [0, 2, .01], travellerVolume: [0, 1, .01],
@@ -12,7 +12,7 @@ export const LIGHT_RANGES = {
 export type LightNumber = keyof typeof LIGHT_RANGES;
 export type LightOptions = Record<LightNumber, number> & { depth: boolean; borders: boolean; motion: boolean; autoRotate: boolean; nebula: boolean; moon: boolean; sun: boolean; transport: TransportOptions };
 export const DEFAULT_LIGHT: LightOptions = Object.freeze({
- autoRotate:true, rotationSpeed:.84, rotationDelay:7, nebula:true, nebulaLight:.55, moon:true, moonLight:.8, moonSize:1, sun:true, sunLight:.7, sunSize:1,
+ skyMotion:1, autoRotate:true, rotationSpeed:.84, rotationDelay:7, nebula:true, nebulaLight:.55, moon:true, moonLight:.8, moonSize:1, sun:true, sunLight:.7, sunSize:1,
  transport: cloneTransport(), skyLight: .7, skyShimmer: .75, skyDust: 0, glow: 1.55, shimmer: 1.1, depth: true, threads: .55, density: .95, borders: false, motion: true,
  shoreBreath:.47,currentLight:1,currentSpeed:1, nightLights: 1.44, warmth: .65, oceanLight: .8, strandSpread: 1.35, strandLight: 1.25, pathLight: 1, pathVolume: .85, travellerLight: 1, travellerVolume: .85,
  airLight: .9, seaLight: 1, cableLight: .85, orbitLight: 1, population: .55, footprint: .38, fieldDensity: .75, colour: .6,
@@ -31,7 +31,7 @@ export function validateComposition(value: unknown): Composition | null {
  if(!c.light || typeof c.light !== 'object' || !c.layers || typeof c.layers !== 'object') return null;
  const light = c.light as Record<string, unknown>, layers = c.layers as Record<string, unknown>, clean = {...DEFAULT_LIGHT};
  for(const key of Object.keys(LIGHT_RANGES) as LightNumber[]) {
-  const v = (['rotationSpeed','rotationDelay','nebulaLight','moonLight','moonSize','sunLight','sunSize','skyLight','skyDust','skyShimmer','shoreBreath','currentLight','currentSpeed','strandSpread','strandLight'].includes(key)) && light[key] === undefined ? DEFAULT_LIGHT[key] : light[key], [min,max] = LIGHT_RANGES[key];
+  const v = (['skyMotion','rotationSpeed','rotationDelay','nebulaLight','moonLight','moonSize','sunLight','sunSize','skyLight','skyDust','skyShimmer','shoreBreath','currentLight','currentSpeed','strandSpread','strandLight'].includes(key)) && light[key] === undefined ? DEFAULT_LIGHT[key] : light[key], [min,max] = LIGHT_RANGES[key];
   if(typeof v !== 'number' || !Number.isFinite(v) || v < min || v > max) return null;
   clean[key] = Math.round(v * 100) / 100;
  }

@@ -13,8 +13,7 @@ registerHooks({ resolve(specifier, context, next) {
 let clock = 0, frame = null, resizeCallback = null;
 const noop = () => {};
 let visibilityCallback = noop, reducedMotion = false;
-let solarDraw=null;
-const ctx = new Proxy({ drawImage:(image,...args)=>{if(image.width===256)solarDraw=args;}, createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}), createRadialGradient: () => ({ addColorStop: noop }) }, { get: (o, key) => o[key] ?? noop, set: (o, key, value) => { o[key] = value; return true; } });
+const ctx = new Proxy({ createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}), createRadialGradient: () => ({ addColorStop: noop }) }, { get: (o, key) => o[key] ?? noop, set: (o, key, value) => { o[key] = value; return true; } });
 class Canvas {
   style = {}; width = 1; height = 1;
   getContext(type) { return type === '2d' ? ctx : null; }
@@ -49,22 +48,30 @@ const tick=(ms=60)=>{clock+=ms;const next=frame;frame=null;assert.ok(next);next(
 const {DEFAULT_LIGHT}=await import('../lib/terra/composition.ts');
 tick(10800);tick(18000);
 engine.configure({...DEFAULT_LIGHT,autoRotate:false});for(let i=0;i<100;i++)tick(60);
-const held=rendered.camera.position.clone(),firstSky=JSON.parse(host.dataset.celestialSetting),heldSun=[...solarDraw];
+const held=rendered.camera.position.clone(),firstSky=JSON.parse(host.dataset.celestialSetting),heldSun=JSON.parse(host.dataset.celestialMotion).sun;
 assert.ok(firstSky.sun>.6&&firstSky.moon>.7&&firstSky.nebula>.5);
 for(let i=0;i<100;i++)tick(60);
 assert.ok(rendered.camera.position.distanceTo(held)<1e-8,'Holding Earth keeps the camera still with world animation enabled');
-assert.ok(solarDraw.every((v,i)=>Math.abs(v-heldSun[i])<1e-8),'The Sun does not drift independently when the camera is still');
+assert.ok(Object.entries(heldSun).every(([k,v])=>Math.abs(JSON.parse(host.dataset.celestialMotion).sun[k]-v)<1e-8),'The Sun does not drift independently when the camera is still');
 engine.configure({...DEFAULT_LIGHT,autoRotate:true,rotationDelay:7});
 for(let i=0;i<100;i++)tick(60);
 assert.ok(rendered.camera.position.distanceTo(held)<1e-8,'No auto-rotation during the configured pause');
 for(let i=0;i<50;i++)tick(60);
 assert.ok(rendered.camera.position.distanceTo(held)>.001,'Rotation resumes after seven seconds');
-assert.ok(Math.abs(solarDraw[0]-heldSun[0])>.01,'Sun placement responds to the actual camera turn');
+assert.deepEqual(JSON.parse(host.dataset.celestialMotion).sun,heldSun,'Earth spin must leave the celestial frame steady');
+assert.ok(JSON.parse(host.dataset.celestialMotion).clock>0,'Celestial materials have their own animated clock');
 engine.configure({...DEFAULT_LIGHT,motion:false});tick();tick();
-const pausedSun=[...solarDraw];tick(1000);assert.deepEqual(solarDraw,pausedSun,'Master pause freezes celestial parallax');
+const pausedSky=JSON.parse(host.dataset.celestialMotion);tick(1000);assert.deepEqual(JSON.parse(host.dataset.celestialMotion),pausedSky,'Master pause freezes celestial materials');
+engine.configure({...DEFAULT_LIGHT,autoRotate:false,skyMotion:0});for(let i=0;i<100;i++)tick(60);
+const heldClock=JSON.parse(host.dataset.celestialMotion).clock;for(let i=0;i<100;i++)tick(60);
+assert.ok(JSON.parse(host.dataset.celestialMotion).clock-heldClock<.02,'Sky motion zero holds celestial material while the world remains animated');
 engine.configure({...DEFAULT_LIGHT,motion:false,sun:false});tick();tick();
 const frozen=rendered.camera.position.clone();tick(1000);
 assert.ok(rendered.camera.position.distanceTo(frozen)<1e-8);
 const sky=JSON.parse(host.dataset.celestialSetting);assert.equal(sky.sun,0);assert.ok(sky.moon>.7&&sky.nebula>.5,'Sun toggle leaves the other sky families visible');
 engine.dispose();assert.equal(frame,null);
+reducedMotion=true;
+const reducedEngine=await createEarth(host,{querySelector:()=>null},{genesis:noop,worldState:noop,ready:noop,coordinates:noop,interact:noop,arrival:noop,stage:noop,transformation:noop,personalSettled:noop,error:message=>assert.fail(message)},new AbortController().signal);
+tick(60);tick(1000);assert.equal(JSON.parse(host.dataset.celestialMotion).clock,0,'Reduced-motion startup has a settled, still celestial sky');
+reducedEngine.dispose();assert.equal(frame,null);
 console.log('PASS: actual engine keeps animated world independent of auto-rotation, waits seven seconds, resumes, respects master pause, switches Sun independently and disposes. Inert Canvas lifecycle; rendered pixels reviewed separately.');

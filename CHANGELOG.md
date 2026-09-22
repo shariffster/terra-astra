@@ -12,6 +12,15 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Saved compositions include the new controls; earlier exports retain their exact existing values. This new origin has separate browser storage.
 - Validation, asset provenance and limits: `docs/CELESTIAL-SETTING-V01019.md`.
 
+### Same-version follow-up — Living celestial materials · 23 September 2026
+
+- Retain the earlier asymmetric nebula artwork and add local, layered smoke-like deformation. Render the Sun and Moon as continuous materials, following the user’s rejection of the particle-only preview.
+- Give the Sun a concentrated white-gold body, evolving surface and uneven outward corona. Restore stable lunar relief and orient its crescent toward the displayed Sun.
+- Decouple the sky from Earth longitude/latitude. Camera tilt and approach retain small depth offsets; neither determines an orbit or lunar period.
+- Add Celestial motion (0–2×), including import migration for older compositions. Pause and reduced-motion startup hold celestial material still. Existing light/size/toggle settings remain.
+- Keep the same Site/version, full opening/awakening, Earth, network, travellers and prior checkpoints. The setting and accelerated timescales are illustrative.
+- Evidence and limits: `docs/LIVING-CELESTIAL-V01019.md`.
+
 ### Same-version follow-up — Open sky and celestial depth · 23 September 2026
 
 - Replace the enclosing nebula composition with one asymmetric upper-right cloud and delicate extensions. Leave the left and lower sky substantially darker; position the cloud below the opening words on phones.

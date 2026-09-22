@@ -117,3 +117,8 @@ Desktop Pacific/Atlantic/Indian and phone review led to one bounded correction e
 Same-version follow-up to the Pacific critique. Raise the supporting marine centreline tier; dissolve fine companion strands into shared light when their projected spacing is subpixel, and use broad, stationary brightness variation. Preserve every geographic curve, source endpoint, route count, traveller setting, sky asset, palette and reveal timing. Reserve measured opening-copy bounds on desktop and a phone globe/control-rail gutter, including with composition controls open. Exploration reclaims the title space.
 
 Review at 1440×900, 1095×998 and 390×844. Corrected a GPU attribute-limit error by packing spacing alongside existing route relief; no additional attribute slot. Phone panel clearance received the same gutter correction as the main view. Evidence: `output/network-readability/`; scope and validation: `docs/NETWORK-READABILITY-V01019.md`. This is a presentation refinement, not a global geography or performance acceptance claim.
+
+
+## 23 September 2026 — Living celestial material
+
+The user rejected a particle-only Sun, Moon and nebula preview. The final direction restores continuous material: the earlier asymmetric cloud structure now curls locally through layered flow fields; the Sun has a concentrated white-gold core and uneven moving corona; the Moon retains stable shaded relief and a Sun-facing crescent. Earth stays dominant. Sky motion is independently adjustable and no longer tied to Earth surface rotation. Desktop/phone and live control evidence is retained in `output/living-celestial/`; implementation, the rejected attempt and fallback limitations are documented in `docs/LIVING-CELESTIAL-V01019.md`. Earlier revisions remain preserved.

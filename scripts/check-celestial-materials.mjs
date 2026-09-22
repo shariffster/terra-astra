@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {Texture} from 'three';
+import {createCelestialMaterials} from '../lib/terra/celestial-materials.ts';
+let scene;
+const renderer={autoClear:true,info:{autoReset:true},getPixelRatio:()=>1,render(s){scene=s;assert.equal(this.autoClear,false);assert.equal(this.info.autoReset,false);}};
+const texture=new Texture(),sky=createCelestialMaterials(renderer,texture);
+const frame={width:1440,height:900,time:12,sun:{x:570,y:120,r:16},moon:{x:1220,y:200,r:23},earth:{x:730,y:460,r:300},nebulaOffset:{x:0,y:0},light:{nebula:.55,sun:.7,moon:.8}};
+assert.equal(sky.render(frame),3);assert.equal(scene.children.length,3);assert.equal(renderer.autoClear,true);assert.equal(renderer.info.autoReset,true);
+const geometries=scene.children.map(o=>o.geometry),materials=scene.children.map(o=>o.material);
+for(const geometry of geometries)for(const x of geometry.attributes.position.array)assert.ok(Number.isFinite(x));
+sky.render({...frame,width:390,height:844,time:18});assert.ok(scene.children.every(o=>o.material.uniforms.time.value===18));
+const lunar=scene.children[2];assert.ok(lunar.material.uniforms.lightDirection.value.x<0,'Moon faces Sun to its left');
+sky.render({...frame,sun:{...frame.sun,x:1300}});assert.ok(lunar.material.uniforms.lightDirection.value.x>0,'Moon light changes with Sun bearing');
+sky.render({...frame,light:{nebula:0,sun:0,moon:.8}});assert.equal(scene.children.filter(o=>o.visible).length,1);
+let disposed=0;for(const x of [...geometries,...materials])x.addEventListener('dispose',()=>disposed++);sky.dispose();assert.equal(disposed,6);assert.equal(scene.children.length,0);texture.dispose();
+console.log('PASS: three bounded continuous materials, phone layout, shared clock, Moon illumination, independent visibility, renderer-state restoration and disposal. Pixel quality requires browser review.');

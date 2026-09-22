@@ -1,3 +1,6 @@
+import { TextureLoader, type WebGLRenderer } from 'three';
+import { createCelestialCanvas } from './celestial-canvas';
+import { createCelestialMaterials } from './celestial-materials';
 import type { LightOptions } from './composition';
 import type { PanelBounds } from './composition-framing';
 
@@ -7,119 +10,65 @@ export function rotationRate(options:Pick<LightOptions,'motion'|'autoRotate'|'ro
  return options.rotationSpeed*t*t*(3-2*t)*awakeningRate;
 }
 
-/** Camera-composed, illustrative sky. Never used as an astronomical ephemeris. */
+/** An illustrative observing frame: inspecting Earth's surface does not orbit
+ * the sky. Only camera tilt/approach gets a small, depth-ordered response. */
 export function celestialLayout(width:number,height:number,panel:PanelBounds|null) {
  const phone=width<=700;
  const left=panel&&!phone?Math.min(width*.65,panel.right+18):0;
  const bottom=panel&&phone?Math.max(120,panel.top-12):height;
  const area=width-left;
- return {sun:{x:left+area*(phone?(panel?.17:.14):(panel?.08:.40)),y:bottom*(phone?(panel?.24:.60):.17),r:Math.max(2.8,Math.min(4.4,area*.004))},moon:{x:left+area*.86,y:bottom*.22,r:Math.max(10,Math.min(21,area*.019))},left,bottom};
+ return {sun:{x:left+area*(phone?(panel?.17:.14):(panel?.10:.30)),y:bottom*(phone?(panel?.24:.68):.13),r:Math.max(9,Math.min(19,area*.016))},moon:{x:left+area*.86,y:bottom*.22,r:Math.max(11,Math.min(23,area*.021))},left,bottom};
 }
-
 export type CelestialView={longitude:number;latitude:number;tilt:number;zoom:number};
-
-/** Compressed camera response, not physical orbital positions. Periodic bearings
- * avoid a jump at the date line or drift after repeated complete rotations. */
 export function celestialParallax(width:number,height:number,view:CelestialView) {
- const rad=Math.PI/180,turn=(view.longitude-95)*rad;
  const scale=Math.min(1,Math.min(width,height)/800);
- const x=-Math.sin(turn)*scale;
- const y=(-(Math.sin(view.latitude*rad)-Math.sin(19*rad))*.65-Math.sin(view.tilt*rad)*.18)*scale;
- const approach=Math.max(-1,Math.min(1,Math.log(Math.max(.25,view.zoom))));
- return {nebula:{x:x*9,y:y*9},sun:{x:x*17-approach*4,y:y*17-approach*2},moon:{x:x*38+approach*8,y:y*38-approach*4}};
+ const tilt=Math.sin(view.tilt*Math.PI/180)*scale;
+ const approach=Math.max(-1,Math.min(1,Math.log(Math.max(.25,view.zoom))))*scale;
+ return {nebula:{x:0,y:tilt*2},sun:{x:-approach*3,y:tilt*4},moon:{x:approach*9,y:tilt*13-approach*3}};
 }
 
-/** A single bounded canvas works in WebGL and the existing canvas fallback.
- * Cached gas/phase textures; no extra animation loop, geometry or Earth lighting. */
-export function createCelestialSetting(host:HTMLElement,wake:()=>void) {
+/** One clock, shared renderer and bounded materials; no second animation loop
+ * or illumination of Earth's geography. Canvas devices keep a simpler sky. */
+export function createCelestialSetting(host:HTMLElement,_wake:()=>void,renderer?:WebGLRenderer) {
  const canvas=document.createElement('canvas');canvas.setAttribute('aria-hidden','true');
  Object.assign(canvas.style,{position:'absolute',inset:'0',width:'100%',height:'100%',pointerEvents:'none'});
- host.appendChild(canvas);
- const ctx=canvas.getContext('2d');
- let width=0,height=0,ratio=1,disposed=false,lastFrame=-Infinity,gas:HTMLCanvasElement|null=null;
+ const cloud=renderer?new TextureLoader().load('/sky/nebula-asymmetric.png',()=>{if(!disposed){host.dataset.nebulaAsset='ready';_wake();}},undefined,()=>{if(!disposed)host.dataset.nebulaAsset='unavailable';}):null;
+ const materials=renderer&&cloud?createCelestialMaterials(renderer,cloud):null;
+ if(!materials)host.appendChild(canvas);
+ const fallback=materials?null:createCelestialCanvas(canvas,_wake);
+ let width=0,height=0,ratio=1,lastFrame=-Infinity,clock=0,pending=false,disposed=false;
  const opacity={nebula:0,moon:0,sun:0};
- const moon=document.createElement('canvas');moon.width=moon.height=192;
- const moonCtx=moon.getContext('2d');
- if(moonCtx){
-  const data=moonCtx.createImageData(192,192);
-  // A lit sphere with a fixed crescent and softly mottled, illustrative relief.
-  for(let y=0;y<192;y++)for(let x=0;x<192;x++){
-   const u=(x-95.5)/94,v=(y-95.5)/94,r2=u*u+v*v;if(r2>1)continue;
-   const z=Math.sqrt(1-r2),lambert=Math.max(0,-.90*u-.16*v-.40*z);
-   const grain=.91+.035*Math.sin(u*43+Math.sin(v*28))+.04*Math.sin(u*19-v*27);
-   const maria=1-.22*Math.exp(-((u+.22)**2+(v-.23)**2)/.12)-.13*Math.exp(-((u-.35)**2+(v+.32)**2)/.08);
-   const light=(.052+.81*Math.pow(lambert,.8))*grain*maria,i=(y*192+x)*4;
-   data.data.set([226*light,224*light,213*light,255*Math.min(1,(1-Math.sqrt(r2))*94)],i);
-  }
-  moonCtx.putImageData(data,0,0);
- }
- const sun=document.createElement('canvas');sun.width=sun.height=256;
- const sunCtx=sun.getContext('2d');
- if(sunCtx){
-  const halo=sunCtx.createRadialGradient(128,128,0,128,128,126);
-  // A small resolved photosphere, a fine corona, then generous darkness.
-  // Most light stays inside the disc instead of becoming a blurred point.
-  halo.addColorStop(0,'rgba(255,250,231,1)');halo.addColorStop(.048,'rgba(255,245,215,1)');
-  halo.addColorStop(.063,'rgba(249,222,167,.98)');halo.addColorStop(.071,'rgba(242,202,130,.50)');
-  halo.addColorStop(.084,'rgba(231,185,108,.16)');halo.addColorStop(.19,'rgba(207,161,87,.045)');
-  halo.addColorStop(.48,'rgba(180,139,77,.008)');halo.addColorStop(1,'rgba(159,121,69,0)');
-  sunCtx.fillStyle=halo;sunCtx.fillRect(0,0,256,256);
- }
- const image=new Image();image.decoding='async';
- image.onload=()=>{
-  if(disposed)return;
-  gas=document.createElement('canvas');gas.width=image.naturalWidth;gas.height=image.naturalHeight;
-  const g=gas.getContext('2d',{willReadFrequently:true});if(g){g.drawImage(image,0,0);const d=g.getImageData(0,0,gas.width,gas.height);
-   // Black becomes transparent; retain the source hue and gas luminance.
-   for(let i=0;i<d.data.length;i+=4){const m=Math.max(d.data[i],d.data[i+1],d.data[i+2]);for(let c=0;c<3;c++)d.data[i+c]=m?d.data[i+c]*255/m:0;d.data[i+3]=Math.max(0,m-2);}
-   g.putImageData(d,0,0);
-  }host.dataset.nebulaAsset='ready';wake();
- };
- image.onerror=()=>{if(!disposed){host.dataset.nebulaAsset='unavailable';wake();}};
- image.src='/sky/nebula-asymmetric.png';
- let pending=false;
  let placed:ReturnType<typeof celestialLayout>|null=null;
  const offset={nebula:{x:0,y:0},sun:{x:0,y:0},moon:{x:0,y:0}};
+ host.dataset.nebulaAsset='loading';
  return {
   get pending(){return pending;},
   render(time:number,dt:number,light:LightOptions,visibility:number,earth:{x:number;y:number;r:number},panel:PanelBounds|null,view:CelestialView,force=false){
-   if(!ctx)return;
-   const w=host.clientWidth,h=host.clientHeight;
+   if(disposed)return;
+   const start=performance.now(),w=host.clientWidth,h=host.clientHeight;
    const resized=w!==width||h!==height;
-   if(resized){width=w;height=h;ratio=Math.min(window.devicePixelRatio||1,1.35);canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio);}
+   if(resized){width=w;height=h;ratio=Math.min(window.devicePixelRatio||1,1.35);if(fallback){canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio);}}
+   if(light.motion&&visibility>.001)clock+=dt*light.skyMotion;
    const blend=light.motion&&visibility>.001?1-Math.exp(-dt*3):1;
    pending=false;
    for(const key of ['nebula','moon','sun'] as const){const target=light[key]?visibility:0;opacity[key]+=(target-opacity[key])*blend;if(Math.abs(opacity[key]-target)>.002)pending=true;}
-   // Update at the engine cadence even when painting is capped at 30 Hz.
-   // Paused/reduced-motion views keep their current offsets exactly.
-   if(light.motion){const next=celestialParallax(w,h,view),mix=1-Math.exp(-dt*4);
-    for(const key of ['nebula','sun','moon'] as const)for(const axis of ['x','y'] as const)offset[key][axis]+=(next[key][axis]-offset[key][axis])*mix;
-   }
-   if(!force&&!resized&&time-lastFrame<1/30&&light.motion&&!pending)return;
-   lastFrame=time;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,w,h);
+   const next=celestialParallax(w,h,view),mix=light.motion?1-Math.exp(-dt*4):1;
+   for(const key of ['nebula','sun','moon'] as const)for(const axis of ['x','y'] as const)offset[key][axis]+=(next[key][axis]-offset[key][axis])*mix;
    const targetLayout=celestialLayout(w,h,panel);
    if(!placed||resized)placed=targetLayout;
    const placementMix=light.motion?1-Math.exp(-dt*6):1;
-   for(const key of ['sun','moon'] as const)for(const axis of ['x','y','r'] as const)placed[key][axis]+=(targetLayout[key][axis]-placed[key][axis])*placementMix;
+   for(const key of ['sun','moon'] as const)for(const axis of ['x','y','r'] as const){placed[key][axis]+=(targetLayout[key][axis]-placed[key][axis])*placementMix;if(Math.abs(targetLayout[key][axis]-placed[key][axis])>.1)pending=true;}
+   if(!materials&&!force&&!resized&&time-lastFrame<1/30&&light.motion&&!pending)return;
+   lastFrame=time;
    const layout=placed;
-   if(gas&&opacity.nebula>.001&&light.nebulaLight>0){
-    ctx.save();ctx.globalAlpha=Math.min(1,opacity.nebula*light.nebulaLight*.54);
-    // A single authored upper-right cloud leaves the left and lower sky open.
-    // Fit the complete image on phones: cropping a desktop cloud would fill
-    // the entire sky and erase the intended darkness.
-    const gw=w*(w<=700?1.5:1.05),gh=gw*gas.height/gas.width;
-    ctx.translate(w-gw+offset.nebula.x,Math.max(30,h*(w<=700?.16:.06))+offset.nebula.y);
-    ctx.drawImage(gas,0,0,gw,gh);ctx.restore();
-   }
-   const body=(texture:HTMLCanvasElement,x:number,y:number,size:number,level:number,alpha:number)=>{ctx.globalAlpha=alpha*Math.min(1,level);ctx.drawImage(texture,x-size,y-size,size*2,size*2);if(level>1){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=alpha*(level-1);ctx.drawImage(texture,x-size,y-size,size*2,size*2);ctx.globalCompositeOperation='source-over';}};
-   if(opacity.moon>.001&&light.moonLight>0){const {x,y,r}=layout.moon;body(moon,x+offset.moon.x,y+offset.moon.y,r*light.moonSize,light.moonLight,opacity.moon);}
-   if(opacity.sun>.001&&light.sunLight>0){const {x,y,r}=layout.sun;body(sun,x+offset.sun.x,y+offset.sun.y,r*light.sunSize*15,light.sunLight,opacity.sun);}
-   // Occlusion follows the rendered Earth centre and apparent radius, including
-   // panel offsets and zoom. The setting can never paint over its geography.
-   ctx.globalAlpha=1;
-   if(earth.r>0){ctx.globalCompositeOperation='destination-out';const mask=ctx.createRadialGradient(earth.x,earth.y,Math.max(0,earth.r-2),earth.x,earth.y,earth.r+3);mask.addColorStop(0,'rgba(0,0,0,1)');mask.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=mask;ctx.beginPath();ctx.arc(earth.x,earth.y,earth.r+3,0,Math.PI*2);ctx.fill();ctx.globalCompositeOperation='source-over';}
-   host.dataset.celestialSetting=JSON.stringify({nebula:opacity.nebula*light.nebulaLight,moon:opacity.moon*light.moonLight,sun:opacity.sun*light.sunLight});
+   const sx=layout.sun.x+offset.sun.x,sy=layout.sun.y+offset.sun.y,sr=layout.sun.r*light.sunSize;
+   const mx=layout.moon.x+offset.moon.x,my=layout.moon.y+offset.moon.y,mr=layout.moon.r*light.moonSize;
+   const strengths={nebula:opacity.nebula*light.nebulaLight,moon:opacity.moon*light.moonLight,sun:opacity.sun*light.sunLight};
+   const frame={width:w,height:h,time:clock,sun:{x:sx,y:sy,r:sr},moon:{x:mx,y:my,r:mr},earth,nebulaOffset:offset.nebula,light:strengths};
+   if(materials)materials.render(frame);else fallback?.render(frame,ratio);
+   host.dataset.celestialSetting=JSON.stringify(strengths);
+   host.dataset.celestialMotion=JSON.stringify({clock:+clock.toFixed(3),sun:frame.sun,moon:frame.moon,paintMs:+(performance.now()-start).toFixed(2),material:materials?'living-cloud-and-surfaces':'canvas-surfaces'});
   },
-  dispose(){disposed=true;image.onload=image.onerror=null;image.src='';gas=null;canvas.remove();canvas.width=canvas.height=moon.width=moon.height=sun.width=sun.height=0;},
+  dispose(){disposed=true;materials?.dispose();fallback?.dispose();cloud?.dispose();canvas.remove();canvas.width=canvas.height=0;},
  };
 }

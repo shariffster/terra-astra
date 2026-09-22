@@ -25,7 +25,8 @@ console.log('Sky settings: legacy preservation, roundtrip, invalid values, pause
 const view={longitude:175,latitude:34,tilt:18,zoom:1};
 const near=celestialParallax(1440,900,view),lap=celestialParallax(1440,900,{...view,longitude:view.longitude+360*40});
 for(const family of ['nebula','moon','sun'])for(const axis of ['x','y'])assert.ok(Math.abs(near[family][axis]-lap[family][axis])<1e-8);
-assert.ok(Math.abs(near.moon.x)>Math.abs(near.sun.x)&&Math.abs(near.sun.x)>Math.abs(near.nebula.x));
+assert.deepEqual(near,celestialParallax(1440,900,{...view,longitude:-76,latitude:-54}),'Earth inspection must not orbit the sky');
+assert.ok(Math.abs(near.moon.y)>Math.abs(near.sun.y)&&Math.abs(near.sun.y)>Math.abs(near.nebula.y));
 const west=celestialParallax(1440,900,{...view,longitude:179.999}),east=celestialParallax(1440,900,{...view,longitude:-179.999});
 assert.ok(Math.abs(west.moon.x-east.moon.x)<.01);
 for(const [w,h] of [[1440,900],[1095,997],[390,844],[375,667]])for(const latitude of [-80,19,80])for(const longitude of [-3600,-180,0,95,180,3600]){
@@ -33,3 +34,8 @@ for(const [w,h] of [[1440,900],[1095,997],[390,844],[375,667]])for(const latitud
  for(const family of ['nebula','moon','sun'])assert.ok(Math.abs(p[family].x)<47&&Math.abs(p[family].y)<47);
 }
 console.log('Camera depth: bounded offsets, Moon/Sun/nebula depth order and seamless repeated rotations passed.');
+
+assert.equal(migrated.light.skyMotion,1);
+const oldSky=structuredClone(custom);delete oldSky.light.skyMotion;assert.equal(parseComposition(JSON.stringify(oldSky)).light.skyMotion,1);
+for(const value of [-1,3,NaN]){const c=structuredClone(custom);c.light.skyMotion=value;assert.equal(parseComposition(JSON.stringify(c)),null);}
+console.log('Living sky: legacy values and independent motion range passed.');
