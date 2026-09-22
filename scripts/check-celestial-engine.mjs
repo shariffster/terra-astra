@@ -13,7 +13,8 @@ registerHooks({ resolve(specifier, context, next) {
 let clock = 0, frame = null, resizeCallback = null;
 const noop = () => {};
 let visibilityCallback = noop, reducedMotion = false;
-const ctx = new Proxy({ createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}), createRadialGradient: () => ({ addColorStop: noop }) }, { get: (o, key) => o[key] ?? noop, set: (o, key, value) => { o[key] = value; return true; } });
+let solarDraw=null;
+const ctx = new Proxy({ drawImage:(image,...args)=>{if(image.width===256)solarDraw=args;}, createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}), createRadialGradient: () => ({ addColorStop: noop }) }, { get: (o, key) => o[key] ?? noop, set: (o, key, value) => { o[key] = value; return true; } });
 class Canvas {
   style = {}; width = 1; height = 1;
   getContext(type) { return type === '2d' ? ctx : null; }
@@ -48,15 +49,19 @@ const tick=(ms=60)=>{clock+=ms;const next=frame;frame=null;assert.ok(next);next(
 const {DEFAULT_LIGHT}=await import('../lib/terra/composition.ts');
 tick(10800);tick(18000);
 engine.configure({...DEFAULT_LIGHT,autoRotate:false});for(let i=0;i<100;i++)tick(60);
-const held=rendered.camera.position.clone(),firstSky=JSON.parse(host.dataset.celestialSetting);
+const held=rendered.camera.position.clone(),firstSky=JSON.parse(host.dataset.celestialSetting),heldSun=[...solarDraw];
 assert.ok(firstSky.sun>.6&&firstSky.moon>.7&&firstSky.nebula>.5);
 for(let i=0;i<100;i++)tick(60);
 assert.ok(rendered.camera.position.distanceTo(held)<1e-8,'Holding Earth keeps the camera still with world animation enabled');
+assert.ok(solarDraw.every((v,i)=>Math.abs(v-heldSun[i])<1e-8),'The Sun does not drift independently when the camera is still');
 engine.configure({...DEFAULT_LIGHT,autoRotate:true,rotationDelay:7});
 for(let i=0;i<100;i++)tick(60);
 assert.ok(rendered.camera.position.distanceTo(held)<1e-8,'No auto-rotation during the configured pause');
 for(let i=0;i<50;i++)tick(60);
 assert.ok(rendered.camera.position.distanceTo(held)>.001,'Rotation resumes after seven seconds');
+assert.ok(Math.abs(solarDraw[0]-heldSun[0])>.01,'Sun placement responds to the actual camera turn');
+engine.configure({...DEFAULT_LIGHT,motion:false});tick();tick();
+const pausedSun=[...solarDraw];tick(1000);assert.deepEqual(solarDraw,pausedSun,'Master pause freezes celestial parallax');
 engine.configure({...DEFAULT_LIGHT,motion:false,sun:false});tick();tick();
 const frozen=rendered.camera.position.clone();tick(1000);
 assert.ok(rendered.camera.position.distanceTo(frozen)<1e-8);

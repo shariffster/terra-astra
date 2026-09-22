@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {registerHooks} from 'node:module';
 registerHooks({resolve(s,c,n){return n(c.parentURL?.includes('/lib/')&&s.startsWith('.')&&!s.endsWith('.ts')?s+'.ts':s,c)}});
-const {rotationRate,celestialLayout}=await import('../lib/terra/celestial-setting.ts');
+const {rotationRate,celestialLayout,celestialParallax}=await import('../lib/terra/celestial-setting.ts');
 const {DEFAULT_LIGHT,composition,parseComposition}=await import('../lib/terra/composition.ts');
 const old=JSON.parse(readFileSync('docs/OWNER-COMPOSITION-V01018.json'));
 const migrated=parseComposition(JSON.stringify(old));assert.ok(migrated);
@@ -20,3 +20,16 @@ assert.deepEqual(parseComposition(JSON.stringify(custom)),custom);
 for(const patch of [{rotationSpeed:NaN},{rotationDelay:21},{moon:'true'},{sunLight:-1},{nebula:null}]){const c=structuredClone(custom);Object.assign(c.light,patch);assert.equal(parseComposition(JSON.stringify(c)),null);}
 for(const [w,h,p] of [[1440,900,null],[1095,997,{left:14,top:50,right:430,bottom:920}],[390,844,null],[375,667,{left:12,top:350,right:363,bottom:650}]]){const l=celestialLayout(w,h,p);for(const b of [l.sun,l.moon]){assert.ok(b.x-b.r>0&&b.x+b.r<w);assert.ok(b.y-b.r>0&&b.y+b.r<h);if(p&&w>700)assert.ok(b.x-b.r>p.right);if(p&&w<=700)assert.ok(b.y+b.r<p.top);}}
 console.log('Sky settings: legacy preservation, roundtrip, invalid values, pause/resume ramp, independent rotation and responsive positions passed.');
+// Longitude may accumulate indefinitely; the sky must cross the date line
+// continuously and return to the same position after complete Earth turns.
+const view={longitude:175,latitude:34,tilt:18,zoom:1};
+const near=celestialParallax(1440,900,view),lap=celestialParallax(1440,900,{...view,longitude:view.longitude+360*40});
+for(const family of ['nebula','moon','sun'])for(const axis of ['x','y'])assert.ok(Math.abs(near[family][axis]-lap[family][axis])<1e-8);
+assert.ok(Math.abs(near.moon.x)>Math.abs(near.sun.x)&&Math.abs(near.sun.x)>Math.abs(near.nebula.x));
+const west=celestialParallax(1440,900,{...view,longitude:179.999}),east=celestialParallax(1440,900,{...view,longitude:-179.999});
+assert.ok(Math.abs(west.moon.x-east.moon.x)<.01);
+for(const [w,h] of [[1440,900],[1095,997],[390,844],[375,667]])for(const latitude of [-80,19,80])for(const longitude of [-3600,-180,0,95,180,3600]){
+ const p=celestialParallax(w,h,{longitude,latitude,tilt:74,zoom:4});
+ for(const family of ['nebula','moon','sun'])assert.ok(Math.abs(p[family].x)<47&&Math.abs(p[family].y)<47);
+}
+console.log('Camera depth: bounded offsets, Moon/Sun/nebula depth order and seamless repeated rotations passed.');

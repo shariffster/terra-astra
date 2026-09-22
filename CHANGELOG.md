@@ -12,6 +12,14 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Saved compositions include the new controls; earlier exports retain their exact existing values. This new origin has separate browser storage.
 - Validation, asset provenance and limits: `docs/CELESTIAL-SETTING-V01019.md`.
 
+### Same-version follow-up — Open sky and celestial depth · 23 September 2026
+
+- Replace the enclosing nebula composition with one asymmetric upper-right cloud and delicate extensions. Leave the left and lower sky substantially darker; position the cloud below the opening words on phones.
+- Give the Sun a resolved warm-white core, a finer corona and a quieter outer halo. Preserve its existing size/light controls and the Moon's crescent.
+- Let the Moon, Sun and distant cloud respond at different, restrained depths to the camera's bearing, tilt and zoom. Bearings are periodic across full rotations; pause/reduced motion freezes the response. Remove independent cloud drift.
+- Preserve Earth, satellites, all network geometry/activity, saved light values, the complete reveal and earlier milestones. Save a new native revision on the existing v0.10.19 Site; retain its original tag.
+- Evidence, asset prompt and limits: `docs/SKY-REFINEMENT-V01019.md`.
+
 ## v0.10.18 — Shared ocean corridors · 19 September 2026
 
 - Separate checkpoint requested by the user; preserve the current public v0.10.17 Lab at source `d6d309dda34e4b54681434c5a7a236ebeffe08d8` and Sites revision 31. The new checkout/branch and Site identity are independent.

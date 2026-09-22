@@ -100,3 +100,7 @@ One desktop/phone batch identified a corner near Guam and small spikes along cab
 ## 22 September 2026 — Celestial setting checkpoint
 
 A separate v0.10.19 Site preserves the full v0.10.18 Shared Corridors milestone. Experience mode remains: Earth is the pearl/gold concentration; a gauzy blue-violet nebula, small crescent and warm solar point supply an imagined setting. The Sun stays clear of the opening title; responsive placements ease when the panel opens. Sky elements are independently adjustable, while a separate auto-rotation control lets the world keep moving around a stationary Earth. One desktop/phone inspection batch identified the solar placement issue; one bounded correction and confirmation followed. Details and limits: `docs/CELESTIAL-SETTING-V01019.md`.
+
+## 23 September 2026 — Open sky and celestial depth
+
+Same-checkpoint refinement concentrates the cloud in the upper right, with faint extensions and more uninterrupted darkness. The Sun has a firmer small core and finer halo; the crescent remains. Small camera-linked offsets distinguish the Moon, Sun and much more distant cloud. Pause freezes them; no solar lighting touches Earth. Existing light settings, satellites, routes and full reveal stay fixed. Desktop/phone inspection led to one correction moving the phone cloud below the title. Evidence and limits: `docs/SKY-REFINEMENT-V01019.md`; captures: `output/sky-refinement/`. Original tag, earlier revision and Shared Corridors are preserved.

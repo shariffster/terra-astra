@@ -1,3 +1,7 @@
+# v0.10.19 sky refinement follow-up (23 September 2026)
+
+The user approves the live critique of `a2956aac10107655e97644f4404797b212d70e07`: concentrate the nebula asymmetrically with more black space, define the Sun's core and add restrained camera-linked depth. Continue the same branch/version and Celestial Setting Site, saving a new native revision. Preserve the original v0.10.19 tag, previous native revisions, Shared Corridors and all other Sites. Earth light, readable satellites, network geometry, activity settings, saved compositions, full opening and awakening remain fixed. Celestial positions are illustrative; no Earth illumination or astronomical claims.
+
 # v0.10.19 Celestial setting checkpoint (22 September 2026)
 
 The user explicitly requests a separate Site URL to preserve all Shared Corridors revisions at v0.10.18. Start from `299ca4a457acb9b751b0a354a02e88d9bf03895b` on `people-choice/v0.10.19-celestial-setting`. Add independent Moon, Sun and nebula controls, separate Earth auto-rotation from world animation, expose rotation speed/resume delay, and increase the default ship speed from 1.05 to 1.25. Keep Earth dominant, the complete opening/awakening, route geometry, all other activity defaults, existing custom compositions and prior releases. Create a new owner-private Site and save/publish there only. This supersedes earlier same-Site instructions for this checkpoint. Sun/Moon are an imagined setting, with no Earth illumination or astronomical-position claims.
