@@ -28,6 +28,7 @@ import { ConstellationLoading } from './constellation-loading';
 const initialOptions = DEFAULT_LIGHT;
 const formatCoordinate=(n:number,a:string,b:string)=>`${Math.abs(n).toFixed(2)}° ${n>=0?a:b}`;
 export default function TerraExperience(){
+ const opening=useRef<HTMLElement>(null);
  const host=useRef<HTMLDivElement>(null),markers=useRef<HTMLDivElement>(null),engine=useRef<Engine|null>(null),coordinate=useRef<HTMLSpanElement>(null);
  const sound=useSonicEarth(()=>engine.current?.audioState()??null);
  const [stage,setStage]=useState<Stage>('orbit'),[ready,setReady]=useState(false),[loadingCity,setLoadingCity]=useState(false),[error,setError]=useState(''),[fatalError,setFatalError]=useState(false),[options,setOptions]=useState<ViewOptions>(initialOptions),[selected,setSelected]=useState<string|null>(null),[returned,setReturned]=useState(false);
@@ -73,7 +74,12 @@ export default function TerraExperience(){
  },[]);
  useEffect(()=>{const preference=matchMedia('(prefers-reduced-motion: reduce)');const change=()=>setOptions(current=>({...current,motion:!preference.matches}));preference.addEventListener('change',change);return()=>preference.removeEventListener('change',change);},[]);
  useEffect(()=>{engine.current?.configure(options);},[options]);
- useEffect(()=>{engine.current?.narrativePanel(!exploring&&!openTarget&&!astra&&!personalReturned&&!settling&&view==='globe'&&world?.tier!=='region');},[exploring,openTarget,astra,personalReturned,settling,view,world?.tier,ready]);
+ useEffect(()=>{
+  const visible=!exploring&&!openTarget&&!astra&&!personalReturned&&!settling&&view==='globe'&&world?.tier!=='region';
+  const element=opening.current,canvas=host.current;
+  const measure=()=>{const r=element?.getBoundingClientRect(),h=canvas?.getBoundingClientRect();engine.current?.narrativePanel(visible,r&&h?{left:r.left-h.left,right:r.right-h.left,top:r.top-h.top,bottom:r.bottom-h.top}:undefined);};
+  measure();const observer=new ResizeObserver(measure);if(element)observer.observe(element);if(canvas)observer.observe(canvas);return()=>observer.disconnect();
+ },[exploring,openTarget,astra,personalReturned,settling,view,world?.tier,stage,ready]);
  useEffect(()=>{
   const panel=document.getElementById('composition-panel'),earth=engine.current,canvas=host.current;
   if(!compositionTab||!panel||!earth||!canvas){earth?.compositionPanel(false);return;}
@@ -114,7 +120,7 @@ export default function TerraExperience(){
   </div>
   {!error&&!introduced?<ConstellationLoading ready={ready} motion={options.motion} onComplete={enterOpening}/>:null}
   {error?<div className="error-message" role="alert"><p>{error}</p><button onClick={()=>ready&&!fatalError?setError(''):location.reload()}>{fatalError?'Restart journey':ready?'Dismiss':'Try again'}</button></div>:null}
-  <section className="opening" aria-live="polite" aria-hidden={!!openTarget||astra||personalReturned||settling||exploring||view!=='globe'}>
+  <section ref={opening} className="opening" aria-live="polite" aria-hidden={!!openTarget||astra||personalReturned||settling||exploring||view!=='globe'}>
    <p className="eyebrow" hidden={stage==='orbit'||inCity&&isMakkah}>{stage==='orbit'?'A LIVING CELESTIAL EARTH':stage==='city'?'A CITY, ALIVE':!approaching?'PART OF SOMETHING LARGER':'A LITTLE CLOSER'}</p>
    {stage==='orbit'?<><h1>Earth,<br/><em>constellated.</em></h1><p key={returned?'recalled':'opening'} className={returned?'return-line':undefined}>{returned?<>The constellation<br/>was us all along.</>:<>Born from stars.<br/>Alive at every scale.</>}</p></>:inCity&&isMakkah?<><h1>Makkah.<br/><em>Masjid al-Haram.</em></h1><p>Collective movement around the Kaaba.<br/>An interpretive flow, never live tracking.</p></>:inCity?<><h1>{target?.label??'Singapore'},<br/><em>alive.</em></h1><p>{target?.id==='palm-jumeirah'?<>A city drawn into the sea.<br/>Light follows its designed geometry.</>:isSingapore?<>City, island, constellation.<br/>Everyday life gathers in the light.</>:<>A city in motion.<br/>Roads become rivers of light.</>}</p></>:<><h1>{approaching?'Coming':'Going'}<br/><em>{approaching?'closer.':'beyond.'}</em></h1><p>{approaching?'A planet becomes a place.':remembered?'A life becomes part of the world.':'A city becomes part of the world.'}</p></>}
   </section>

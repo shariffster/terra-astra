@@ -304,3 +304,7 @@ html{color-scheme:dark}.story-sheet,.about-dialog,.tuning-dialog{scrollbar-width
 .composing-earth [data-astra-panel]:not([data-live=true]){visibility:hidden;pointer-events:none}
 .composing-earth [data-astra-panel][data-live=true]{left:auto;right:100px;top:90px;bottom:auto}
 .connection-study{font-size:13px;margin-bottom:14px}
+
+/* Fit the opening around its actual copy; the renderer reserves these bounds. */
+.opening{width:max-content}
+.opening h1{letter-spacing:-.04em}

@@ -54,9 +54,10 @@ export function* cableFilamentGeometrySteps(paths: readonly (Pick<SmoothCable,'p
     return 1/(Math.pow(Math.max(1,sum/3),marine?.58:.5)*Math.pow(Math.max(1,sum/24),marine?.10:0));
   };
   const routeExposure=new Float32Array(count*2);
+  const centrelines=new Map(paths.filter(p=>p.strand===0).map((p,i)=>[p.sourceIndex??i,p.positions]));
   const threshold=new Float32Array(count*2);
   const positions=new Float32Array(count*6),previous=new Float32Array(count*6),next=new Float32Array(count*6);
-  const side=new Float32Array(count*2),route=new Float32Array(count*6),routeIndex=new Float32Array(count*2),routeRelief=new Float32Array(count*2),routeStrand=new Float32Array(count*2),routeImportance=new Float32Array(count*2);
+  const side=new Float32Array(count*2),route=new Float32Array(count*6),routeIndex=new Float32Array(count*2),routeRelief=new Float32Array(count*4),routeStrand=new Float32Array(count*2),routeImportance=new Float32Array(count*2);
   // Allocate the final index type directly: avoid a large boxed-number array
   // and its synchronous scan/copy just before the first rendered frame.
   const indexCount=paths.reduce((n,p)=>n+Math.max(0,p.progress.length-1)*6,0);
@@ -64,7 +65,7 @@ export function* cableFilamentGeometrySteps(paths: readonly (Pick<SmoothCable,'p
   let indexOffset=0;
   let base=0;
   for(const [i,path] of paths.entries()){
-    const n=path.progress.length,p=path.positions,sourceIndex=path.sourceIndex??i,source=sources[sourceIndex];
+    const n=path.progress.length,p=path.positions,sourceIndex=path.sourceIndex??i,source=sources[sourceIndex],centre=centrelines.get(sourceIndex);
     const onset=onsets[sourceIndex],intensity=source.intensity,routeThreshold=source.threshold??0;
     const importance=source.importance??(source.tier==='regional'?.70:1),relief=path.relief??0,strand=path.strand??0;
     const sampledExposure=Float32Array.from(path.progress,(_,k)=>exposureAt(p,k*3,path.strand!==undefined));
@@ -74,20 +75,24 @@ export function* cableFilamentGeometrySteps(paths: readonly (Pick<SmoothCable,'p
       for(let s=0;s<2;s++){
         const v=(base+k)*2+s,target=v*3;
         routeExposure[v]=exposure;
+        // Pack spacing beside relief to stay within WebGL attribute limits.
+        // Marine companion samples share the centreline progress grid. Store
+        // actual mean separation, including its coastal/bend contraction.
+        routeRelief[v*2+1]=strand>0&&centre&&centre.length===p.length?Math.hypot(p[j]-centre[j],p[j+1]-centre[j+1],p[j+2]-centre[j+2])/Math.ceil(strand/2):0;
         for(let axis=0;axis<3;axis++){positions[target+axis]=p[j+axis];previous[target+axis]=p[prev+axis];next[target+axis]=p[after+axis];}
-        threshold[v]=routeThreshold;side[v]=s===0?-1:1;routeIndex[v]=sourceIndex;routeStrand[v]=strand;routeImportance[v]=importance;routeRelief[v]=relief;
+        threshold[v]=routeThreshold;side[v]=s===0?-1:1;routeIndex[v]=sourceIndex;routeStrand[v]=strand;routeImportance[v]=importance;routeRelief[v*2]=relief;
         route[target]=path.progress[k];route[target+1]=onset;route[target+2]=intensity;
         if(s===0&&k<n-1){indices[indexOffset++]=v;indices[indexOffset++]=v+1;indices[indexOffset++]=v+2;indices[indexOffset++]=v+1;indices[indexOffset++]=v+3;indices[indexOffset++]=v+2;}
       }
     }
     base+=n;yield;
   }
-  for(const [name,array,size] of [['position',positions,3],['previous',previous,3],['next',next,3],['side',side,1],['route',route,3],['routeIndex',routeIndex,1],['routeRelief',routeRelief,1],['routeStrand',routeStrand,1],['routeImportance',routeImportance,1],['routeThreshold',threshold,1],['routeExposure',routeExposure,1]] as const)g.setAttribute(name,new THREE.BufferAttribute(array,size));
+  for(const [name,array,size] of [['position',positions,3],['previous',previous,3],['next',next,3],['side',side,1],['route',route,3],['routeIndex',routeIndex,1],['routeRelief',routeRelief,2],['routeStrand',routeStrand,1],['routeImportance',routeImportance,1],['routeThreshold',threshold,1],['routeExposure',routeExposure,1]] as const)g.setAttribute(name,new THREE.BufferAttribute(array,size));
   g.setIndex(new THREE.BufferAttribute(indices,1));return g;
 }
 
 export const cableFilamentVertex=`
-attribute vec3 previous;attribute vec3 next;attribute float side;attribute vec3 route;attribute float routeIndex;attribute float routeRelief;attribute float routeStrand;attribute float routeImportance;attribute float routeThreshold;attribute float routeExposure;
+attribute vec3 previous;attribute vec3 next;attribute float side;attribute vec3 route;attribute float routeIndex;attribute vec2 routeRelief;attribute float routeStrand;attribute float routeImportance;attribute float routeThreshold;attribute float routeExposure;
 uniform vec2 resolution;uniform float awakeningTime;uniform float motion;uniform float time;
 attribute float localLight;uniform float localPath;uniform float lineSoftness;
 uniform float pathKind;uniform sampler2D routeGate;uniform vec2 routeSize;uniform float drawDuration;uniform float fadeDuration;uniform float richness;uniform float secondaryLight;
@@ -98,7 +103,7 @@ ${transformationGLSL}
 ${terrainVertexGLSL}
 ${spatialVertexGLSL}
 vec3 cableWorld(vec3 p){
-  if(pathKind>1.5){float r=length(p);p*=1.0+routeRelief*terrainLand*(1.0+.18*terrainStudy)*depthMix/r;return openedPosition(p);}
+  if(pathKind>1.5){float r=length(p);p*=1.0+routeRelief.x*terrainLand*(1.0+.18*terrainStudy)*depthMix/r;return openedPosition(p);}
   return openedPosition(spatialPosition(p));
 }
 float surfaceVisibility(vec3 world){
@@ -124,20 +129,38 @@ void main(){
   float strandGate=smoothstep(max(routeThreshold,routeStrand*.16),max(routeThreshold,routeStrand*.16)+.16,richness);
   float grazing=mix(.24,1.0,smoothstep(.03,.6,dot(normalize(world),normalize(cameraPosition-world))));
   float hierarchy=routeStrand<.5?1.0:secondaryLight*mix(.88,.62,smoothstep(1.0,4.0,routeStrand));
-  float screenDetail=smoothstep(380.0,1000.0,resolution.x);
-  float screenHierarchy=mix((pathKind<1.5?.68:.38)+(pathKind<1.5?.32:.62)*smoothstep(.25,1.4,routeImportance),1.0,screenDetail);
+  // Measure the projected Earth, not viewport width: a side panel or a
+  // closer camera should change detail just as a smaller screen does.
+  float earthPixels=resolution.y*projectionMatrix[1][1]/max(1.0,cameraDistance);
+  float screenDetail=pathKind<1.5?smoothstep(280.0,780.0,earthPixels):smoothstep(380.0,1000.0,resolution.x);
+  float screenHierarchy=mix((pathKind<1.5?.90:.38)+(pathKind<1.5?.10:.62)*smoothstep(.25,1.4,routeImportance),1.0,screenDetail);
   float junction=mix(.68,1.0,smoothstep(0.0,pathKind>1.5?.09:.07,min(route.x,1.0-route.x)));
   if(localPath>.5){vLight=localLight*front*(pathKind<.5?spatialVisibility(world):1.0)*focus;return;}
   // Let a selected marine backbone retain its core through convergences. The
   // fine companions still share the full density budget, avoiding blown knots.
-  float exposure=pathKind<1.5&&routeStrand<.5?max(routeExposure,.14*smoothstep(.6,1.35,routeImportance)):routeExposure;
+  float exposure=pathKind<1.5&&routeStrand<.5?max(routeExposure,.16*smoothstep(.35,1.15,routeImportance)):routeExposure;
   // Companion light shares a stricter budget where many strands coincide.
-  if(pathKind<1.5&&routeStrand>.5)exposure*=mix(.86,1.0,smoothstep(.12,.5,routeExposure));
+  if(pathKind<1.5&&routeStrand>.5){
+    vec3 crossway=cross(normalize(world),cableWorld(next)-cableWorld(previous));
+    crossway/=max(.000001,length(crossway));
+    vec4 neighbour=projectionMatrix*modelViewMatrix*vec4(world+crossway*routeRelief.y,1.0);
+    vec4 centre=projectionMatrix*modelViewMatrix*vec4(world,1.0);
+    float screenGap=length((neighbour.xy/max(.00001,neighbour.w)-centre.xy/max(.00001,centre.w))*resolution*.5);
+    // Subpixel neighbours read as a comb or a solid band. Let them converge
+    // into the main light, then resolve gently as real spacing becomes visible.
+    float separation=mix(.28,1.10,smoothstep(.25,1.35,screenGap));
+    float phase=fract(routeIndex*.61803398875)+routeStrand*.29;
+    float phrasing=.80+.20*cos(6.2831853*(route.x*.72+phase));
+    exposure*=mix(.86,1.0,smoothstep(.12,.5,routeExposure))*separation*phrasing;
+  }
   // As the camera approaches, give already-separated marine strands a little
   // more light. Dense knots retain their budget, and distant views stay calm.
   float approachDetail=1.0-smoothstep(1.65,3.2,cameraDistance);
   if(pathKind<1.5&&routeStrand>.5)exposure*=1.0+.32*approachDetail*smoothstep(.18,.65,routeExposure);
-  vLight=screenHierarchy*route.z*exposure*mix(routeImportance,sqrt(routeImportance),regionMix)*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
+  // Lift the supporting centreline tier without raising the strongest trunks.
+  float routeWeight=mix(routeImportance,sqrt(routeImportance),regionMix);
+  if(pathKind<1.5&&routeStrand<.5)routeWeight*=1.0+.45*(1.0-smoothstep(.72,1.18,routeImportance));
+  vLight=screenHierarchy*route.z*exposure*routeWeight*strandGate*hierarchy*junction*grazing*front*(pathKind<.5?spatialVisibility(world):1.0)*focus*reveal*gate;
 }`;
 export const cableFilamentFragment=`
 uniform vec3 tint;uniform float opacity;uniform float glow;uniform float regionMix;uniform float pathKind;uniform float lineSoftness;
@@ -156,7 +179,7 @@ void main(){
  * family. Positions and endpoint neighbours are updated together. */
 export function movingPathGeometry(capacity:number,samples:number){
  const g=new THREE.BufferGeometry(),count=capacity*samples*2;
- for(const [name,size] of [['position',3],['previous',3],['next',3],['side',1],['route',3],['routeIndex',1],['routeRelief',1],['routeStrand',1],['routeImportance',1],['routeThreshold',1],['routeExposure',1],['localLight',1]] as const){
+ for(const [name,size] of [['position',3],['previous',3],['next',3],['side',1],['route',3],['routeIndex',1],['routeRelief',2],['routeStrand',1],['routeImportance',1],['routeThreshold',1],['routeExposure',1],['localLight',1]] as const){
   const a=new Float32Array(count*size);if(name==='routeImportance'||name==='routeExposure')a.fill(1);g.setAttribute(name,new THREE.BufferAttribute(a,size));
  }
  const sides=g.getAttribute('side');const indices=new Uint32Array(capacity*(samples-1)*6);let j=0;

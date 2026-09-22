@@ -111,3 +111,9 @@ Same-checkpoint refinement concentrates the cloud in the upper right, with faint
 Same-checkpoint refinement extends shared Pacific approaches, staggers branch cuts according to deflection and delays outer-strand opening. Keep pearl/gold Earth dominant, readable cyan satellites, unchanged sky and traffic, and luminous knots with a softer density budget. The Atlantic/Indian geometry remains outside the scoped geographic treatment; marine exposure smoothing is global.
 
 Desktop Pacific/Atlantic/Indian and phone review led to one bounded correction easing a northern Pacific bow. Final Pacific and phone captures remain readable, with the main geographic triangle still present. This is selected illustrative refinement, not global topology replacement. Evidence and limits: `docs/PACIFIC-CONVERGENCE-V01019.md`; captures: `output/pacific-convergence/`. Original tags, previous revisions and other Sites remain preserved.
+
+## 23 September 2026 — Network readability and responsive framing
+
+Same-version follow-up to the Pacific critique. Raise the supporting marine centreline tier; dissolve fine companion strands into shared light when their projected spacing is subpixel, and use broad, stationary brightness variation. Preserve every geographic curve, source endpoint, route count, traveller setting, sky asset, palette and reveal timing. Reserve measured opening-copy bounds on desktop and a phone globe/control-rail gutter, including with composition controls open. Exploration reclaims the title space.
+
+Review at 1440×900, 1095×998 and 390×844. Corrected a GPU attribute-limit error by packing spacing alongside existing route relief; no additional attribute slot. Phone panel clearance received the same gutter correction as the main view. Evidence: `output/network-readability/`; scope and validation: `docs/NETWORK-READABILITY-V01019.md`. This is a presentation refinement, not a global geography or performance acceptance claim.

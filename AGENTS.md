@@ -1,3 +1,7 @@
+# v0.10.19 network readability and framing (23 September 2026)
+
+The user approves the critique of `d28c8355c433e85982175f039e9de9e28bb0b9d0`: restore the marine secondary hierarchy, vary fine-strand visibility with projected separation, reserve space for the opening copy and give the phone control rail a globe gutter. Continue the same branch, semantic version and Celestial Setting Site with a new saved native revision. Preserve geographic curves/endpoints/counts, traveller settings, current sky and Earth light, full reveal, prior tags/revisions and all other Sites. This pass concerns rendering and responsive framing only.
+
 # v0.10.19 Pacific convergence follow-up (23 September 2026)
 
 The user approves the critique of `aafec874ff3c35a5c52e53bf1381d8d985123918`: longer shared Pacific approaches, staggered branch departures, varied strand spacing and controlled luminous convergence. Continue the same branch, version and Celestial Setting Site with a new saved native revision. Preserve source records/endpoints, route counts, water constraints, current sky, Earth light, satellites, all activity settings and the full opening. Preserve original tags, earlier native revisions, Shared Corridors and all other Sites. Display corridors remain illustrative. This scoped network work supersedes the previous follow-up's frozen-geometry boundary.

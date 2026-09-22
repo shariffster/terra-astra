@@ -28,6 +28,12 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Feather marine light over longer shoulders and reduce excessive accumulation at the densest knots while preserving luminous convergence.
 - Preserve 527 shipping paths, 431 cable paths, source records/endpoints, all activity settings, celestial setting, Earth light, full reveal and previous milestones. Evidence and limits: `docs/PACIFIC-CONVERGENCE-V01019.md`.
 
+### Same-version follow-up — Network readability and framing · 23 September 2026
+
+- Lift supporting marine centreline light without raising the strongest trunks. Companion visibility responds to its actual projected separation, with broad, seeded light variation instead of equal-strength parallel bands. Geographic curves, route identities/counts and moving traffic remain unchanged.
+- Measure the opening copy and fit Earth into the remaining desktop space. Reclaim the full view on exploration. Reserve a phone globe/control-rail gutter, including while the composition panel is open.
+- Keep sky, palette, activity defaults, saved settings, full opening/awakening and earlier checkpoints. Review and limits: `docs/NETWORK-READABILITY-V01019.md`.
+
 ## v0.10.18 — Shared ocean corridors · 19 September 2026
 
 - Separate checkpoint requested by the user; preserve the current public v0.10.17 Lab at source `d6d309dda34e4b54681434c5a7a236ebeffe08d8` and Sites revision 31. The new checkout/branch and Site identity are independent.
