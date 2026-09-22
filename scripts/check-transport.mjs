@@ -12,11 +12,11 @@ const saved=composition('New',{...DEFAULT_LIGHT,transport:custom});assert.deepEq
 for(const mutate of [v=>v.ships.count=601,v=>v.aircraft.count=10.2,v=>v.cables.softness=NaN,v=>v.satellites.mode='bad',v=>v.aircraft.pathways='yes']){const v=cloneTransport();mutate(v);assert.equal(validateTransport(v),null);}
 // Defaults match the owner's exported composition, with no forced migration.
 const owner=JSON.parse(readFileSync('docs/OWNER-COMPOSITION-V01018.json'));
-assert.deepEqual(composition(owner.name,DEFAULT_LIGHT),owner,'Fresh visits and reset use the exact owner composition');
+const current=composition(owner.name,DEFAULT_LIGHT);for(const key of Object.keys(owner.light)){if(key==='transport'){const kept=structuredClone(current.light.transport);kept.ships.speed=1.05;assert.deepEqual(kept,owner.light.transport);}else assert.deepEqual(current.light[key],owner.light[key]);}assert.deepEqual(parseComposition(JSON.stringify(owner)).light.transport,owner.light.transport,'Old exported activity remains exact');
 const old=cloneTransport();old.ships.count=264;Object.assign(old.cables,{count:96,travellerLight:1.45,tail:1.6,pulseRate:.26,pulseDepth:.6});
 assert.deepEqual(parseComposition(JSON.stringify(composition('Previous', {...DEFAULT_LIGHT,transport:old}))).light.transport,old,'Previous saved/imported settings remain exact');
 const tuned=cloneTransport(old);tuned.ships.count=217;tuned.cables.pathways=false;
-const marineMix=defaultSeaActivity(tuned);assert.equal(marineMix.cables.pathways,false);assert.equal(marineMix.ships.count,176);assert.equal(marineMix.cables.count,186);assert.equal(marineMix.ships.speed,1.05);assert.deepEqual(marineMix.aircraft,tuned.aircraft);assert.deepEqual(marineMix.satellites,tuned.satellites);
+const marineMix=defaultSeaActivity(tuned);assert.equal(marineMix.cables.pathways,false);assert.equal(marineMix.ships.count,176);assert.equal(marineMix.cables.count,186);assert.equal(marineMix.ships.speed,1.25);assert.deepEqual(marineMix.aircraft,tuned.aircraft);assert.deepEqual(marineMix.satellites,tuned.satellites);
 assert.equal(DEFAULT_TRANSPORT.aircraft.count,200);assert.equal(DEFAULT_TRANSPORT.satellites.count,84);
 const gridB=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.url)),grid=new Int16Array(gridB.buffer,gridB.byteOffset,gridB.byteLength/2);
 const {sampleElevation}=await import('../lib/terra/spatial.ts');const elevation=(lon,lat)=>sampleElevation(grid,1440,720,lon,lat);

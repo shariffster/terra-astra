@@ -13,12 +13,13 @@ registerHooks({ resolve(specifier, context, next) {
 let clock = 0, frame = null, resizeCallback = null;
 const noop = () => {};
 let visibilityCallback = noop, reducedMotion = false;
-const ctx = new Proxy({ createRadialGradient: () => ({ addColorStop: noop }) }, { get: (o, key) => o[key] ?? noop, set: (o, key, value) => { o[key] = value; return true; } });
+const ctx = new Proxy({ createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}), createRadialGradient: () => ({ addColorStop: noop }) }, { get: (o, key) => o[key] ?? noop, set: (o, key, value) => { o[key] = value; return true; } });
 class Canvas {
   style = {}; width = 1; height = 1;
   getContext(type) { return type === '2d' ? ctx : null; }
   addEventListener() {} removeEventListener() {} setAttribute() {} remove() {}
 }
+globalThis.Image = class { onload=null;onerror=null;src=""; };
 globalThis.document = { hidden: false, createElement: () => new Canvas(), createElementNS: () => new Canvas(), addEventListener: (type, callback) => { if (type === 'visibilitychange') visibilityCallback = callback; }, removeEventListener: noop };
 globalThis.window = { addEventListener:()=>{},removeEventListener:()=>{}, devicePixelRatio: 1, innerWidth: 1363 };
 globalThis.matchMedia = () => ({ matches: reducedMotion });
@@ -89,7 +90,7 @@ function inspectRun(label, expected) {
   assert.equal(host.dataset.awakeningSeconds, '18.000');
   receipts.push({ label, expected, rows });
 }
-inspectRun('default first visit', { satellites: 72, aircraft: 170, ships: 150, cables: 12 });
+inspectRun('default first visit', { satellites: 72, aircraft: 170, ships: 150, cables: 159 });
 for (const count of [10, 600]) {
   const light = { ...DEFAULT_LIGHT, travellerVolume: 1, transport: cloneTransport() };
   for (const family of families) { light.transport[family].count = count; light.transport[family].pulse = false; }

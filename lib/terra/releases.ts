@@ -1,7 +1,18 @@
 /** User-facing release history. Keep historical entries tied to their saved milestones. */
-export const currentVersion = '0.10.18';
+export const currentVersion = '0.10.19';
 
 export const releases = [
+  {
+    version: '0.10.19', date: '2026-09-22', dateLabel: '22 September 2026',
+    title: 'A celestial setting', milestone: 'A separate sky and motion checkpoint',
+    changes: [
+      'An independently adjustable nebula, crescent Moon and warm Sun give the surrounding sky more depth. Earth remains the brightest concentration.',
+      'Auto-rotate Earth is separate from Animate the world. Set rotation speed and the pause after interaction; rotation returns gently. The default remains 0.84 degrees per second, with a seven-second pause.',
+      'Ships move at 1.25× by default, up from 1.05×. Other traveller populations, routes and the complete opening remain unchanged.',
+      'The Shared Corridors Site is preserved. Existing composition exports still import; the new sky and rotation choices save with your other settings.',
+    ],
+    review: 'Sun, Moon and nebula are an imagined composition, not astronomical positions, physical scale or a light source for Earth. The nebula is original generated artwork. Sky effects recede during descent. The previous v0.10.18 checkpoint remains available separately.',
+  },
   {
     version: '0.10.18',
     date: '2026-09-19',

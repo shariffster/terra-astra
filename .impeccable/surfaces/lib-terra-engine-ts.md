@@ -95,3 +95,8 @@ Evidence: `output/global-network/`; exact settings, geometry checks and limitati
 The approved Pacific follow-up adds nine illustrative shipping and seven cable connections, broadens shared offshore approaches and gives regional feeders distinct coastal shoulders. Adopt the complete owner-exported composition as default; preserve every existing saved value. Pearl/gold Earth remains dominant; cable heads have more definition while wakes stay diffuse, and other traveller materials and colours remain.
 
 One desktop/phone batch identified a corner near Guam and small spikes along cable wakes. A single correction batch gives Guam a common western shoulder and reserves the cable star flare for its head. The final Pacific and East Asian views are more continuous, while the principal geographic triangle and some schematic crossings remain. Evidence: `output/pacific-structure/`; exact changes, settings and limitations: `docs/PACIFIC-STRUCTURE-V01018.md`. Full opening/awakening are preserved; no new physical-device or performance acceptance claim.
+
+
+## 22 September 2026 — Celestial setting checkpoint
+
+A separate v0.10.19 Site preserves the full v0.10.18 Shared Corridors milestone. Experience mode remains: Earth is the pearl/gold concentration; a gauzy blue-violet nebula, small crescent and warm solar point supply an imagined setting. The Sun stays clear of the opening title; responsive placements ease when the panel opens. Sky elements are independently adjustable, while a separate auto-rotation control lets the world keep moving around a stationary Earth. One desktop/phone inspection batch identified the solar placement issue; one bounded correction and confirmation followed. Details and limits: `docs/CELESTIAL-SETTING-V01019.md`.

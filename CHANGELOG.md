@@ -3,6 +3,15 @@
 Semantic versions label the experience; Sites version numbers identify saved deployment packages. They are separate counters. `lib/terra/releases.ts` is the source for the public history page and current build badge. Git tags identify exact source snapshots; native Sites records are authoritative for save/deploy status.
 
 
+## v0.10.19 — Celestial setting · 22 September 2026
+
+- Separate checkpoint from Shared Corridors `299ca4a457acb9b751b0a354a02e88d9bf03895b`; preserve its Site revision 9 and all earlier checkpoints.
+- Add a restrained generated nebula, illustrative crescent Moon and warm Sun, each independently visible and adjustable. They appear with the settled Earth and recede on descent; none illuminate its surface.
+- Separate Auto-rotate Earth from Animate the world. Keep 0.84°/s, expose 0–2°/s and a 0–20s resume delay, default seven seconds; ease back into rotation over 1.2s after the delay.
+- Ships default to 1.25× (previously 1.05×). Preserve all route geometry, populations, other activity defaults and full introduction/reveal timings.
+- Saved compositions include the new controls; earlier exports retain their exact existing values. This new origin has separate browser storage.
+- Validation, asset provenance and limits: `docs/CELESTIAL-SETTING-V01019.md`.
+
 ## v0.10.18 — Shared ocean corridors · 19 September 2026
 
 - Separate checkpoint requested by the user; preserve the current public v0.10.17 Lab at source `d6d309dda34e4b54681434c5a7a236ebeffe08d8` and Sites revision 31. The new checkout/branch and Site identity are independent.

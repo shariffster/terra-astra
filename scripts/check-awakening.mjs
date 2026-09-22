@@ -16,13 +16,14 @@ registerHooks({ resolve(specifier, context, next) {
 } });
 let clock = 0, frame = null, resizeCallback = null;
 const noop = () => {};
-const ctx = new Proxy({ createRadialGradient: () => ({ addColorStop: noop }) }, { get: (o, key) => o[key] ?? noop, set: (o, key, value) => { o[key] = value; return true; } });
+const ctx = new Proxy({ createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)}), createRadialGradient: () => ({ addColorStop: noop }) }, { get: (o, key) => o[key] ?? noop, set: (o, key, value) => { o[key] = value; return true; } });
 let graphicsLostCallback=null,keyCallback=null,visibilityCallback=null;
 class Canvas {
   style = {}; width = 1; height = 1;
   getContext(type) { return type === '2d' ? ctx : null; }
   addEventListener(type,callback) {if(type==='webglcontextlost')graphicsLostCallback=callback;if(type==='keydown')keyCallback=callback;} removeEventListener() {} setAttribute() {} remove() {}
 }
+globalThis.Image = class { onload=null;onerror=null;src=""; };
 globalThis.document = { hidden: false, createElement: () => new Canvas(), createElementNS: () => new Canvas(), addEventListener: (type,callback)=>{if(type==='visibilitychange')visibilityCallback=callback;}, removeEventListener: noop };
 globalThis.window = { addEventListener:()=>{},removeEventListener:()=>{}, devicePixelRatio: 1, innerWidth: 1363 };
 let reducedMotion=false;globalThis.matchMedia = () => ({ matches: reducedMotion });
