@@ -13,9 +13,10 @@ export const releases = [
       'Same-version refinement: a single asymmetric nebula leaves more open black sky. The Sun has a clearer core and finer halo; Moon, Sun and cloud respond subtly at different depths as the view changes. Pausing holds them still.',
       'Pacific convergence refinement: longer shared approaches and staggered departures around Japan, Guam, Hawaii and California. Fine strands open gradually offshore, while busy knots share a softer light budget. Route and traveller counts, sky, saved settings and the full opening remain.',
       'Living celestial material: a concentrated solar core and flowing corona, a shaded Sun-facing crescent, and a soft nebula with slowly folding cloud structure. Celestial motion adjusts independently; inspecting Earth no longer carries the sky around.',
+      'Celestial depth refinement: a textured hot solar body with asymmetric returning emissions, clearer lunar relief and a slow independent Moon path. Earth auto-rotation leaves the Sun and distant cloud steady; dragging reveals restrained depth. The exposed nebular fold flows through overlapping light and darker vapour.',
       'Responsive refinement: supporting marine routes carry more light, while close fine strands merge softly according to their screen spacing. The opening reserves room for its words; phone views leave a clearer gap beside the control rail.',
     ],
-    review: 'Sun, Moon and nebula are an imagined composition, not astronomical positions, physical scale or a light source for Earth. The nebula uses original generated artwork with evolving local cloud deformation. Motion is artistically accelerated. Sky effects recede during descent. The previous v0.10.18 checkpoint remains available separately.',
+    review: 'Sun, Moon and nebula are an imagined composition, not astronomical positions, physical scale or a light source for Earth. The nebula uses original generated artwork with evolving local cloud deformation. Motion is artistically accelerated. The composed Moon path takes about twelve minutes at 1× and can pass behind Earth. Sky effects recede during descent. The previous v0.10.18 checkpoint remains available separately.',
   },
   {
     version: '0.10.18',

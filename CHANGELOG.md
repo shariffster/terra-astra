@@ -12,6 +12,14 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Saved compositions include the new controls; earlier exports retain their exact existing values. This new origin has separate browser storage.
 - Validation, asset provenance and limits: `docs/CELESTIAL-SETTING-V01019.md`.
 
+### Same-version follow-up — Celestial depth and material correction · 23 September 2026
+
+- Correct the washed-out Sun with a visible hot surface and fewer broad returning emissions; enlarge sparse lunar relief so it survives normal viewing size.
+- Move the nebula’s main fold into exposed sky. Two cloud depths curl and shear while darker vapour crosses the light. Skip expensive cloud shading where Earth fully occludes it.
+- Separate the eased idle-spin contribution from manual inspection. The Sun and distant nebula stay steady through auto-rotation; dragging, tilt and approach have bounded depth response, strongest on the Moon.
+- Give the Moon an independent composed twelve-minute path, with changing phase, Sun-facing light and front/back occlusion. The shared Celestial motion control can hold it with solar/cloud activity; world pause and reduced-motion startup remain still.
+- Keep the same Site/version and all previous saved revisions. Earth, network geometry/activity, saved settings and the full opening stay intact. See `docs/CELESTIAL-DEPTH-V01019.md` for evidence and limits.
+
 ### Same-version follow-up — Living celestial materials · 23 September 2026
 
 - Retain the earlier asymmetric nebula artwork and add local, layered smoke-like deformation. Render the Sun and Moon as continuous materials, following the user’s rejection of the particle-only preview.

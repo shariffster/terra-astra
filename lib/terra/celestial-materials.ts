@@ -2,10 +2,10 @@ import * as THREE from 'three';
 
 /** Continuous celestial materials share Earth's renderer and clock. The nebula
  * retains the authored cloud structure, advected by two evolving flow fields. */
-export type CelestialFrame={width:number;height:number;time:number;sun:{x:number;y:number;r:number};moon:{x:number;y:number;r:number};earth:{x:number;y:number;r:number};nebulaOffset:{x:number;y:number};light:{nebula:number;sun:number;moon:number}};
+export type CelestialFrame={width:number;height:number;time:number;sun:{x:number;y:number;r:number};moon:{x:number;y:number;r:number};moonDepth?:number;moonPhase?:number;earth:{x:number;y:number;r:number};nebulaOffset:{x:number;y:number};light:{nebula:number;sun:number;moon:number}};
 const vertex=`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`;
 const common=`
-uniform float time,level,pixelRatio;
+uniform float time,level,pixelRatio,foreground;
 uniform vec2 resolution;
 uniform vec3 earth,lightDirection;
 varying vec2 vUv;
@@ -17,64 +17,81 @@ float occlusion(){vec2 pixel=vec2(gl_FragCoord.x/pixelRatio,resolution.y-gl_Frag
 const nebula=`${common}
 uniform sampler2D cloud;
 void main(){
+ float visible=occlusion();if(visible<=0.0)discard;
  vec2 uv=vUv;
- // Coherent shear and smaller rolling folds; the image itself is resampled,
- // rather than simply faded or translated as one rigid wallpaper.
- vec2 flow=vec2(fbm(uv*5.0+vec2(time*.025,-time*.018)),fbm(uv*5.0+vec2(6.1-time*.023,time*.017)))-.46;
- vec2 fine=vec2(sin(uv.y*22.0+time*.11),cos(uv.x*19.0-time*.13));
- vec2 warped=uv+flow*.055+fine*.004;
+ // The two cloud depths shear in different directions. A broad eddy curls the
+ // exposed fold, while darker foreground vapour crosses the luminous layer.
+ vec2 q=uv-vec2(.75,.76);
+ vec2 eddy=vec2(-q.y,q.x)*exp(-dot(q,q)*8.0);
+ vec2 flow=vec2(fbm(uv*4.0+vec2(time*.035,-time*.024)),fbm(uv*4.0+vec2(6.1-time*.031,time*.022)))-.47;
+ vec2 warped=uv+flow*.12+eddy*sin(time*.10)*.14;
  vec3 front=texture2D(cloud,warped).rgb;
- vec3 back=texture2D(cloud,uv-flow*.033+vec2(.006*sin(time*.047),.004*cos(time*.053))).rgb;
- float folds=.90+.18*fbm(uv*16.0+flow*3.0+vec2(time*.035,0));
- vec3 color=(front*.82+back*.18)*folds;
- float edge=smoothstep(0.0,.03,uv.x)*smoothstep(0.0,.03,uv.y)*smoothstep(0.0,.03,1.0-uv.x)*smoothstep(0.0,.03,1.0-uv.y);
- gl_FragColor=vec4(color,level*.68*edge*occlusion());
+ vec3 back=texture2D(cloud,uv-flow*.09-eddy*sin(time*.083+.9)*.09+vec2(.018,-.012)).rgb;
+ float vapour=fbm(uv*9.0+flow*2.4+vec2(time*.028,-time*.019));
+ float shadow=smoothstep(.38,.69,vapour);
+ vec3 color=(front*.92+back*.37)*(1.0-shadow*.48);
+ float edge=smoothstep(0.0,.06,uv.x)*smoothstep(0.0,.06,uv.y)*smoothstep(0.0,.06,1.0-uv.x)*smoothstep(0.0,.06,1.0-uv.y);
+ gl_FragColor=vec4(color,level*.82*edge*visible);
 }`;
 const solar=`${common}
+float prominence(vec2 p,float bearing,float height,float spread,float seed){
+ float c=cos(bearing),s=sin(bearing);vec2 q=mat2(c,-s,s,c)*p;
+ q.y+=.045*sin(q.x*6.0-time*.18+seed)*smoothstep(.9,1.4,q.x);
+ float rise=height*(.90+.16*sin(time*.16+seed));
+ vec2 arc=(q-vec2(.91,0.0))/vec2(rise,spread);
+ float a=atan(arc.y,arc.x);float ring=length(arc)+.085*sin(a*3.0+time*.13+seed);
+ float width=.105+.026*sin(a*3.0+seed);
+ float bright=exp(-pow((ring-1.0)/width,2.0));
+ float haze=exp(-pow((ring-1.0)*3.8,2.0))*.26;
+ float travel=.67+.33*sin(a*3.0-time*.72+seed);
+ return (bright*travel+haze)*smoothstep(.91,1.04,q.x);
+}
 void main(){
- vec2 p=(vUv-.5)*8.0;float r=length(p),angle=atan(p.y,p.x);
+ vec2 p=(vUv-.5)*8.0;float r=length(p);
  float z=sqrt(max(0.0,1.0-r*r));
- vec2 surface=p*8.0+vec2(time*.12,-time*.085);
- float granules=fbm(surface+vec2(fbm(surface*.5+time*.025),fbm(surface*.5-time*.031)));
- float limb=1.0-smoothstep(.97,1.025,r);
- vec3 core=mix(vec3(1.0,.48,.12),vec3(1.0,.98,.85),pow(z,.45));
- core*=.87+.22*granules;
- // Uneven strands grow from active regions and curve through the corona.
+ vec2 surface=vec2(atan(p.x,max(.12,z)),p.y)*7.5+vec2(time*.095,0.0);
+ float cells=fbm(surface+vec2(fbm(surface*.7-time*.026),fbm(surface*.6+time*.019)));
+ float grain=noise(surface*3.0);
+ float activityMask=1.0-.19*exp(-dot(p-vec2(-.31,.27),p-vec2(-.31,.27))/.019);
+ float limb=1.0-smoothstep(.982,1.018,r);
+ vec3 core=mix(vec3(.87,.43,.10),vec3(.99,.96,.82),pow(z,.38));
+ core*=activityMask*(.77+.29*cells+.018*grain);
+ // Large asymmetric magnetic arches have visible roots and returning curves.
+ // They replace the radial comb of identical, narrow rays.
+ float arches=prominence(p,-.5,.61,.30,1.0)*.46+prominence(p,.95,.36,.23,4.0)*.15+prominence(p,2.8,.25,.16,7.0)*.16;
  float reach=max(0.0,r-1.0);
- vec2 circular=vec2(cos(angle),sin(angle));
- float activity=fbm(circular*4.0+vec2(reach*.65-time*.047,time*.036));
- float stream=pow(max(0.0,.5+.5*sin(angle*19.0+fbm(circular*7.0)*8.0-reach*(2.3+activity*3.0)+time*.21)),6.0);
- float corona=exp(-reach*3.5)*(.42+.42*activity)+exp(-reach*1.8)*stream*pow(activity,2.0)*1.2;
- // Two asymmetric prominences, blurred into the corona rather than hard rings.
- vec2 a=mat2(.92,-.39,.39,.92)*p-vec2(1.04,.08);
- float archA=exp(-pow((length(a/vec2(.34,.19))-1.0)*9.0,2.0))*(.6+.4*sin(time*.15+angle*2.0));
- vec2 b=mat2(-.72,-.69,.69,-.72)*p-vec2(1.02,0.0);
- float archB=exp(-pow((length(b/vec2(.21,.13))-1.0)*10.0,2.0));
- float exterior=smoothstep(.98,1.025,r);
- float halo=.22*exp(-r*r*.42);
- vec3 color=core*limb+vec3(1.0,.66,.28)*(corona+archA*.16+archB*.075)*exterior+vec3(1.0,.64,.28)*halo;
+ float gas=fbm(p*3.2+vec2(time*.027,-time*.021));
+ float corona=exp(-reach*5.0)*(.13+.14*gas)+exp(-reach*2.1)*.045;
+ float exterior=smoothstep(.985,1.02,r);
+ vec3 color=core*limb+vec3(1.0,.62,.22)*(corona+arches)*exterior;
+ // Do not add the halo across the face: it used to clip the surface to white.
+ color+=vec3(1.0,.66,.31)*.025*exp(-r*r*.34)*exterior;
  color*=1.0-smoothstep(3.0,4.0,r);
- gl_FragColor=vec4(color,min(1.0,level*1.5)*occlusion());
+ gl_FragColor=vec4(min(color*max(1.0,level/.7),vec3(.99)),min(1.0,level/.7)*occlusion());
 }`;
 const lunar=`${common}
+float crater(vec2 p,vec2 centre,float radius){
+ vec2 q=(p-centre)/radius;float r=length(q);
+ float bowl=-.17*(1.0-smoothstep(.65,1.0,r));
+ float lip=exp(-pow((r-.96)*11.0,2.0));
+ return bowl+lip*(.10+.09*dot(normalize(q+vec2(.001)),vec2(lightDirection.x,-lightDirection.y)));
+}
 void main(){
  vec2 p=(vUv-.5)*2.12;float r2=dot(p,p);if(r2>1.0)discard;
  float z=sqrt(1.0-r2);vec3 normal=vec3(p.x,-p.y,z);
  float lambert=max(0.0,dot(normal,lightDirection));
- float maria=1.0-.27*exp(-dot(p+vec2(.22,-.23),p+vec2(.22,-.23))/.12)-.18*exp(-dot(p+vec2(-.35,.32),p+vec2(-.35,.32))/.08);
- float relief=.83+.22*fbm(p*17.0)+.045*noise(p*90.0);
- vec2 cell=floor(p*19.0),f=fract(p*19.0)-.5;float crater=length(f-vec2(hash(cell)-.5,hash(cell+4.0)-.5)*.35);
- relief-=.09*(1.0-smoothstep(.06,.17,crater));
- relief+=.055*exp(-pow((crater-.19)*32.0,2.0));
- float lit=(.025+.91*pow(lambert,.72))*maria*relief;
+ vec2 q=p+(vec2(fbm(p*5.0),fbm(p*5.0+7.0))-.45)*.18;
+ float maria=1.0-.38*exp(-dot(q+vec2(.38,-.24),q+vec2(.38,-.24))/.12)-.29*exp(-dot(q+vec2(-.30,-.34),q+vec2(-.30,-.34))/.075)-.22*exp(-dot(q+vec2(.18,.30),q+vec2(.18,.30))/.08);
+ float relief=.79+.24*fbm(p*13.0)+crater(p,vec2(-.47,-.20),.18)+crater(p,vec2(-.14,.52),.14)+crater(p,vec2(.35,-.37),.21)+crater(p,vec2(.51,.25),.11)+crater(p,vec2(-.61,.38),.10);
+ float lit=(.018+.98*pow(lambert,.67))*maria*relief;
  float edge=1.0-smoothstep(.98,1.0,sqrt(r2));
- gl_FragColor=vec4(vec3(.91,.91,.87)*lit,level*edge*occlusion());
+ gl_FragColor=vec4(vec3(.96,.95,.90)*lit*max(1.0,level/.8),min(1.0,level/.8)*edge*mix(occlusion(),1.0,foreground));
 }`;
 
 export function createCelestialMaterials(renderer:THREE.WebGLRenderer,cloud:THREE.Texture){
  const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(0,1,0,-1,.1,10);camera.position.z=1;
  const meshes=[nebula,solar,lunar].map((fragmentShader,kind)=>{
-  const material=new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader,uniforms:{time:{value:0},level:{value:0},pixelRatio:{value:1},resolution:{value:new THREE.Vector2()},earth:{value:new THREE.Vector3()},lightDirection:{value:new THREE.Vector3()},cloud:{value:cloud}},transparent:true,depthTest:false,depthWrite:false,blending:kind===2?THREE.NormalBlending:THREE.AdditiveBlending});
+  const material=new THREE.ShaderMaterial({vertexShader:vertex,fragmentShader,uniforms:{time:{value:0},level:{value:0},foreground:{value:0},pixelRatio:{value:1},resolution:{value:new THREE.Vector2()},earth:{value:new THREE.Vector3()},lightDirection:{value:new THREE.Vector3()},cloud:{value:cloud}},transparent:true,depthTest:false,depthWrite:false,blending:kind===2?THREE.NormalBlending:THREE.AdditiveBlending});
   const mesh=new THREE.Mesh(new THREE.PlaneGeometry(1,1),material);mesh.frustumCulled=false;mesh.renderOrder=kind;scene.add(mesh);return mesh;
  });
  return {
@@ -85,8 +102,9 @@ export function createCelestialMaterials(renderer:THREE.WebGLRenderer,cloud:THRE
    let draws=0;
    meshes.forEach((mesh,kind)=>{
     const u=mesh.material.uniforms,level=kind===0?light.nebula:kind===1?light.sun:light.moon;mesh.visible=level>.001;if(mesh.visible)draws++;
-    u.time.value=frame.time;u.level.value=level;u.pixelRatio.value=renderer.getPixelRatio();u.resolution.value.set(w,h);u.earth.value.set(earth.x,earth.y,earth.r);u.lightDirection.value.set(dx/length*.9165,dy/length*.9165,-.4);
-    if(kind===0){const width=w*(phone?1.5:1.05),height=width*.6;mesh.scale.set(width,height,1);mesh.position.set(w-width*.5+frame.nebulaOffset.x,-(Math.max(30,h*(phone?.16:.06))+height*.5+frame.nebulaOffset.y),0);}
+    const phase=frame.moonPhase??-.32,side=Math.sqrt(1-phase*phase);
+    u.time.value=frame.time;u.level.value=level;u.foreground.value=THREE.MathUtils.smoothstep(frame.moonDepth??-1,-.08,.08);u.pixelRatio.value=renderer.getPixelRatio();u.resolution.value.set(w,h);u.earth.value.set(earth.x,earth.y,earth.r);u.lightDirection.value.set(dx/length*side,dy/length*side,phase);
+    if(kind===0){const width=w*(phone?1.8:1.12),height=width*.6;mesh.scale.set(width,height,1);mesh.position.set(w-width*.5+frame.nebulaOffset.x,-(h*(phone?.13:-.075)+height*.5+frame.nebulaOffset.y),0);}
     else{const body=kind===1?sun:moon,size=body.r*(kind===1?8:2.12);mesh.scale.set(size,size,1);mesh.position.set(body.x,-body.y,0);}
    });
    const clear=renderer.autoClear,reset=renderer.info.autoReset;renderer.autoClear=false;renderer.info.autoReset=false;
