@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {registerHooks} from 'node:module';
 registerHooks({resolve(s,c,n){return n(c.parentURL?.includes('/lib/')&&s.startsWith('.')&&!s.endsWith('.ts')?s+'.ts':s,c)}});
-const {DEFAULT_TRANSPORT,cloneTransport,validateTransport,travellerPool,travellerProgress,sampleTravellerPath,localPathOffset,localPathLight,MAX_TRAVELLERS,advanceTransportClock,travellerPulse}=await import('../lib/terra/transport.ts');
+const {DEFAULT_TRANSPORT,cloneTransport,livelierSeas,refreshMarineDefaults,validateTransport,travellerPool,travellerProgress,sampleTravellerPath,localPathOffset,localPathLight,MAX_TRAVELLERS,advanceTransportClock,travellerPulse}=await import('../lib/terra/transport.ts');
 const {composition,parseComposition,DEFAULT_LIGHT,sameComposition}=await import('../lib/terra/composition.ts');
 const legacy=JSON.parse(JSON.stringify(composition('Old',DEFAULT_LIGHT)));delete legacy.light.transport;assert.deepEqual(parseComposition(JSON.stringify(legacy)).light.transport,DEFAULT_TRANSPORT);
 const previous=cloneTransport();for(const f of Object.values(previous))for(const k of ['speed','pulse','pulseRate','pulseDepth'])delete f[k];assert.ok(validateTransport(previous),'Existing family saves migrate new motion controls');
@@ -10,6 +10,13 @@ const clock={travel:12,pulse:.3};advanceTransportClock(clock,0,{speed:4,pulseRat
 const custom=cloneTransport();custom.aircraft.mode='local';custom.aircraft.travellers=false;custom.ships.pathways=false;custom.cables.count=600;custom.satellites.mode='full';custom.ships.roundness=0;
 const saved=composition('New',{...DEFAULT_LIGHT,transport:custom});assert.deepEqual(parseComposition(JSON.stringify(saved)),saved);assert.ok(!sameComposition(saved,composition('New',DEFAULT_LIGHT)));
 for(const mutate of [v=>v.ships.count=601,v=>v.aircraft.count=10.2,v=>v.cables.softness=NaN,v=>v.satellites.mode='bad',v=>v.aircraft.pathways='yes']){const v=cloneTransport();mutate(v);assert.equal(validateTransport(v),null);}
+// A startup refresh is narrow; imported/named compositions are exact snapshots.
+const old=cloneTransport();old.ships.count=176;old.ships.travellerLight=1;Object.assign(old.cables,{count:14,travellerLight:1,trailLight:1,tail:1,pulseRate:.16,pulseDepth:.45});
+const updated=refreshMarineDefaults(old);assert.equal(updated.ships.count,264);assert.equal(updated.cables.count,96);assert.deepEqual(updated.aircraft,old.aircraft);assert.deepEqual(updated.satellites,old.satellites);
+assert.deepEqual(parseComposition(JSON.stringify(composition('Saved before', {...DEFAULT_LIGHT,transport:old}))).light.transport,old,'Old named/imported snapshots retain exact settings');
+const tuned=cloneTransport(old);tuned.ships.count=217;tuned.cables.pathways=false;assert.deepEqual(refreshMarineDefaults(tuned),tuned,'Custom marine families never silently migrate');
+const marineMix=livelierSeas(tuned);assert.equal(marineMix.cables.pathways,false);assert.equal(marineMix.ships.count,264);assert.equal(marineMix.cables.count,96);assert.deepEqual(marineMix.aircraft,tuned.aircraft);assert.deepEqual(marineMix.satellites,tuned.satellites);
+assert.equal(DEFAULT_TRANSPORT.aircraft.count,200);assert.equal(DEFAULT_TRANSPORT.satellites.count,84);assert.ok(DEFAULT_TRANSPORT.cables.pulseRate>.16&&DEFAULT_TRANSPORT.cables.travellerLight>1);
 const gridB=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.url)),grid=new Int16Array(gridB.buffer,gridB.byteOffset,gridB.byteLength/2);
 const {sampleElevation}=await import('../lib/terra/spatial.ts');const elevation=(lon,lat)=>sampleElevation(grid,1440,720,lon,lat);
 const {atlasMarine}=await import('../lib/world/connection-atlas.ts');const marine=JSON.parse(readFileSync(new URL('../public/data/networks/marine-branches.json',import.meta.url)));

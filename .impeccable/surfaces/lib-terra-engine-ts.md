@@ -82,3 +82,9 @@ Desktop Pacific/northern-Europe and phone review found a material compilation er
 User-approved same-checkpoint refinement adds sixteen illustrative sea connections and fourteen cable connections with multiple shared coastal stretches, fifteen display spines and longer selected East Asian approaches. Local links branch at different places around Japan, Korea, Taiwan and southern China. Pearl/gold Earth retains priority over muted marine light; traveller counts, palette, controls and awakening remain fixed.
 
 One desktop/phone batch and one bounded correction tightened an unnecessarily wide Nagoya–Osaka feeder. Final close-up and phone captures preserve regional detail and dark ocean space. The broad Pacific triangle and Hawaii remain unchanged; narrow passages remain schematic. Evidence: `output/east-asian-branches/`; validation, provenance and limits: `docs/EAST-ASIAN-BRANCHES-V01018.md`. This is not physical-device or sustained-performance acceptance.
+
+## 22 September 2026 — Global marine balance and activity
+
+User-approved global review across the Indian, Atlantic, Pacific and East Asian views. Rebalance marine leads and supporting strands within the same pearl/gold-led world; extend nine Indian/Atlantic hub approaches and round the Horn of Africa shoulder. Default ships rise to 264 and cable pulses to 96 with stronger, more frequent cable glints. Aircraft and satellites remain unchanged. Custom family settings and named snapshots survive; a marine-only preset supports live comparison.
+
+Evidence: `output/global-network/`; exact settings, geometry checks and limitations: `docs/GLOBAL-MARINE-BALANCE-V01018.md`. This is coordinated visual balance and selected junction refinement, not surveyed geography or complete global topology. Existing dark space, typography, palette and awakening remain intact.

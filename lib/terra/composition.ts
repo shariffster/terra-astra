@@ -17,6 +17,7 @@ export const DEFAULT_LIGHT: LightOptions = Object.freeze({
 });
 export type Composition = { schema: 'terra-astra-composition'; version: 1; name: string; light: LightOptions; presentation: WorldPresentation; layers: Record<WorldLayer, boolean> };
 export const COMPOSITION_STORAGE = 'terra-astra:composition:v1';
+export const MARINE_ACTIVITY_STORAGE = 'terra-astra:marine-activity:1';
 export const SAVED_COMPOSITIONS = 'terra-astra:saved-compositions:v1';
 export const DEFAULT_LAYERS: Readonly<Record<WorldLayer,boolean>> = Object.freeze({ satellites: true, aircraft: true, ships: true, cables: true, urban: true });
 export function composition(name: string, light: LightOptions, presentation = DEFAULT_PRESENTATION, layers: Readonly<Record<WorldLayer,boolean>> = DEFAULT_LAYERS): Composition {

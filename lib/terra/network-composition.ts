@@ -43,8 +43,8 @@ export function* networkImportanceSteps(paths:readonly Path[],sources:readonly S
     // Give short feeders enough presence to participate in the same bundle.
     // Long leading routes remain stronger, without turning into a bright rope
     // above nearly invisible branches. Counts and source intensity stay intact.
-    const sustained=.60+.58*smooth((length-.12)/.65);
-    values[index]=rank===0?Math.max(sustained,group.length>=3?1.32:0):rank<3?.94:.60;
+    const sustained=.72+.44*smooth((length-.12)/.65);
+    values[index]=rank===0?Math.max(sustained,group.length>=3?1.18:0):rank<3?1:.72;
    }else values[index]=(rank===0?lead:rank<3?.72:.26)*(regional?.60:1);
   });yield;
  }return values;

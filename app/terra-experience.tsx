@@ -16,7 +16,8 @@ import type { PersonalPlaces, TransformationState } from '@/lib/terra/personal-c
 import { WorldNavigation } from './world-navigation';
 import { CompositionControls, type CompositionTab } from './composition-controls';
 import type { SoloMemory } from './transport-controls';
-import { COMPOSITION_STORAGE, DEFAULT_LIGHT, composition, parseComposition, type Composition } from '@/lib/terra/composition';
+import { refreshMarineDefaults } from '@/lib/terra/transport';
+import { COMPOSITION_STORAGE, MARINE_ACTIVITY_STORAGE, DEFAULT_LIGHT, composition, parseComposition, type Composition } from '@/lib/terra/composition';
 import { connectWorldNavigator, publishWorldState, sendWorldCommand } from '@/lib/world/bridge';
 import { WORLD_TARGETS, type GenesisState, type WorldState } from '@/lib/world/commands';
 import specialStyles from './special-destinations.module.css';
@@ -67,7 +68,7 @@ export default function TerraExperience(){
   for(const [layer,enabled] of Object.entries(c.layers)){const result=await earth.command({type:'focusLayer',layer:layer as keyof typeof c.layers,enabled});if(!result.ok)throw new Error(result.reason??'Layer settings could not be applied.');}
   if(restoreLight&&revision===lightRevision.current)configure({...c.light,motion:matchMedia('(prefers-reduced-motion: reduce)').matches?false:c.light.motion});
  },[configure]);
- useEffect(()=>{const controller=new AbortController();let instance:Engine|undefined;let disconnectWorld:(()=>void)|undefined;const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;let stored:Composition|null=null;try{stored=parseComposition(localStorage.getItem(COMPOSITION_STORAGE)??'');}catch{}savedStartup.current=stored;const opts={...(stored?.light??initialOptions),motion:reduced?false:stored?.light.motion??true};setOptions(opts);
+ useEffect(()=>{const controller=new AbortController();let instance:Engine|undefined;let disconnectWorld:(()=>void)|undefined;const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;let stored:Composition|null=null;try{stored=parseComposition(localStorage.getItem(COMPOSITION_STORAGE)??'');if(stored&&localStorage.getItem(MARINE_ACTIVITY_STORAGE)!=='1')stored={...stored,light:{...stored.light,transport:refreshMarineDefaults(stored.light.transport)}};}catch{}savedStartup.current=stored;const opts={...(stored?.light??initialOptions),motion:reduced?false:stored?.light.motion??true};setOptions(opts);
   import('@/lib/terra/engine').then(({createEarth})=>{if(controller.signal.aborted||!host.current||!markers.current)return;return createEarth(host.current,markers.current,{deferGenesis:true,discovery:setDiscoveryReady,genesis:setGenesis,worldState:state=>{setWorld(state);publishWorldState(state);},transformation:setTransformation,personalSettled:()=>{setPersonalReturned(true);setExploring(false);},ready:()=>setReady(true),stage:s=>{setSettling(s==='orbit'&&previousStage.current==='ascending');previousStage.current=s;setStage(s);setExploring(false);},view:setView,arrival:id=>{setReturned(!!id);setSettling(false);},error:(message,fatal=false)=>{setError(message);setFatalError(fatal);if(fatal)setReady(false);},interact:()=>setExploring(true),coordinates:(lat,lon)=>{if(coordinate.current)coordinate.current.textContent=`${formatCoordinate(lat,'N','S')}  /  ${formatCoordinate(lon,'E','W')}`;}},controller.signal,opts);}).then(e=>{if(!e)return;if(controller.signal.aborted){e.dispose();return;}instance=e;engine.current=e;e.configure(opts);setOptions(opts);disconnectWorld=connectWorldNavigator(async command=>{if(command.type==='flyTo'||command.type==='flyToPlace'||command.type==='resetView'||command.type==='setScale'){setSelected(null);setPersonalReturned(false);setEditingPersonal(false);setShowDepth(false);setReturned(false);setRemembered(null);setSettling(false);}return e.command(command);},()=>e.worldState());setWorld(e.worldState());}).catch(e=>{if(e?.name!=='AbortError')setError('The star field could not open. Please try a browser with WebGL enabled, or reload to try again.');});
   return()=>{controller.abort();disconnectWorld?.();instance?.dispose();engine.current=null;};
  },[]);
@@ -86,7 +87,7 @@ export default function TerraExperience(){
   if(c)void applyComposition(c,false).catch(e=>setError(e instanceof Error?e.message:'Saved settings could not be restored.')).finally(finish);else finish();
  },[ready,genesis.busy,applyComposition]);
  useEffect(()=>{if(!ready||!preferencesRestored||!world)return;
-  const save=()=>{try{localStorage.setItem(COMPOSITION_STORAGE,JSON.stringify(composition('Last view',options,world.presentation,world.layers)));}catch{}};
+  const save=()=>{try{localStorage.setItem(COMPOSITION_STORAGE,JSON.stringify(composition('Last view',options,world.presentation,world.layers)));localStorage.setItem(MARINE_ACTIVITY_STORAGE,'1');}catch{}};
   const timer=setTimeout(save,150);window.addEventListener('pagehide',save);
   return()=>{clearTimeout(timer);window.removeEventListener('pagehide',save);};
  },[options,world,ready,preferencesRestored]);

@@ -15,5 +15,14 @@ export function marineApproachReach(point: readonly [number, number]) {
   if(lat===33.875&&lon===128.125)return .040; // Korean / Kyushu offshore approach
   if(lat===29.875&&lon===124.125)return .040; // East China Sea
   if(lat===23.875&&lon===123.125)return .040; // East of Taiwan
+  if(lat===-5.125&&lon===43.125)return .090; // East African offshore convergence
+  if(lat===-36.125&&lon===19.125)return .100; // Cape, across the two ocean approaches
+  if(lat===4.375&&lon===80.125)return .075; // South of Sri Lanka
+  if(lat===11.875&&lon===63.125)return .085; // Arabian Sea shared stem
+  if(lat===12.375&&lon===45.125)return .045; // Gulf of Aden
+  if(lat===22.875&&lon===60.125)return .055; // Oman offshore
+  if(lat===38.875&&lon===-70.875)return .070; // Western North Atlantic
+  if(lat===-8.125&&lon===-31.875)return .085; // Northeastern Brazil offshore fan
+  if(lat===13.875&&lon===-18.875)return .065; // West African approach
   return 0;
 }

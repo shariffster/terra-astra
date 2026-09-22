@@ -15,9 +15,23 @@ export const MAX_TRAVELLERS=600;
 export const FAMILY_RANGES = {count:[10,MAX_TRAVELLERS,1],travellerLight:[0,3,.01],pathLight:[0,2,.01],trailLight:[0,3,.01],tail:[0,6,.05],ahead:[0,4,.05],behind:[0,4,.05],softness:[0,1,.01],bundle:[0,1,.05],roundness:[0,1,.05],speed:[0,4,.05],pulseRate:[.02,1,.01],pulseDepth:[0,1,.01]} as const;
 export type FamilyNumber=keyof typeof FAMILY_RANGES;
 const base:FamilyOptions={pathways:true,travellers:true,mode:'full',count:200,distribution:'hubs',travellerLight:1,pathLight:1,trailLight:1,tail:1,ahead:1,behind:1,softness:.55,bundle:1,roundness:1,speed:1,pulse:false,pulseRate:.16,pulseDepth:.45};
-export const DEFAULT_TRANSPORT:TransportOptions={aircraft:{...base,count:200,mode:'local',ahead:.45,behind:.7},ships:{...base,count:176},cables:{...base,count:14,pulse:true},satellites:{...base,count:84,mode:'trail',distribution:'even'}};
+export const DEFAULT_TRANSPORT:TransportOptions={aircraft:{...base,count:200,mode:'local',ahead:.45,behind:.7},ships:{...base,count:264,travellerLight:1.1},cables:{...base,count:96,pulse:true,pulseRate:.26,pulseDepth:.6,travellerLight:1.45,trailLight:1.25,tail:1.6},satellites:{...base,count:84,mode:'trail',distribution:'even'}};
 export function cloneTransport(value:TransportOptions=DEFAULT_TRANSPORT):TransportOptions {
  return Object.fromEntries(TRANSPORT_FAMILIES.map(f=>[f,{...value[f]}])) as TransportOptions;
+}
+const marineActivityKeys=['count','travellerLight','trailLight','tail','pulse','pulseRate','pulseDepth'] as const;
+/** An explicit marine-only preset leaves routes, visibility and other families alone. */
+export function livelierSeas(value:TransportOptions):TransportOptions {
+ const next=cloneTransport(value);
+ for(const family of ['ships','cables'] as const)for(const key of marineActivityKeys)Object.assign(next[family],{[key]:DEFAULT_TRANSPORT[family][key]});
+ return next;
+}
+/** Upgrade only untouched legacy marine families in the automatic last view.
+ * Named saves and imports bypass this: they remain exact comparisons. */
+export function refreshMarineDefaults(value:TransportOptions):TransportOptions {
+ const next=cloneTransport(value),legacy={ships:{...base,count:176},cables:{...base,count:14,pulse:true}};
+ for(const f of ['ships','cables'] as const)if((Object.keys(legacy[f]) as (keyof FamilyOptions)[]).every(k=>value[f][k]===legacy[f][k]))next[f]={...DEFAULT_TRANSPORT[f]};
+ return next;
 }
 export function validateTransport(value:unknown):TransportOptions|null {
  if(value===undefined)return cloneTransport();

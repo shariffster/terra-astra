@@ -57,6 +57,14 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Extend selected compatible approaches at the Korean, East China Sea and eastern Taiwan hubs. Preserve source records/endpoints, the restrained palette, settings, traveller budgets, opening/awakening and all earlier revisions/tags.
 - These are geographic illustrations, not measured shipping services or surveyed cables. The wider Pacific triangle is unchanged. Evidence and limits: `docs/EAST-ASIAN-BRANCHES-V01018.md`.
 
+### Same-version follow-up — Global marine balance and livelier seas · 22 September 2026
+
+- Review the Indian, Atlantic, Pacific and East Asian networks together; narrow the light gap between leading marine ribbons and supporting branches globally, retaining density limits at busy joins.
+- Extend water-checked endpoint approaches at nine Indian/Atlantic hubs: East Africa, the Cape, Sri Lanka, the Arabian Sea, Aden, Oman, the western North Atlantic, northeastern Brazil and West Africa. A broader Aden–East Africa display shoulder rounds the Horn of Africa elbow.
+- Increase default ships from 176 to 264 and cable pulses from 14 to 96. Cable pulses use 1.45× traveller light, 1.25× trail light, 1.6× tail length and a 0.26 Hz brightness cycle. Flights, satellites, travel speeds and awakening times stay unchanged.
+- Add “Use livelier seas” for marine activity only. On the first upgraded visit, untouched legacy marine families receive new defaults; custom families and named/exported compositions remain intact. The migration is recorded once after the last view saves successfully, so restoring an older composition later remains a deliberate choice.
+- Preserve 518 sea paths and 424 cable paths, their original source records and endpoints, the palette, other Sites, historical tags and earlier native revisions. See `docs/GLOBAL-MARINE-BALANCE-V01018.md`.
+
 ## v0.10.17 — Gathering into currents · 17 September 2026
 
 - Extend exact v0.10.16 `2ed8a38dddcc4164e31b6de097c04c22142236c6` in `people-choice/v0.10.17-flow-hierarchy`; Lab only.

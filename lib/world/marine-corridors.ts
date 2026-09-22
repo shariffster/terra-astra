@@ -6,6 +6,9 @@ type Location = readonly [number, number];
  * Shared gates retain the original connections and offshore endpoints. Long
  * crossings stay offshore; coastal passages curve around the relevant land. */
 const spines: readonly (readonly Location[])[] = [
+ // A broader offshore shoulder around the Horn replaces the old right-angle
+ // gate. The existing Aden and East African anchors remain exact.
+ [[12.375,45.125],[12.1,46.5],[12.2,48.8],[12.2,50.4],[12,51.8],[11.6,52.4],[10.8,52.5],[9.5,52],[7,51],[3,48.5],[-1,46],[-5.125,43.125]],
  // Coastal feeders reuse the same eastern Hormuz approach.
  [[26.375,56.625],[25.9,56.95],[25.35,57.55],[25,58.1],[24,59.1],[22.875,60.125]],
  [[26.375,56.375],[26.4,56.35],[26.375,56.625],[25.9,56.95],[25.35,57.55],[25,58.1],[24,59.1],[22.875,60.125]],

@@ -6,22 +6,26 @@ const b=readFileSync('public/data/relief-grid.bin'),grid=new Int16Array(b.buffer
 const unit=p=>{const r=Math.hypot(...p);return p.map(v=>v/r);},dot=(a,b)=>a.reduce((n,v,j)=>n+v*b[j],0);
 const tangent=(piece,end)=>{const a=sampleCablePiece(piece,end?1-.0001:0),b=sampleCablePiece(piece,end?1:.0001);return unit(b.map((v,j)=>v-a[j]));};
 const report=[];let minimumJoin=1;
-const pacificHubs=[[33.875,142.125],[11.875,145.125],[21.875,-156.875],[36.875,-124.875],[31.875,-119.875]];
+const reviewHubs=[[33.875,142.125],[11.875,145.125],[21.875,-156.875],[36.875,-124.875],[31.875,-119.875],[-5.125,43.125],[-36.125,19.125],[4.375,80.125],[11.875,63.125],[12.375,45.125],[22.875,60.125],[38.875,-70.875],[-8.125,-31.875],[13.875,-18.875]];
 for(const surface of[true,false]){
  const data=['marine-branches','indian-branches','regional-branches','european-branches','east-asian-branches'].flatMap(n=>JSON.parse(readFileSync('public/data/networks/'+n+'.json'))[surface?'sea':'cables']);
  const sources=[...(surface?seaLanePaths:cablePaths),...atlasMarine(data,surface)],snapshot=JSON.stringify(sources);
  const paths=prepareSmoothCables(sources,height,surface?1.002:undefined),affected=paths.filter(p=>p.pieces.some(x=>x.approachReach));
  assert.equal(paths.length,surface?518:424);assert.equal(JSON.stringify(sources),snapshot);assert.ok(affected.length>=16,'Selected hubs receive extended approaches');
- const hubCoverage=pacificHubs.map(hub=>{
+ const hubCoverage=reviewHubs.map(hub=>{
+  const approachShapes=new Set();
   const reaches=paths.flatMap((p,i)=>[0,1].flatMap(end=>{
    const point=sources[i].waypoints.at(end?-1:0),piece=p.pieces.at(end?-1:0);
-   return point[0]===hub[0]&&point[1]===hub[1]&&piece.approachReach?[piece.approachReach]:[];
+   if(point[0]!==hub[0]||point[1]!==hub[1]||!piece.approachReach)return [];
+   approachShapes.add(JSON.stringify([0,.25,.5,.75,1].map(t=>sampleCablePiece(piece,end?1-t:t).map(v=>Math.round(v*1e6)))));
+   return [piece.approachReach];
   }));
   const connections=sources.filter(p=>[p.waypoints[0],p.waypoints.at(-1)].some(x=>x[0]===hub[0]&&x[1]===hub[1])).length;
   // Guam has only two shipping bearings; these need not become one bundle.
-  if(connections>2)assert.ok(reaches.length>1,'Busy Pacific hubs receive extended approaches');
-  if(reaches.length>1)assert.ok(Math.max(...reaches)-Math.min(...reaches)>.002,'Branches separate across a stretch, not one identical shoulder');
-  return {hub,connections,approaches:reaches.length};
+  if(connections>2)assert.ok(reaches.length>1,'Busy reviewed hubs receive extended approaches');
+  // Identical shared stems must stay identical. Distinct branch approaches stagger.
+  if(reaches.length>1&&approachShapes.size>1)assert.ok(Math.max(...reaches)-Math.min(...reaches)>.002,`Branches at ${hub} separate across a stretch (${reaches})`);
+  return {hub,connections,approaches:reaches.length,distinctApproaches:approachShapes.size};
  });
  const reversed=prepareSmoothCables(sources.map(p=>({...p,waypoints:[...p.waypoints].reverse()})),height,surface?1.002:undefined);
  for(const p of affected){
@@ -37,7 +41,7 @@ for(const surface of[true,false]){
   }
  }
  const straight=prepareSmoothCables(sources,height,surface?1.002:undefined,{bundle:1,roundness:0});assert.ok(straight.every(p=>p.pieces.every(x=>!x.approachReach)),'Straight setting bypasses extended rounding');
- const levels=networkImportance(paths,sources,true);assert.ok(Math.max(...levels)<=1.32&&Math.min(...levels)>=.60,'Main and feeder hierarchy remains bounded');
+ const levels=networkImportance(paths,sources,true);assert.ok(Math.max(...levels)<=1.18&&Math.min(...levels)>=.72,'Main and feeder hierarchy remains bounded');
  report.push({family:surface?'shipping':'cables',routes:paths.length,extendedRoutes:affected.length,hubCoverage,reachDegrees:affected.flatMap(p=>p.pieces.filter(x=>x.approachReach).map(x=>x.approachReach*180/Math.PI)).reduce((a,x)=>[Math.min(a[0],x),Math.max(a[1],x)],[Infinity,0])});
 }
 console.log(JSON.stringify({result:'PASS',minimumJoin,sourceRecords:'unchanged',reverse:'same geometry',report}));

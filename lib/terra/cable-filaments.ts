@@ -128,9 +128,9 @@ void main(){
   if(localPath>.5){vLight=localLight*front*(pathKind<.5?spatialVisibility(world):1.0)*focus;return;}
   // Let a selected marine backbone retain its core through convergences. The
   // fine companions still share the full density budget, avoiding blown knots.
-  float exposure=pathKind<1.5&&routeStrand<.5?max(routeExposure,.20*smoothstep(.6,1.35,routeImportance)):routeExposure;
+  float exposure=pathKind<1.5&&routeStrand<.5?max(routeExposure,.14*smoothstep(.6,1.35,routeImportance)):routeExposure;
   // Companion light shares a stricter budget where many strands coincide.
-  if(pathKind<1.5&&routeStrand>.5)exposure*=mix(.78,1.0,smoothstep(.12,.5,routeExposure));
+  if(pathKind<1.5&&routeStrand>.5)exposure*=mix(.86,1.0,smoothstep(.12,.5,routeExposure));
   // As the camera approaches, give already-separated marine strands a little
   // more light. Dense knots retain their budget, and distant views stay calm.
   float approachDetail=1.0-smoothstep(1.65,3.2,cameraDistance);

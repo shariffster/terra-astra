@@ -1,3 +1,7 @@
+# v0.10.18 Global marine hierarchy and activity (22 September 2026)
+
+The user approves a coordinated global review of network hierarchy and conspicuous remaining junctions from `23681ba83623f50f554f7ae7b8f52d2b92e237e2`. Increase ships and cable pulses, including cable pulse frequency and presence; keep flights and satellites unchanged. Continue the same checkpoint Site and branch with a new saved revision. Preserve route identities/endpoints, water constraints, saved custom compositions, palette, opening and awakening, earlier revisions/tags and all other Sites. This explicitly supersedes earlier frozen ship/cable activity budgets for this follow-up. Assess the Indian, Atlantic, Pacific and East Asian views together; do not claim a surveyed or complete global network.
+
 # v0.10.18 East Asian regional network (22 September 2026)
 
 The user approves the critique of `c47c84cf28ba8dd60b3dd892ab31fabef48b10b0`: build a convincing Japan–East Asia network with coastal approaches and quieter local feeders, keeping traveller populations and the palette fixed. Add distinct illustrative connections and refine selected display corridors. Preserve earlier route records/endpoints, water constraints, settings, opening/awakening, previous revisions/tags and all other Sites. Save and publish a new native revision on the same checkpoint Site/branch. This supersedes the previous pass's route-count freeze for these approved regional additions only.
