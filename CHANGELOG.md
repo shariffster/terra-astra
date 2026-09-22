@@ -20,6 +20,14 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Preserve Earth, satellites, all network geometry/activity, saved light values, the complete reveal and earlier milestones. Save a new native revision on the existing v0.10.19 Site; retain its original tag.
 - Evidence, asset prompt and limits: `docs/SKY-REFINEMENT-V01019.md`.
 
+### Same-version follow-up — Pacific convergence · 23 September 2026
+
+- Lengthen selected approaches at Japan, Guam, Hawaii and California. Reuse shared ocean stems for regional feeders, with distinct northern departures and gentler California/Hawaii arrivals.
+- Let Pacific branches leave shared stretches at distances determined by their turn, retaining identical reversed curves and smooth entry/exit tangents. Unrelated crossings remain independent.
+- Narrow shared Pacific bundles and stagger the opening of inner/outer strands. Keep offshore separation and all existing spread/roundness controls, water checks and traveller sampling.
+- Feather marine light over longer shoulders and reduce excessive accumulation at the densest knots while preserving luminous convergence.
+- Preserve 527 shipping paths, 431 cable paths, source records/endpoints, all activity settings, celestial setting, Earth light, full reveal and previous milestones. Evidence and limits: `docs/PACIFIC-CONVERGENCE-V01019.md`.
+
 ## v0.10.18 — Shared ocean corridors · 19 September 2026
 
 - Separate checkpoint requested by the user; preserve the current public v0.10.17 Lab at source `d6d309dda34e4b54681434c5a7a236ebeffe08d8` and Sites revision 31. The new checkout/branch and Site identity are independent.

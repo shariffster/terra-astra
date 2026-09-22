@@ -1,3 +1,7 @@
+# v0.10.19 Pacific convergence follow-up (23 September 2026)
+
+The user approves the critique of `aafec874ff3c35a5c52e53bf1381d8d985123918`: longer shared Pacific approaches, staggered branch departures, varied strand spacing and controlled luminous convergence. Continue the same branch, version and Celestial Setting Site with a new saved native revision. Preserve source records/endpoints, route counts, water constraints, current sky, Earth light, satellites, all activity settings and the full opening. Preserve original tags, earlier native revisions, Shared Corridors and all other Sites. Display corridors remain illustrative. This scoped network work supersedes the previous follow-up's frozen-geometry boundary.
+
 # v0.10.19 sky refinement follow-up (23 September 2026)
 
 The user approves the live critique of `a2956aac10107655e97644f4404797b212d70e07`: concentrate the nebula asymmetrically with more black space, define the Sun's core and add restrained camera-linked depth. Continue the same branch/version and Celestial Setting Site, saving a new native revision. Preserve the original v0.10.19 tag, previous native revisions, Shared Corridors and all other Sites. Earth light, readable satellites, network geometry, activity settings, saved compositions, full opening and awakening remain fixed. Celestial positions are illustrative; no Earth illumination or astronomical claims.

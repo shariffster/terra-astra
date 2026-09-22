@@ -11,6 +11,7 @@ export const releases = [
       'Ships move at 1.25× by default, up from 1.05×. Other traveller populations, routes and the complete opening remain unchanged.',
       'The Shared Corridors Site is preserved. Existing composition exports still import; the new sky and rotation choices save with your other settings.',
       'Same-version refinement: a single asymmetric nebula leaves more open black sky. The Sun has a clearer core and finer halo; Moon, Sun and cloud respond subtly at different depths as the view changes. Pausing holds them still.',
+      'Pacific convergence refinement: longer shared approaches and staggered departures around Japan, Guam, Hawaii and California. Fine strands open gradually offshore, while busy knots share a softer light budget. Route and traveller counts, sky, saved settings and the full opening remain.',
     ],
     review: 'Sun, Moon and nebula are an imagined composition, not astronomical positions, physical scale or a light source for Earth. The nebula is original generated artwork. Sky effects recede during descent. The previous v0.10.18 checkpoint remains available separately.',
   },

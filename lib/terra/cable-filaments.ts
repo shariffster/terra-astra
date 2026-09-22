@@ -14,7 +14,7 @@ export function featherMarineExposure(values:Float32Array,positions:Float32Array
   for(let k=1;k<n;k++){
     const i=k*3,j=i-3;
     const distance=Math.hypot(positions[i]-positions[j],positions[i+1]-positions[j+1],positions[i+2]-positions[j+2]);
-    blend[k]=1-Math.exp(-distance/.012);
+    blend[k]=1-Math.exp(-distance/.018);
     forward[k]=forward[k-1]+(values[k]-forward[k-1])*blend[k];
   }
   for(let k=n-2;k>=0;k--)backward[k]=backward[k+1]+(values[k]-backward[k+1])*blend[k+1];
@@ -49,7 +49,9 @@ export function* cableFilamentGeometrySteps(paths: readonly (Pick<SmoothCable,'p
       const weight=(dx?tx:1-tx)*(dy?ty:1-ty)*(dz?tz:1-tz);
       sum+=weight*(density[base+dx*plane+dy*width+dz]||1);
     }
-    return 1/Math.pow(Math.max(1,sum/3),marine?.58:.5);
+    // Keep luminous knots, but let the densest overlaps grow more slowly
+    // than their route count. Ordinary offshore strands retain their light.
+    return 1/(Math.pow(Math.max(1,sum/3),marine?.58:.5)*Math.pow(Math.max(1,sum/24),marine?.10:0));
   };
   const routeExposure=new Float32Array(count*2);
   const threshold=new Float32Array(count*2);

@@ -124,9 +124,9 @@ function crossingBranch(spine:readonly Location[],original:readonly Location[]):
  const band=Math.max(-1,Math.min(1,(latitude-(hawaii?30:43))/2));
  return spine.map((p,i)=>{
   // Different departure/return shoulders preserve branch identity offshore.
-  if(i<2||i>=spine.length-3)return p;
-  const t=(i-1)/(spine.length-4),weight=Math.sin(Math.PI*t)**2;
-  return [p[0]+band*(hawaii?3.5:3)*weight,p[1]] as Location;
+  if(i<3||i>=spine.length-4)return p;
+  const t=(i-2)/(spine.length-6),weight=Math.sin(Math.PI*t)**2;
+  return [p[0]+band*(hawaii?2:2.5)*weight,p[1]] as Location;
  });
 }
 

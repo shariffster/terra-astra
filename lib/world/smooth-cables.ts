@@ -3,7 +3,7 @@ import type { CablePath } from './cables';
 import { schematicPassage, schematicCanal } from './ocean-geography';
 import { networkRadius } from '../terra/living-material';
 import { marineCorridorWaypoints } from './marine-corridors';
-import { marineApproachReach } from './marine-approach';
+import { marineApproachReach, pacificFlowWeight } from './marine-approach';
 
 type V = [number, number, number];
 type Output = { [index: number]: number };
@@ -121,7 +121,8 @@ export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation
     if(i>0&&i<nodes.length-1){const a=nodes[i-1],c=nodes[i+1],reverse=nodeKey(a)>nodeKey(c),turnKey=[nodeKey(a),nodeKey(c)].sort().join('/');junction.turns.set(turnKey,{a:reverse?c:a,b:p,c:reverse?a:c});}
     junctions.set(key,junction);
   }yield;}
-  const sharedGather=(a:V,b:V)=>edgeUse.get(edgeKey(a,b))!.size>1?1-.65*shape.bundle:1;
+  const pacificAt=(p:V)=>{const [lon,lat]=coordinates(p);return pacificFlowWeight(lat,lon);};
+  const sharedGather=(a:V,b:V)=>edgeUse.get(edgeKey(a,b))!.size>1?1-(.65+.15*pacificAt(arc(a,b,.5)))*shape.bundle:1;
   for(const junction of junctions.values()){
     if(!junction.turns.size)continue;
     const spans=[...junction.ports.values()].map(p=>p.span).sort((a,b)=>a-b),reach=Math.min(.22,spans[Math.floor(spans.length/2)]*.46)*(.02+.98*shape.roundness);
@@ -131,7 +132,13 @@ export function* prepareSmoothCablesSteps(paths: readonly CablePath[], elevation
       let accepted=true;
       for(const turn of junction.turns.values()){
         const {a,b,c}=turn,incoming=angle(a,b),outgoing=angle(b,c),scale=2**-attempt;
-        const before=Math.min(incoming*.46,reach)*scale,after=Math.min(outgoing*.46,reach)*scale;
+        // Branches leaving a shared Pacific edge peel off at different distances.
+        // The amount follows their turn angle, so identical/reversed turns
+        // retain exactly the same cut and unrelated crossings never merge.
+        const enter=norm(b.map((v,j)=>v*dot(a,b)-a[j]) as V),leave=norm(c.map((v,j)=>v-b[j]*dot(b,c)) as V);
+        const deflection=Math.sqrt(Math.max(0,(1-dot(enter,leave))*.5));
+        const shoulder=reach*(1+pacificAt(b)*(-.16+.85*deflection));
+        const before=Math.min(incoming*.46,shoulder)*scale,after=Math.min(outgoing*.46,shoulder)*scale;
         const start=arc(a,b,1-before/incoming),end=arc(b,c,after/outgoing);
         const piece:CableCurvePiece={a:start,b:end,controls:[arc(start,b,.32),arc(start,b,.64),arc(b,end,.36),arc(b,end,.68)],gatherStart:sharedGather(a,b),gatherEnd:sharedGather(b,c)};
         if(!waterCurve(piece,256,elevation,!!surfaceRadius)){accepted=false;break;}
@@ -365,7 +372,7 @@ export function* marineStrandsSteps(paths: readonly SmoothCable[], elevation: El
  for(const [sourceIndex,path] of paths.entries()){
   result.push({...path,sourceIndex,strand:0});
   if(path.length<.08||strandSpread<=0){yield;continue;}
-  const count=path.progress.length,units=new Float64Array(count*3),normals=new Float64Array(count*3),radii=new Float64Array(count),tapers=new Float64Array(count);
+  const count=path.progress.length,units=new Float64Array(count*3),normals=new Float64Array(count*3),radii=new Float64Array(count),tapers=new Float64Array(count),pacific=new Float64Array(count);
   // Prepare each tangent once. Offset retries only sample the water constraint;
   // they do not repeatedly allocate vectors or rebuild the same cross products.
   for(let k=0;k<count;k++){
@@ -374,6 +381,7 @@ export function* marineStrandsSteps(paths: readonly SmoothCable[], elevation: El
    const a=Math.max(0,k-1)*3,b=Math.min(count-1,k+1)*3;
    const tx=p[b]-p[a],ty=p[b+1]-p[a+1],tz=p[b+2]-p[a+2];
    const nx=y*tz-z*ty,ny=z*tx-x*tz,nz=x*ty-y*tx,n=Math.max(1e-12,Math.hypot(nx,ny,nz));
+   pacific[k]=pacificFlowWeight(Math.atan2(y,Math.hypot(x,z))/R,Math.atan2(x,z)/R);
    normals.set([nx/n,ny/n,nz/n],i);tapers[k]=Math.sin(Math.PI*path.progress[k])**2*(path.gathering?.[k]??1);
   }
   // An offset wider than the local bend radius folds back on itself. Limit
@@ -401,7 +409,10 @@ export function* marineStrandsSteps(paths: readonly SmoothCable[], elevation: El
     const blocked:number[]=[];
     for(let k=0;k<count;k++){
      // A smooth minimum rounds the shoulder while staying below both bounds.
-     const requested=Math.abs(offset)*tapers[k],limit=bendLimits[k],bounded=Number.isFinite(limit)?requested/Math.pow(1+(requested/Math.max(1e-9,limit))**4,.25):requested;
+     // Inner and outer strands open at different rates; long shared
+     // trunks stay narrow without a rigid, equally spaced fan offshore.
+     const rank=Math.ceil(strand/2),fan=tapers[k]*(1-pacific[k])+Math.pow(tapers[k],rank===1?1.08:1.40)*pacific[k]*(rank===1?.78:.94);
+     const requested=Math.abs(offset)*fan,limit=bendLimits[k],bounded=Number.isFinite(limit)?requested/Math.pow(1+(requested/Math.max(1e-9,limit))**4,.25):requested;
      const i=k*3,t=Math.sign(offset)*bounded*clearance[k],x=units[i]+normals[i]*t,y=units[i+1]+normals[i+1]*t,z=units[i+2]+normals[i+2]*t,n=Math.hypot(x,y,z);
      const q:V=[x/n,y/n,z/n],[lon,lat]=coordinates(q);
      if(!water(q,elevation,surface)||!surface&&networkRadius(elevation(lon,lat))>radii[k]+.000002)blocked.push(k);

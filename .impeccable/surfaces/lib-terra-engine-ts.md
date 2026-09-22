@@ -104,3 +104,10 @@ A separate v0.10.19 Site preserves the full v0.10.18 Shared Corridors milestone.
 ## 23 September 2026 — Open sky and celestial depth
 
 Same-checkpoint refinement concentrates the cloud in the upper right, with faint extensions and more uninterrupted darkness. The Sun has a firmer small core and finer halo; the crescent remains. Small camera-linked offsets distinguish the Moon, Sun and much more distant cloud. Pause freezes them; no solar lighting touches Earth. Existing light settings, satellites, routes and full reveal stay fixed. Desktop/phone inspection led to one correction moving the phone cloud below the title. Evidence and limits: `docs/SKY-REFINEMENT-V01019.md`; captures: `output/sky-refinement/`. Original tag, earlier revision and Shared Corridors are preserved.
+
+
+## 23 September 2026 — Pacific convergence
+
+Same-checkpoint refinement extends shared Pacific approaches, staggers branch cuts according to deflection and delays outer-strand opening. Keep pearl/gold Earth dominant, readable cyan satellites, unchanged sky and traffic, and luminous knots with a softer density budget. The Atlantic/Indian geometry remains outside the scoped geographic treatment; marine exposure smoothing is global.
+
+Desktop Pacific/Atlantic/Indian and phone review led to one bounded correction easing a northern Pacific bow. Final Pacific and phone captures remain readable, with the main geographic triangle still present. This is selected illustrative refinement, not global topology replacement. Evidence and limits: `docs/PACIFIC-CONVERGENCE-V01019.md`; captures: `output/pacific-convergence/`. Original tags, previous revisions and other Sites remain preserved.
