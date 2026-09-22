@@ -76,3 +76,9 @@ Desktop close views and a phone viewport confirm softer central Mediterranean jo
 Same-checkpoint refinement extends selected hub curves into the Pacific and northern Europe, varying branch shoulders by wider route bearing and retaining reverse parity. Northern European feeders share clearer coastal passages; secondary marine strands gain restrained exposure as the camera approaches, without adding travellers or competing with pearl/gold land light. Existing palette, controls and full awakening remain.
 
 Desktop Pacific/northern-Europe and phone review found a material compilation error, corrected before the final rendered check. Fine Pacific bows remain distinguishable; Scotland retains a schematic northern passage. Evidence, exact scope and limitations: `docs/PACIFIC-APPROACHES-V01018.md`; captures: `output/pacific-approaches/`.
+
+## 22 September 2026 — Japan–East Asia regional network
+
+User-approved same-checkpoint refinement adds sixteen illustrative sea connections and fourteen cable connections with multiple shared coastal stretches, fifteen display spines and longer selected East Asian approaches. Local links branch at different places around Japan, Korea, Taiwan and southern China. Pearl/gold Earth retains priority over muted marine light; traveller counts, palette, controls and awakening remain fixed.
+
+One desktop/phone batch and one bounded correction tightened an unnecessarily wide Nagoya–Osaka feeder. Final close-up and phone captures preserve regional detail and dark ocean space. The broad Pacific triangle and Hawaii remain unchanged; narrow passages remain schematic. Evidence: `output/east-asian-branches/`; validation, provenance and limits: `docs/EAST-ASIAN-BRANCHES-V01018.md`. This is not physical-device or sustained-performance acceptance.

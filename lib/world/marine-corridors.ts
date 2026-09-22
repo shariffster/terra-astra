@@ -1,3 +1,4 @@
+import { eastAsiaSpines } from './east-asia-corridors';
 import { europeSpines } from './europe-corridors';
 type Location = readonly [number, number];
 
@@ -77,6 +78,7 @@ const spines: readonly (readonly Location[])[] = [
  [[-10.125,115.125],[-13,113],[-17,111],[-21,110],[-26,111.8],[-29.5,112.6],[-32.125,113.125]],
  [[-10.125,115.125],[-13,113],[-17,111],[-21,110],[-26,111.8],[-31,113],[-34.5,114.5],[-37,118],[-38,126],[-39,136],[-39,144],[-39.375,148.375],[-37,151],[-34.125,153.125]],
  ...europeSpines,
+ ...eastAsiaSpines,
 ];
 const equal=(a:Location,b:Location)=>a[0]===b[0]&&a[1]===b[1];
 

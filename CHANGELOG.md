@@ -50,6 +50,13 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Fine marine strands gain up to 32% additional exposure as the camera approaches where crowding allows it. Dense knots retain their existing budget; traveller guides, flights and palette are unchanged.
 - Source totals stay 502 shipping routes and 410 cable routes, with the same traveller settings and full opening. Evidence and limits: `docs/PACIFIC-APPROACHES-V01018.md`.
 
+### Same-version follow-up — Japan and East Asian branches · 22 September 2026
+
+- Add sixteen illustrative shipping connections and fourteen cable connections between existing Japanese, Korean, Taiwanese and Chinese offshore anchors, with a southern feeder toward Manila. Totals: 518 shipping paths and 424 cable paths; moving-light populations remain independently controlled and unchanged.
+- Fifteen water-checked display spines give existing routes clearer coastal shoulders around Japan, Korea and the East China Sea. New local and regional links share stretches at different places rather than all joining one offshore hub. The Nagoya–Osaka feeder stays closer to the Kii coast.
+- Extend selected compatible approaches at the Korean, East China Sea and eastern Taiwan hubs. Preserve source records/endpoints, the restrained palette, settings, traveller budgets, opening/awakening and all earlier revisions/tags.
+- These are geographic illustrations, not measured shipping services or surveyed cables. The wider Pacific triangle is unchanged. Evidence and limits: `docs/EAST-ASIAN-BRANCHES-V01018.md`.
+
 ## v0.10.17 — Gathering into currents · 17 September 2026
 
 - Extend exact v0.10.16 `2ed8a38dddcc4164e31b6de097c04c22142236c6` in `people-choice/v0.10.17-flow-hierarchy`; Lab only.

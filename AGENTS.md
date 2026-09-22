@@ -1,3 +1,7 @@
+# v0.10.18 East Asian regional network (22 September 2026)
+
+The user approves the critique of `c47c84cf28ba8dd60b3dd892ab31fabef48b10b0`: build a convincing Japan–East Asia network with coastal approaches and quieter local feeders, keeping traveller populations and the palette fixed. Add distinct illustrative connections and refine selected display corridors. Preserve earlier route records/endpoints, water constraints, settings, opening/awakening, previous revisions/tags and all other Sites. Save and publish a new native revision on the same checkpoint Site/branch. This supersedes the previous pass's route-count freeze for these approved regional additions only.
+
 # v0.10.18 Pacific and northern approaches follow-up (21 September 2026)
 
 The user approves the focused follow-up from `e17c218d352e425dafddc4bbdb06965b8c9b6a8d`: extend longer staggered approaches into busy Pacific hubs, refine remaining northern European bows, and improve fine-strand legibility with zoom. Keep source route records/endpoints and traveller populations unchanged. Continue the same checkpoint Site/branch with a new saved native revision; preserve previous revisions/tags, settings, palette, opening and all other Sites. Geographic curves remain illustrative.

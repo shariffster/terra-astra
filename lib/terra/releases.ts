@@ -16,9 +16,10 @@ export const releases = [
       'Twelve shipping connections and twelve undersea connections add coastal branches around Europe and North Africa. Mediterranean, Gibraltar and Channel approaches curve more gradually, with varied offshore bows and softer light through crowded junctions.',
       'Selected Gibraltar, Sicily and Channel connections now gather across longer approaches. North Sea and Mediterranean feeders take clearer coastal paths, and supporting strands share more of the light beside major crossings.',
       'Pacific branches now gather over longer, staggered approaches around Japan, Hawaii and California, with selected Guam cable approaches. Northern European feeders take clearer shared passages, and fine marine strands become more legible as you approach.',
+      'Sixteen shipping connections and fourteen cable connections add local and regional branches along Japan, Korea, Taiwan and southern China. Shared coastal shoulders gather and separate at different points, with the same moving-light populations.',
       'The white-gold Earth, live controls and complete awakening remain. The previous v0.10.17 Site stays available as a separate checkpoint.',
     ],
-    review: '502 sea paths and 410 undersea paths are illustrative, not measured traffic or surveyed cable alignments. Original records and endpoints are preserved. Curves and strands are constrained by the existing coarse ocean mask; narrow passages remain schematic. Shared geometry applies across the marine network; added connections focus on selected regions, including European coastal approaches. This separate Site has its own browser-local saved settings; export and import a composition to carry it across.',
+    review: '518 sea paths and 424 undersea paths are illustrative, not measured traffic or surveyed cable alignments. Original records and endpoints are preserved. Curves and strands are constrained by the existing coarse ocean mask; narrow passages remain schematic. Shared geometry applies across the marine network; added connections focus on selected regions, including European and East Asian coastal approaches. This separate Site has its own browser-local saved settings; export and import a composition to carry it across.',
   },
   {
     version: '0.10.17',

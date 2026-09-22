@@ -17,7 +17,7 @@ const read=name=>JSON.parse(readFileSync(new URL('../public/data/networks/'+name
 assert.deepEqual(europeanBranches,read('european-branches'),'Bundled and downloadable provenance stay identical');
 const oldFetch=globalThis.fetch;globalThis.fetch=async url=>({ok:true,json:async()=>read(url.split('/').at(-1).replace('.json',''))});
 let atlas;try{atlas=await loadConnectionAtlas(new AbortController().signal);}finally{globalThis.fetch=oldFetch;}
-assert.ok(atlas);assert.deepEqual(atlas.sea.slice(-12),europeanBranches.sea);assert.deepEqual(atlas.cables.slice(-12),europeanBranches.cables);
+assert.ok(atlas);assert.deepEqual(atlas.sea.filter(p=>p.id.startsWith('european-feeder-')),europeanBranches.sea);assert.deepEqual(atlas.cables.filter(p=>p.id.startsWith('cable-european-feeder-')),europeanBranches.cables);
 const bytes=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.url)),grid=new Int16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2),height=(lon,lat)=>sampleElevation(grid,1440,720,lon,lat);
 let waterSamples=0;
 for(const points of europeSpines){const p=marinePath('spine','spine',points,0,1.002),out=new Float64Array(3),count=Math.ceil(p.totalArc/.00015);
@@ -26,9 +26,9 @@ const required=['sea-channel-northsea','sea-lisbon-gibraltar','sea-gibraltar-sic
 let refined=0;
 for(const surface of [true,false]){
  const sources=[...(surface?seaLanePaths:cablePaths),...atlasMarine(surface?atlas.sea:atlas.cables,surface)],snapshot=JSON.stringify(sources);
- assert.equal(sources.length,surface?502:410);assert.equal(new Set(sources.map(p=>p.id)).size,sources.length);
- const existing=new Set(sources.slice(0,-12).map(p=>[p.waypoints[0].join(','),p.waypoints.at(-1).join(',')].sort().join('/')));
- for(const p of sources.slice(-12)){const key=[p.waypoints[0].join(','),p.waypoints.at(-1).join(',')].sort().join('/');assert.ok(!existing.has(key),'A new feeder connects a distinct pair of anchors');existing.add(key);}
+ assert.equal(sources.length,surface?518:424);assert.equal(new Set(sources.map(p=>p.id)).size,sources.length);
+ const existing=new Set(sources.filter(p=>!p.id.includes('european-feeder-')).map(p=>[p.waypoints[0].join(','),p.waypoints.at(-1).join(',')].sort().join('/')));
+ for(const p of sources.filter(p=>p.id.includes('european-feeder-'))){const key=[p.waypoints[0].join(','),p.waypoints.at(-1).join(',')].sort().join('/');assert.ok(!existing.has(key),'A new feeder connects a distinct pair of anchors');existing.add(key);}
  const prepared=prepareSmoothCables(sources,height,surface?1.002:undefined);assert.equal(JSON.stringify(sources),snapshot);
  for(const p of prepared)if(required.includes(p.id)){assert.ok(p.corridorAdjusted,p.id+' must use its corrected display approach');refined++;}
 }
@@ -56,4 +56,4 @@ assert.ok(feathered[50]-feathered[49]<.4,'The abrupt light step is visibly softe
 const reversePositions=new Float32Array(positions.length);for(let i=0;i<101;i++)reversePositions.set(positions.subarray((100-i)*3,(101-i)*3),i*3);
 const reversed=featherMarineExposure(light.slice().reverse(),reversePositions).reverse();for(let i=0;i<101;i++)assert.ok(Math.abs(feathered[i]-reversed[i])<1e-6);
 assert.deepEqual(featherMarineExposure(new Float32Array(101).fill(.4),positions),new Float32Array(101).fill(.4));
-console.log(JSON.stringify({result:'PASS',newConnectionsPerFamily:12,displaySpines:europeSpines.length,acceptedCoreRoutes:refined,waterSamples,sourceCounts:{sea:502,cables:410},light:'bounded, reverse-identical and smoother'}));
+console.log(JSON.stringify({result:'PASS',newConnectionsPerFamily:12,displaySpines:europeSpines.length,acceptedCoreRoutes:refined,waterSamples,sourceCounts:{sea:518,cables:424},light:'bounded, reverse-identical and smoother'}));

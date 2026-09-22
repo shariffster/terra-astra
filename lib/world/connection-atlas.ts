@@ -1,4 +1,5 @@
 import { regionalBranches } from './regional-network-data';
+import { eastAsianBranches } from './east-asian-network-data';
 import { europeanBranches } from './european-network-data';
 import { indianBranches } from './indian-network-data';
 import { reliefRadius } from '../terra/spatial';
@@ -30,7 +31,7 @@ export async function loadConnectionAtlas(signal:AbortSignal):Promise<Connection
   for(const rows of [marine.sea,marine.cables])if(!Array.isArray(rows)||rows.length>600||!rows.every(r=>typeof r.id==='string'&&Number.isFinite(r.intensity)&&Array.isArray(r.waypoints)&&r.waypoints.length>=2&&r.waypoints.every((p:number[])=>p.length===2&&p.every(Number.isFinite))))throw new Error('Invalid marine atlas');
   // A separate, explicitly illustrative study preserves the earlier atlas.
   const indian=indianBranches;
-  return {air,sea:[...marine.sea,...indian.sea,...regionalBranches.sea,...europeanBranches.sea],cables:[...marine.cables,...indian.cables,...regionalBranches.cables,...europeanBranches.cables]};
+  return {air,sea:[...marine.sea,...indian.sea,...regionalBranches.sea,...europeanBranches.sea,...eastAsianBranches.sea],cables:[...marine.cables,...indian.cables,...regionalBranches.cables,...europeanBranches.cables,...eastAsianBranches.cables]};
  // The owner checks its abort signal after the parallel asset requests settle.
  // Resolve an optional request here, including cancellation, so early teardown
  // cannot leave a rejected promise waiting for the slower geographic assets.

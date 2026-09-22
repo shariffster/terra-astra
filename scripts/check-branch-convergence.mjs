@@ -12,12 +12,12 @@ const {schematicPassage,schematicCanal}=await import('../lib/world/ocean-geograp
 const {atlasMarine}=await import('../lib/world/connection-atlas.ts');
 const b=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.url)),grid=new Int16Array(b.buffer,b.byteOffset,b.byteLength/2);
 const elevation=(lon,lat)=>sampleElevation(grid,1440,720,lon,lat);
-const data=['marine-branches','indian-branches','regional-branches','european-branches'].map(n=>JSON.parse(readFileSync(new URL('../public/data/networks/'+n+'.json',import.meta.url))));
+const data=['marine-branches','indian-branches','regional-branches','european-branches','east-asian-branches'].map(n=>JSON.parse(readFileSync(new URL('../public/data/networks/'+n+'.json',import.meta.url))));
 const required=['sea-sg-sunda','sea-sunda-perth','sea-java-sydney','sea-auckland-hawaii','sea-japan-hawaii','bundle-japan-hawaii-1','bundle-japan-hawaii-2','network-sg-perth','network-perth-java','network-java-sg','network-guam-sydney','network-fiji-hawaii','branch-fiji-guam','parallel-japan-hawaii-1','parallel-japan-hawaii-2','parallel-japan-hawaii-3'];
 const accepted=[];let count=0;
 for(const surface of [true,false]){
  const source=[...(surface?seaLanePaths:cablePaths),...atlasMarine(data.flatMap(s=>surface?s.sea:s.cables),surface)];
- assert.equal(source.length,surface?502:410,'Includes twelve European feeders per family');
+ assert.equal(source.length,surface?518:424,'Includes European and East Asian regional connections');
  const snapshot=JSON.stringify(source),paths=prepareSmoothCables(source,elevation,surface?1.002:undefined);
  assert.equal(JSON.stringify(source),snapshot,'Original route records are untouched');
  for(const p of paths.filter(p=>required.includes(p.id))){assert.ok(p.corridorAdjusted,p.id+' must accept its new approach');accepted.push(p.id);}
@@ -45,4 +45,4 @@ for(const strand of marineStrands([bend],()=>-4000,true,2).slice(1))for(let i=3;
  minimumForward=Math.min(minimumForward,forward);
  assert.ok(forward>0,'Companion strands never reverse against their parent through a sharp bend');
 }
-console.log(JSON.stringify({result:'PASS',accepted,waterVertices:count,distinctPacificBows:bows.length,minimumForward,sourceCounts:{sea:502,cables:410}}));
+console.log(JSON.stringify({result:'PASS',accepted,waterVertices:count,distinctPacificBows:bows.length,minimumForward,sourceCounts:{sea:518,cables:424}}));

@@ -12,5 +12,8 @@ export function marineApproachReach(point: readonly [number, number]) {
   if(lat===21.875&&lon===-156.875)return .095; // Hawaii offshore
   if(lat===36.875&&lon===-124.875)return .070; // Northern California offshore
   if(lat===31.875&&lon===-119.875)return .060; // Southern California offshore
+  if(lat===33.875&&lon===128.125)return .040; // Korean / Kyushu offshore approach
+  if(lat===29.875&&lon===124.125)return .040; // East China Sea
+  if(lat===23.875&&lon===123.125)return .040; // East of Taiwan
   return 0;
 }

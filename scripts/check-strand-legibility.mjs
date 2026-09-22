@@ -20,7 +20,7 @@ const {networkRadius}=await import('../lib/terra/living-material.ts');
 const {schematicPassage,schematicCanal}=await import('../lib/world/ocean-geography.ts');
 const bytes=readFileSync(new URL('../public/data/relief-grid.bin',import.meta.url)),grid=new Int16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2);
 const height=(lon,lat)=>sampleElevation(grid,1440,720,lon,lat);
-const sources=['marine-branches','indian-branches','regional-branches','european-branches'].map(n=>JSON.parse(readFileSync(new URL('../public/data/networks/'+n+'.json',import.meta.url))));
+const sources=['marine-branches','indian-branches','regional-branches','european-branches','east-asian-branches'].map(n=>JSON.parse(readFileSync(new URL('../public/data/networks/'+n+'.json',import.meta.url))));
 let samples=0;const passages=[];
 for(const surface of [true,false]){
  const source=[...(surface?seaLanePaths:cablePaths),...atlasMarine(sources.flatMap(s=>surface?s.sea:s.cables),surface)],paths=prepareSmoothCables(source,height,surface?1.002:undefined);
