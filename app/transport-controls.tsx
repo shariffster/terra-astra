@@ -1,7 +1,7 @@
 'use client';
 import {useState,useEffect,type CSSProperties,type ReactNode} from 'react';
 import {Switch} from '@/components/ui/switch';
-import {TRANSPORT_FAMILIES,FAMILY_RANGES,cloneTransport,livelierSeas,type TransportFamily,type FamilyOptions,type FamilyNumber,type TransportOptions} from '@/lib/terra/transport';
+import {TRANSPORT_FAMILIES,FAMILY_RANGES,cloneTransport,defaultSeaActivity,type TransportFamily,type FamilyOptions,type FamilyNumber,type TransportOptions} from '@/lib/terra/transport';
 import styles from './composition-controls.module.css';
 const labels:Record<TransportFamily,string>={aircraft:'Flights',ships:'Ships',cables:'Undersea cables',satellites:'Satellites'};
 const modes={full:'Full pathway',local:'Forward & fading rear',trail:'Light trail only'};
@@ -21,7 +21,7 @@ export function TransportControls({soloMemory,value,onChange,masterPaths,masterT
  return <details className={styles.section} open><summary>Individual families</summary>
  {shapeStatus!=='ready'&&<p className={styles.status} role="status">{shapeStatus==='working'?'Shaping the routes…':'That shape could not be prepared. Adjust the shape controls to try again.'}</p>}
 
- <button type="button" className={styles.textButton} disabled={disabled} onClick={()=>onChange(livelierSeas(value))}>Use livelier seas</button><p className={styles.note}>264 ships and 96 brighter cable pulses before overall density. Keeps your pathway choices, flights and satellites.</p>
+ <button type="button" className={styles.textButton} disabled={disabled} onClick={()=>onChange(defaultSeaActivity(value))}>Use default sea activity</button><p className={styles.note}>176 ships and 186 cable pulses before overall density. Keeps your pathway choices, flights and satellites.</p>
  {TRANSPORT_FAMILIES.map(f=>{const v=value[f],label=labels[f],enabled=layers[f]!==false;
  const slider=(name:FamilyNumber,label:string,note?:string)=><FamilySlider key={name} family={f} name={name} label={label} value={v[name]} onChange={n=>change(f,{[name]:n})} note={note}/>;
  return <details className={styles.family} key={f}><summary><span>{label}</span><small>{v.travellers&&enabled&&masterTravellers? `Up to ${Math.ceil(v.count*density)} lights`:'Travellers off'} · {v.pathways&&enabled&&masterPaths?modes[v.mode]:'Paths off'}</small></summary><fieldset disabled={disabled}><div className={styles.familyActions}><button type="button" className={styles.textButton} aria-pressed={solo===f} onClick={()=>solo===f?restoreFamilies():soloFamily(f)}>{solo===f?'Restore families':`Solo ${label.toLowerCase()}`}</button><button type="button" className={styles.textButton} onClick={()=>change(f,cloneTransport()[f])}>Reset this family</button></div>

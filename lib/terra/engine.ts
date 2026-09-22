@@ -241,7 +241,7 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
  const familySources=(layer:TransportFamily)=>layer==='aircraft'?flightPaths.map((p,i)=>({intensity:i<40?.72:historicalFlights[i-40]?.intensity??.5})):layer==='ships'?allSeaPaths:layer==='cables'?allCablePaths:orbitPaths.map(()=>({intensity:1}));
  const familyTint=(layer:TransportFamily)=>layer==='cables'?'#C5ABEE':signalColors[layer];
  const familyKey=(layer:TransportFamily)=>layer==='cables'?'cableLight':layer==='satellites'?'orbitLight':layer==='ships'?'seaLight':'airLight';
- const materialFor=(layer:TransportFamily)=>layer==='cables'?{size:1.8,head:1.65,tail:.4,opacity:1.7,rhythm:.17,shimmer:.3}:LIVING_MATERIAL[layer];
+ const materialFor=(layer:TransportFamily)=>layer==='cables'?{size:1.95,head:1.85,tail:.48,opacity:1.7,rhythm:.17,shimmer:.3}:LIVING_MATERIAL[layer];
  const WINDOW_SAMPLES=49,TRAIL_SAMPLES=32;
  function movingWindow(layer:TransportFamily,gates:ActivityTransitions){
   const data=fallback?new Float32Array(MAX_TRAVELLERS*WINDOW_SAMPLES*6):new Float32Array();
@@ -266,6 +266,8 @@ export async function createEarth(host:HTMLDivElement,markers:HTMLDivElement,cal
   c.points.geometry.setAttribute('trailPart',new THREE.BufferAttribute(trailPart,1));
   c.material.vertexShader='attribute float trailPart;varying float vTrail;\n'+vertex.replace('void main(){','void main(){vTrail=trailPart;');
   c.material.fragmentShader='varying float vTrail;\n'+fragment.replace(',soft)',',soft*vTrail)');
+  // Cable wakes are diffuse light; reserve the tiny star flare for the head.
+  if(layer==='cables')c.material.fragmentShader=c.material.fragmentShader.replace('float flare=ray*','float flare=(1.0-vTrail)*ray*');
   c.points.userData.shell=layer;c.points.userData.rhythm=material.rhythm;c.points.userData.shimmer=0;c.material.uniforms.shell.value=layer==='cables'?2:1;c.points.userData.fallbackExposure=1.4;
   if(layer==='cables'){c.points.userData.seaBackbone=true;c.points.userData.network=true;c.points.userData.spatial=true;c.material.uniforms.spatial.value=1;terrainCloud(c,4);}
   const gates=new ActivityTransitions(records.map(r=>r.id),'travellers'),localGates=new ActivityTransitions(records.map(r=>r.id),'pathways',false),tailGates=new ActivityTransitions(records.map(r=>r.id),'travellers');

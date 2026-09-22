@@ -1,3 +1,7 @@
+# v0.10.18 Pacific structure and owner defaults (22 September 2026)
+
+The user approves the Pacific and East Asian structural follow-up from `0c5cc540d37f93306552979de73c41021f124b38`: longer staggered joins, distinct regional feeders, clearer cable heads and tapering wakes, compared against the Atlantic and Indian Ocean. Adopt the full browser composition captured in `output/pacific-structure/owner-composition.json` as the default; preserve existing saved values and other Sites. Keep the same branch, semantic version and checkpoint Site, saving a new native revision after checks. Original route records/endpoints, water constraints, palette, full opening and awakening and earlier tags/revisions remain protected. Added connections remain explicitly illustrative.
+
 # v0.10.18 Global marine hierarchy and activity (22 September 2026)
 
 The user approves a coordinated global review of network hierarchy and conspicuous remaining junctions from `23681ba83623f50f554f7ae7b8f52d2b92e237e2`. Increase ships and cable pulses, including cable pulse frequency and presence; keep flights and satellites unchanged. Continue the same checkpoint Site and branch with a new saved revision. Preserve route identities/endpoints, water constraints, saved custom compositions, palette, opening and awakening, earlier revisions/tags and all other Sites. This explicitly supersedes earlier frozen ship/cable activity budgets for this follow-up. Assess the Indian, Atlantic, Pacific and East Asian views together; do not claim a surveyed or complete global network.

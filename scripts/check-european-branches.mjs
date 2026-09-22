@@ -26,7 +26,7 @@ const required=['sea-channel-northsea','sea-lisbon-gibraltar','sea-gibraltar-sic
 let refined=0;
 for(const surface of [true,false]){
  const sources=[...(surface?seaLanePaths:cablePaths),...atlasMarine(surface?atlas.sea:atlas.cables,surface)],snapshot=JSON.stringify(sources);
- assert.equal(sources.length,surface?518:424);assert.equal(new Set(sources.map(p=>p.id)).size,sources.length);
+ assert.equal(sources.length,surface?527:431);assert.equal(new Set(sources.map(p=>p.id)).size,sources.length);
  const existing=new Set(sources.filter(p=>!p.id.includes('european-feeder-')).map(p=>[p.waypoints[0].join(','),p.waypoints.at(-1).join(',')].sort().join('/')));
  for(const p of sources.filter(p=>p.id.includes('european-feeder-'))){const key=[p.waypoints[0].join(','),p.waypoints.at(-1).join(',')].sort().join('/');assert.ok(!existing.has(key),'A new feeder connects a distinct pair of anchors');existing.add(key);}
  const prepared=prepareSmoothCables(sources,height,surface?1.002:undefined);assert.equal(JSON.stringify(sources),snapshot);
@@ -56,4 +56,4 @@ assert.ok(feathered[50]-feathered[49]<.4,'The abrupt light step is visibly softe
 const reversePositions=new Float32Array(positions.length);for(let i=0;i<101;i++)reversePositions.set(positions.subarray((100-i)*3,(101-i)*3),i*3);
 const reversed=featherMarineExposure(light.slice().reverse(),reversePositions).reverse();for(let i=0;i<101;i++)assert.ok(Math.abs(feathered[i]-reversed[i])<1e-6);
 assert.deepEqual(featherMarineExposure(new Float32Array(101).fill(.4),positions),new Float32Array(101).fill(.4));
-console.log(JSON.stringify({result:'PASS',newConnectionsPerFamily:12,displaySpines:europeSpines.length,acceptedCoreRoutes:refined,waterSamples,sourceCounts:{sea:518,cables:424},light:'bounded, reverse-identical and smoother'}));
+console.log(JSON.stringify({result:'PASS',newConnectionsPerFamily:12,displaySpines:europeSpines.length,acceptedCoreRoutes:refined,waterSamples,sourceCounts:{sea:527,cables:431},light:'bounded, reverse-identical and smoother'}));

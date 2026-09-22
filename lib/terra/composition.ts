@@ -11,13 +11,12 @@ export const LIGHT_RANGES = {
 export type LightNumber = keyof typeof LIGHT_RANGES;
 export type LightOptions = Record<LightNumber, number> & { depth: boolean; borders: boolean; motion: boolean; transport: TransportOptions };
 export const DEFAULT_LIGHT: LightOptions = Object.freeze({
- transport: cloneTransport(), skyLight: .7, skyShimmer: .75, skyDust: 0, glow: 1.15, shimmer: 1.1, depth: true, threads: .55, density: .85, borders: false, motion: true,
- shoreBreath:.35,currentLight:1,currentSpeed:1, nightLights: 1.15, warmth: .65, oceanLight: .8, strandSpread: 1.35, strandLight: 1.25, pathLight: 1, pathVolume: .85, travellerLight: 1, travellerVolume: .85,
+ transport: cloneTransport(), skyLight: .7, skyShimmer: .75, skyDust: 0, glow: 1.55, shimmer: 1.1, depth: true, threads: .55, density: .95, borders: false, motion: true,
+ shoreBreath:.47,currentLight:1,currentSpeed:1, nightLights: 1.44, warmth: .65, oceanLight: .8, strandSpread: 1.35, strandLight: 1.25, pathLight: 1, pathVolume: .85, travellerLight: 1, travellerVolume: .85,
  airLight: .9, seaLight: 1, cableLight: .85, orbitLight: 1, population: .55, footprint: .38, fieldDensity: .75, colour: .6,
 });
 export type Composition = { schema: 'terra-astra-composition'; version: 1; name: string; light: LightOptions; presentation: WorldPresentation; layers: Record<WorldLayer, boolean> };
 export const COMPOSITION_STORAGE = 'terra-astra:composition:v1';
-export const MARINE_ACTIVITY_STORAGE = 'terra-astra:marine-activity:1';
 export const SAVED_COMPOSITIONS = 'terra-astra:saved-compositions:v1';
 export const DEFAULT_LAYERS: Readonly<Record<WorldLayer,boolean>> = Object.freeze({ satellites: true, aircraft: true, ships: true, cables: true, urban: true });
 export function composition(name: string, light: LightOptions, presentation = DEFAULT_PRESENTATION, layers: Readonly<Record<WorldLayer,boolean>> = DEFAULT_LAYERS): Composition {

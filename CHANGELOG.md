@@ -65,6 +65,14 @@ Semantic versions label the experience; Sites version numbers identify saved dep
 - Add “Use livelier seas” for marine activity only. On the first upgraded visit, untouched legacy marine families receive new defaults; custom families and named/exported compositions remain intact. The migration is recorded once after the last view saves successfully, so restoring an older composition later remains a deliberate choice.
 - Preserve 518 sea paths and 424 cable paths, their original source records and endpoints, the palette, other Sites, historical tags and earlier native revisions. See `docs/GLOBAL-MARINE-BALANCE-V01018.md`.
 
+
+### Same-version follow-up — Pacific structure and owner defaults · 22 September 2026
+
+- Add nine illustrative shipping connections and seven cable connections across the Pacific, with distinct regional feeders and broader shared approaches into Japan, Guam, Hawaii and California. Refine three existing crossing pairs without duplicating their source records. Totals: 527 sea paths and 431 cable paths.
+- Give cable pulses slightly clearer heads and diffuse, tapering wakes; keep the established palette and other traveller materials.
+- Adopt the owner’s complete exported composition as the new default, including star glow 1.55, night lights 1.44, 176 ships and 186 cable pulses before overall density. Preserve existing saved compositions exactly; remove the earlier one-time marine migration. The marine preset becomes “Use default sea activity.”
+- Preserve the same checkpoint, branch, semantic version, original tag, full opening and awakening. Validation and limitations: `docs/PACIFIC-STRUCTURE-V01018.md`; exact settings: `docs/OWNER-COMPOSITION-V01018.json`.
+
 ## v0.10.17 — Gathering into currents · 17 September 2026
 
 - Extend exact v0.10.16 `2ed8a38dddcc4164e31b6de097c04c22142236c6` in `people-choice/v0.10.17-flow-hierarchy`; Lab only.

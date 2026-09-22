@@ -88,3 +88,10 @@ One desktop/phone batch and one bounded correction tightened an unnecessarily wi
 User-approved global review across the Indian, Atlantic, Pacific and East Asian views. Rebalance marine leads and supporting strands within the same pearl/gold-led world; extend nine Indian/Atlantic hub approaches and round the Horn of Africa shoulder. Default ships rise to 264 and cable pulses to 96 with stronger, more frequent cable glints. Aircraft and satellites remain unchanged. Custom family settings and named snapshots survive; a marine-only preset supports live comparison.
 
 Evidence: `output/global-network/`; exact settings, geometry checks and limitations: `docs/GLOBAL-MARINE-BALANCE-V01018.md`. This is coordinated visual balance and selected junction refinement, not surveyed geography or complete global topology. Existing dark space, typography, palette and awakening remain intact.
+
+
+## 22 September 2026 — Pacific structure and selected defaults
+
+The approved Pacific follow-up adds nine illustrative shipping and seven cable connections, broadens shared offshore approaches and gives regional feeders distinct coastal shoulders. Adopt the complete owner-exported composition as default; preserve every existing saved value. Pearl/gold Earth remains dominant; cable heads have more definition while wakes stay diffuse, and other traveller materials and colours remain.
+
+One desktop/phone batch identified a corner near Guam and small spikes along cable wakes. A single correction batch gives Guam a common western shoulder and reserves the cable star flare for its head. The final Pacific and East Asian views are more continuous, while the principal geographic triangle and some schematic crossings remain. Evidence: `output/pacific-structure/`; exact changes, settings and limitations: `docs/PACIFIC-STRUCTURE-V01018.md`. Full opening/awakening are preserved; no new physical-device or performance acceptance claim.

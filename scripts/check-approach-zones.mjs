@@ -8,10 +8,10 @@ const tangent=(piece,end)=>{const a=sampleCablePiece(piece,end?1-.0001:0),b=samp
 const report=[];let minimumJoin=1;
 const reviewHubs=[[33.875,142.125],[11.875,145.125],[21.875,-156.875],[36.875,-124.875],[31.875,-119.875],[-5.125,43.125],[-36.125,19.125],[4.375,80.125],[11.875,63.125],[12.375,45.125],[22.875,60.125],[38.875,-70.875],[-8.125,-31.875],[13.875,-18.875]];
 for(const surface of[true,false]){
- const data=['marine-branches','indian-branches','regional-branches','european-branches','east-asian-branches'].flatMap(n=>JSON.parse(readFileSync('public/data/networks/'+n+'.json'))[surface?'sea':'cables']);
+ const data=['marine-branches','indian-branches','regional-branches','european-branches','east-asian-branches','pacific-branches'].flatMap(n=>JSON.parse(readFileSync('public/data/networks/'+n+'.json'))[surface?'sea':'cables']);
  const sources=[...(surface?seaLanePaths:cablePaths),...atlasMarine(data,surface)],snapshot=JSON.stringify(sources);
  const paths=prepareSmoothCables(sources,height,surface?1.002:undefined),affected=paths.filter(p=>p.pieces.some(x=>x.approachReach));
- assert.equal(paths.length,surface?518:424);assert.equal(JSON.stringify(sources),snapshot);assert.ok(affected.length>=16,'Selected hubs receive extended approaches');
+ assert.equal(paths.length,surface?527:431);assert.equal(JSON.stringify(sources),snapshot);assert.ok(affected.length>=16,'Selected hubs receive extended approaches');
  const hubCoverage=reviewHubs.map(hub=>{
   const approachShapes=new Set();
   const reaches=paths.flatMap((p,i)=>[0,1].flatMap(end=>{

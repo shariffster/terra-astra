@@ -17,15 +17,15 @@ const pair=points=>[points[0].join(','),points.at(-1).join(',')].sort().join('/'
 const report=[];
 for(const surface of [true,false]){
  const family=surface?'sea':'cables',added=eastAsianBranches[family];
- assert.deepEqual(atlas[family].slice(-added.length),added,'The runtime actually loads the complete regional study');
+ assert.deepEqual(atlas[family].filter(p=>added.some(a=>a.id===p.id)),added,'The runtime actually loads the complete regional study');
  const sources=[...(surface?seaLanePaths:cablePaths),...atlasMarine(atlas[family],surface)],before=JSON.stringify(sources);
- const existing=new Set(sources.slice(0,-added.length).map(p=>pair(p.waypoints)));
+ const existing=new Set(sources.filter(p=>!added.some(a=>a.id===p.id)).map(p=>pair(p.waypoints)));
  for(const p of added){assert.ok(!existing.has(pair(p.waypoints)),'Distinct connection, not another duplicate strand');existing.add(pair(p.waypoints));}
  const paths=prepareSmoothCables(sources,height,surface?1.002:undefined);
  assert.equal(JSON.stringify(sources),before,'Earlier source records and endpoints stay immutable');
  const reversed=prepareSmoothCables(sources.map(p=>({...p,waypoints:[...p.waypoints].reverse()})),height,surface?1.002:undefined);
 
- for(let i=sources.length-added.length;i<sources.length;i++){
+ for(const i of sources.map((p,i)=>added.some(a=>a.id===p.id)?i:-1).filter(i=>i>=0)){
   assert.equal(paths[i].pieces.length,reversed[i].pieces.length);
   for(const [j,piece] of paths[i].pieces.entries())for(const t of [0,.25,.5,.75,1]){
    const a=sampleCablePiece(piece,t),z=sampleCablePiece(reversed[i].pieces.at(-j-1),1-t);
