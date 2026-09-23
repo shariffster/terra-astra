@@ -8,6 +8,7 @@ Earth, constellated. A geographic Earth made of light opens into a living volume
 - [Build history](https://terra-astra.riffster.chatgpt.site/history)
 - [Astra engineering evidence](docs/hackathon/ASTRA-EVIDENCE.md)
 - [Submission status](docs/hackathon/SUBMISSION-PREP.md)
+- [Final hackathon handoff](FINAL-HANDOFF.md)
 
 ## Run locally
 
