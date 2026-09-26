@@ -11,6 +11,7 @@ Earth, constellated. A geographic Earth made of light opens into a living volume
 - [Final hackathon handoff](FINAL-HANDOFF.md)
 - [Design system](DESIGN.md)
 - [Release history](CHANGELOG.md)
+- [Special destination sources](docs/special-destinations/SOURCES.md)
 
 ## Run locally
 
